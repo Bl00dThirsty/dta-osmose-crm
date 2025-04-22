@@ -1,0 +1,457 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  action     String
+  entityId   Int?
+  entityType String?
+  timestamp  DateTime @default(now())
+  details    String?
+  user       user     @relation(fields: [userId], references: [id])
+}
+
+model Reporting {
+  id                Int      @id @default(autoincrement())
+  prospectName      String
+  date              DateTime
+  degree            String?
+  rdvObject         String
+  nextRdv           DateTime
+  time              String
+  contact           String
+  pharmacoVigilance String
+  latitude          Float
+  longitude         Float
+  filePath          String?
+  createdAt         DateTime @default(now())
+}
+
+
+
+model announcement {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  status      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+}
+
+model appSetting {
+  id           Int    @id @default(autoincrement())
+  company_name String
+  tag_line     String
+  address      String
+  phone        String
+  email        String
+  website      String
+  footer       String
+}
+
+
+
+model attendance {
+  id            Int       @id @default(autoincrement())
+  userId        Int
+  inTime        DateTime
+  outTime       DateTime?
+  ip            String?
+  comment       String?
+  punchBy       Int?
+  totalHour     Float?
+  inTimeStatus  String?
+  outTimeStatus String?
+  status        Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime
+  user          user      @relation(fields: [userId], references: [id])
+}
+
+model award {
+  id           Int            @id @default(autoincrement())
+  name         String         @unique
+  description  String?
+  image        String?
+  status       Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime
+  awardHistory awardHistory[]
+}
+
+model awardHistory {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  awardId     Int
+  awardedDate DateTime
+  comment     String?
+  status      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+  award       award    @relation(fields: [awardId], references: [id])
+  user        user     @relation(fields: [userId], references: [id])
+}
+
+model customer {
+  id              String           @id
+  name            String
+  phone           String        @unique
+  address         String
+  nameresponsable String        @default("")
+  email           String        @default("")
+  website         String?        @default("")
+  status          Boolean       @default(true)
+  type_customer   typCat
+  created_at      DateTime      @default(now())
+  updated_at      DateTime?      @updatedAt
+  //saleInvoice     saleInvoice[]
+}
+
+
+model department {
+  id     Int     @id @default(autoincrement())
+  name   String
+  status Boolean @default(true)
+  user   user[]
+}
+
+model designation {
+  id                 Int                  @id @default(autoincrement())
+  name               String               @unique
+  status             Boolean              @default(true)
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime
+  designationHistory designationHistory[]
+}
+
+model designationHistory {
+  id            Int         @id @default(autoincrement())
+  userId        Int
+  designationId Int
+  startDate     DateTime
+  endDate       DateTime?
+  comment       String?
+  designation   designation @relation(fields: [designationId], references: [id])
+  user          user        @relation(fields: [userId], references: [id])
+}
+
+/*
+model permission {
+  id             Int              @id @default(autoincrement())
+  name           String           @unique
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime
+  rolePermission rolePermission[]
+}*/
+
+
+model product {
+  id                           String                         @id
+  name                         String                         @unique
+  quantity                     Int
+  signature                    String
+  gtsPrice                     Float
+  sellingPriceHT               Float
+  sellingPriceTTC              Float
+  purchase_price               Float
+  label                        String?
+  status                       Boolean                        @default(true)                        
+  imageName                    String?
+  idSupplier                   Int?
+  product_category_id          Int?
+  unit_measurement             Float?
+  unit_type                    String?
+  sku                          String?                        @unique
+  reorder_quantity             Int?
+  created_at                   DateTime                       @default(now())
+  updated_at                   DateTime                       @default(now())
+  collisage                    Int
+  marge                        Float?
+  gencode                      String?
+  marque                       String?
+  depense                      Float?
+  //supplier                     supplier                       @relation(fields: [idSupplier], references: [id])
+  //product_category             product_category?              @relation(fields: [product_category_id], references: [id])
+  //returnPurchaseInvoiceProduct returnPurchaseInvoiceProduct[]
+  //returnSaleInvoiceProduct     returnSaleInvoiceProduct[]
+  //saleInvoiceProduct           saleInvoiceProduct[]
+  //salePromiseProduct           salePromiseProduct[]
+}
+/*
+model product_category {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime
+  product   product[]
+}
+*/
+/*
+model publicHoliday {
+  id        Int      @id @default(autoincrement())
+  name      String
+  date      DateTime
+  status    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+}
+
+model purchaseInvoice {
+  id                     Int                      @id @default(autoincrement())
+  date                   DateTime
+  total_amount           Float
+  discount               Float
+  paid_amount            Float
+  due_amount             Float
+  supplier_id            Int
+  note                   String?
+  supplier_memo_no       String?
+  created_at             DateTime                 @default(now())
+  updated_at             DateTime
+  supplier               supplier                 @relation(fields: [supplier_id], references: [id], onDelete: Cascade)
+  purchaseInvoiceProduct purchaseInvoiceProduct[]
+  returnPurchaseInvoice  returnPurchaseInvoice[]
+}
+
+model purchaseInvoiceProduct {
+  id                     Int             @id @default(autoincrement())
+  product_id             Int
+  invoice_id             Int
+  product_quantity       Int
+  product_purchase_price Float
+  created_at             DateTime        @default(now())
+  updated_at             DateTime
+  purchaseInvoice        purchaseInvoice @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+  product                product         @relation(fields: [product_id], references: [id], onDelete: Cascade)
+}
+
+model returnPurchaseInvoice {
+  id                           Int                            @id @default(autoincrement())
+  date                         DateTime
+  total_amount                 Float
+  note                         String?
+  purchaseInvoice_id           Int
+  status                       Boolean                        @default(true)
+  created_at                   DateTime                       @default(now())
+  updated_at                   DateTime
+  purchaseInvoice              purchaseInvoice                @relation(fields: [purchaseInvoice_id], references: [id], onDelete: Cascade)
+  returnPurchaseInvoiceProduct returnPurchaseInvoiceProduct[]
+}
+
+model returnPurchaseInvoiceProduct {
+  id                     Int                   @id @default(autoincrement())
+  product_id             Int
+  invoice_id             Int
+  product_quantity       Int
+  product_purchase_price Float
+  created_at             DateTime              @default(now())
+  updated_at             DateTime
+  returnPurchaseInvoice  returnPurchaseInvoice @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+  product                product               @relation(fields: [product_id], references: [id], onDelete: Cascade)
+}
+
+*/
+// VENTE DE PRODUITS
+/*
+model returnSaleInvoice {
+  id                       Int                        @id @default(autoincrement())
+  date                     DateTime
+  total_amount             Float
+  note                     String?
+  saleInvoice_id           Int
+  status                   Boolean                    @default(true)
+  created_at               DateTime                   @default(now())
+  updated_at               DateTime
+  saleInvoice              saleInvoice                @relation(fields: [saleInvoice_id], references: [id], onDelete: Cascade)
+  returnSaleInvoiceProduct returnSaleInvoiceProduct[]
+}
+
+model returnSaleInvoiceProduct {
+  id                 Int               @id @default(autoincrement())
+  product_id         Int
+  invoice_id         Int
+  product_quantity   Int
+  product_sale_price Float
+  created_at         DateTime          @default(now())
+  updated_at         DateTime
+  returnSaleInvoice  returnSaleInvoice @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+  product            product           @relation(fields: [product_id], references: [id], onDelete: Cascade)
+}
+
+model saleInvoice {
+  id                 Int                  @id @default(autoincrement())
+  date               DateTime
+  total_amount       Float
+  discount           Float
+  paid_amount        Float
+  due_amount         Float
+  profit             Float
+  customer_id        Int
+  user_id            Int
+  note               String?
+  created_at         DateTime             @default(now())
+  updated_at         DateTime
+  returnSaleInvoice  returnSaleInvoice[]
+  customer           customer             @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  user               user                 @relation(fields: [user_id], references: [id])
+  saleInvoiceProduct saleInvoiceProduct[]
+}
+
+model saleInvoiceProduct {
+  id                 Int         @id @default(autoincrement())
+  product_id         Int
+  invoice_id         Int
+  product_quantity   Int
+  product_sale_price Float
+  created_at         DateTime    @default(now())
+  updated_at         DateTime
+  saleInvoice        saleInvoice @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+  product            product     @relation(fields: [product_id], references: [id], onDelete: Cascade)
+}
+
+model salePromise {
+  id                 Int                  @id @default(autoincrement())
+  date               DateTime
+  dueDate            DateTime?
+  reminderDate       DateTime?
+  companyName        String?
+  customer_address   String?
+  total_amount       Float
+  discount           Float
+  customer_name      String
+  customer_phone     String
+  customer_id        Int?
+  user_id            Int
+  note               String?
+  created_at         DateTime             @default(now())
+  updated_at         DateTime
+  user               user                 @relation(fields: [user_id], references: [id])
+  salePromiseProduct salePromiseProduct[]
+}
+
+model salePromiseProduct {
+  id                 Int         @id @default(autoincrement())
+  product_id         Int
+  promise_id         Int
+  product_quantity   Int
+  product_sale_price Float
+  created_at         DateTime    @default(now())
+  updated_at         DateTime
+  product            product     @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  salePromise        salePromise @relation(fields: [promise_id], references: [id], onDelete: Cascade)
+}
+
+
+model role {
+  id             Int              @id @default(autoincrement())
+  name           String           @unique
+  status         Boolean          @default(true)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime
+  rolePermission rolePermission[]
+  user           user[]
+}
+
+model rolePermission {
+  id            Int        @id @default(autoincrement())
+  role_id       Int
+  permission_id Int
+  status        Boolean    @default(true)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime
+  permission    permission @relation(fields: [permission_id], references: [id], onDelete: Cascade)
+  role          role       @relation(fields: [role_id], references: [id], onDelete: Cascade)
+
+  @@unique([role_id, permission_id])
+}
+
+model salaryHistory {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  salary    Float
+  startDate String
+  endDate   DateTime?
+  comment   String?
+  status    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime
+  user      user      @relation(fields: [userId], references: [id])
+}
+
+model supplier {
+  id              Int               @id @default(autoincrement())
+  name            String
+  phone           String            @unique
+  address         String
+  status          Boolean           @default(true)
+  created_at      DateTime          @default(now())
+  updated_at      DateTime
+  product         product[]
+  purchaseInvoice purchaseInvoice[]
+}
+
+
+
+*/
+
+model user {
+  id                 Int                  @id @default(autoincrement())
+  firstName          String?
+  lastName           String?
+  userName           String               @unique
+  password           String
+  email              String?              @unique
+  phone              String?              @unique
+  street             String?
+  city               String?
+  state              String?
+  zipCode            String?
+  country            String?
+  joinDate           DateTime?
+  leaveDate          DateTime?
+  employeeId         String?              @unique
+  bloodGroup         String?
+  image              String?
+  employmentStatusId Int?
+  departmentId       Int?
+  roleId             Int?
+  shiftId            Int?
+  leavePolicyId      Int?
+  weeklyHolidayId    Int?
+  status             Boolean              @default(true)
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime
+  AuditLog           AuditLog[]
+  attendance         attendance[]
+  awardHistory       awardHistory[]
+  designationHistory designationHistory[]
+  //salaryHistory      salaryHistory[]
+  //saleInvoice        saleInvoice[]
+  //salePromise        salePromise[]
+  department         department?          @relation(fields: [departmentId], references: [id])
+  //role               role?                @relation(fields: [roleId], references: [id])
+  weeklyHoliday      weeklyHoliday?       @relation(fields: [weeklyHolidayId], references: [id])
+}
+
+model weeklyHoliday {
+  id        Int      @id @default(autoincrement())
+  name      String
+  startDay  String
+  endDay    String
+  status    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  user      user[]
+}
+
+enum typCat {
+  Pharmacie
+  Distributeur
+}
