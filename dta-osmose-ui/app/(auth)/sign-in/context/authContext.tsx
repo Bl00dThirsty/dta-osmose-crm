@@ -1,0 +1,178 @@
+"use client";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
+import axios from 'axios';
+
+// Types
+interface User {
+  id: string;
+  username: string;
+  role: string;
+}
+
+interface AuthContextType {
+  user: User | null;
+  loading: boolean;
+  error: string | null;
+  login: (username: string, password: string) => Promise<void>;
+  register: (username: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  clearError: () => void;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth doit être utilisé dans un AuthProvider');
+  }
+  return context;
+};
+
+// Provider
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  // Configuration axios
+  const api = axios.create({
+    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api',
+    withCredentials: true
+  });
+
+  // Intercepteur pour les requêtes
+  api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  });
+
+  // Intercepteur pour les réponses
+  api.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+      const originalRequest = error.config;
+      
+      // Si l'erreur est 401 et que ce n'est pas une requête de refresh token
+      if (error.response?.status === 401 && !originalRequest._retry && 
+          originalRequest.url !== '/auth/refresh-token') {
+        originalRequest._retry = true;
+        
+        try {
+          // Tenter de rafraîchir le token
+          const { data } = await api.post('/auth/refresh-token');
+          localStorage.setItem('accessToken', data.accessToken);
+          
+          // Mettre à jour le header et renvoyer la requête
+          originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
+          return api(originalRequest);
+        } catch (refreshError) {
+          // Si le refresh échoue, déconnecter l'utilisateur
+          setUser(null);
+          localStorage.removeItem('accessToken');
+          router.push('/login');
+          return Promise.reject(refreshError);
+        }
+      }
+      
+      return Promise.reject(error);
+    }
+  );
+
+  // Vérifier l'authentification au chargement
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const token = localStorage.getItem('accessToken');
+        
+        if (token) {
+          const { data } = await api.get('/auth/me');
+          setUser(data.user);
+        }
+      } catch (err) {
+        // Si l'erreur est gérée par l'intercepteur, on ne fait rien ici
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    checkAuth();
+  }, []);
+
+  // Fonction de connexion
+  const login = async (username: string, password: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const { data } = await api.post('/auth/login', { username, password });
+      
+      setUser(data.user);
+      localStorage.setItem('accessToken', data.accessToken);
+      
+      return data;
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Une erreur est survenue');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fonction d'inscription
+  const register = async (username: string, password: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const { data } = await api.post('/auth/register', { username, password });
+      
+      setUser(data.user);
+      localStorage.setItem('accessToken', data.accessToken);
+      
+      return data;
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Une erreur est survenue');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fonction de déconnexion
+  const logout = async () => {
+    try {
+      await api.post('/auth/logout');
+    } catch (err) {
+      console.error('Erreur lors de la déconnexion:', err);
+    } finally {
+      setUser(null);
+      localStorage.removeItem('accessToken');
+      router.push('/login');
+    }
+  };
+
+  // Effacer l'erreur
+  const clearError = () => setError(null);
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        error,
+        login,
+        register,
+        logout,
+        clearError
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+};
