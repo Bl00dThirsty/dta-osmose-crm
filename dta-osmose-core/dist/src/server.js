@@ -15,6 +15,7 @@ const client_1 = require("@prisma/client");
 const errorHandler_1 = require("../src/error/errorHandler");
 const dashboardRoutes_1 = __importDefault(require("./routes/dashboardRoutes"));
 const productRoutes_1 = __importDefault(require("./routes/productRoutes"));
+const customerRoutes_1 = __importDefault(require("./routes/customerRoutes"));
 exports.prisma = new client_1.PrismaClient();
 dotenv_1.default.config();
 const app = (0, express_1.default)();
@@ -30,6 +31,7 @@ app.use((0, cookie_parser_1.default)());
 /* ROUTES */
 app.use("/dashboard", dashboardRoutes_1.default);
 app.use("/products", productRoutes_1.default);
+app.use("/customers", customerRoutes_1.default);
 // Error handling middleware
 app.use(errorHandler_1.errorHandler);
 const PORT = process.env.PORT || 4000;

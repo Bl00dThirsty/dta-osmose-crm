@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import Footer from "@/app/(routes)/components/Footer";
+import Footer from "@/app/[institution]/(routes)/components/Footer";
 
 
 const AuthLayout = async ({ children }: { children: React.ReactNode }) => {

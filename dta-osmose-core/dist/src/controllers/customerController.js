@@ -27,30 +27,74 @@ const getCustomers = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         res.json(customers);
     }
     catch (error) {
-        res.status(500).json({ message: "Erreur lors de la recherche du produit" });
+        res.status(500).json({ message: "Erreur lors de la recherche de l'utilisateur" });
     }
 });
 exports.getCustomers = getCustomers;
 const createCustomer = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { name, phone, address, nameresponsable, email, website, status, type_customer } = req.body;
-        const customer = yield prisma.customer.create({
-            data: {
-                id: (0, uuid_1.v4)(),
-                name,
-                phone,
-                address,
-                nameresponsable,
-                email,
-                website,
-                status,
-                type_customer,
-            },
-        });
-        res.status(201).json(customer);
+        const { name, phone, ville, region, nameresponsable, email, website, status, type_customer } = req.body;
+        const now = new Date();
+        const month = now.getMonth() + 1;
+        const year = now.getFullYear();
+        const newCustomer = yield prisma.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
+            let counter = yield tx.customerCounter.findUnique({
+                where: {
+                    month_year: {
+                        month,
+                        year,
+                    },
+                },
+            });
+            if (!counter) {
+                counter = yield tx.customerCounter.create({
+                    data: {
+                        month,
+                        year,
+                        count: 1,
+                    },
+                });
+            }
+            else {
+                counter = yield tx.customerCounter.update({
+                    where: {
+                        month_year: {
+                            month,
+                            year,
+                        },
+                    },
+                    data: {
+                        count: {
+                            increment: 1,
+                        },
+                    },
+                });
+            }
+            const counterStr = String(counter.count).padStart(3, '0');
+            const monthStr = String(month).padStart(2, '0');
+            const customId = `CLIENT-${counterStr}${monthStr}${year}`;
+            const customer = yield tx.customer.create({
+                data: {
+                    id: (0, uuid_1.v4)(),
+                    customId,
+                    name,
+                    phone,
+                    ville,
+                    region,
+                    nameresponsable,
+                    email,
+                    website,
+                    status,
+                    type_customer,
+                },
+            });
+            return customer;
+        }));
+        res.status(201).json(newCustomer);
     }
     catch (error) {
-        res.status(500).json({});
+        console.error(error);
+        res.status(500).json({ message: 'Erreur lors de la création du client' });
     }
 });
 exports.createCustomer = createCustomer;

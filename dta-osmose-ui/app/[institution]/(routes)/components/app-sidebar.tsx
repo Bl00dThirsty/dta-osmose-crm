@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { NavUser } from "@/app/(routes)/components/nav-user";
+import { NavUser } from "@/app/[institution]/(routes)/components/nav-user";
 
 import {
   AudioWaveform,

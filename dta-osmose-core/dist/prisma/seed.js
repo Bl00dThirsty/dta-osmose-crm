@@ -26,10 +26,10 @@ function deleteAllData(orderedFileNames) {
             const model = prisma[modelName];
             if (model) {
                 yield model.deleteMany({});
-                console.log(`Cleared data from ${modelName}`);
+                console.log(`Données de ${modelName} éffacées...`);
             }
             else {
-                console.error(`Model ${modelName} not found. Please ensure the model name is correctly specified.`);
+                console.error(`Model ${modelName} not found. Assure toi d'avoir correctement entré le nom.`);
             }
         }
     });
@@ -40,10 +40,6 @@ function main() {
         const orderedFileNames = [
             "product.json",
             "customer.json",
-            "expenseSummary.json",
-            "sales.json",
-            "salesSummary.json",
-            "purchases.json",
         ];
         yield deleteAllData(orderedFileNames);
         for (const fileName of orderedFileNames) {
@@ -52,7 +48,7 @@ function main() {
             const modelName = path_1.default.basename(fileName, path_1.default.extname(fileName));
             const model = prisma[modelName];
             if (!model) {
-                console.error(`No Prisma model matches the file name: ${fileName}`);
+                console.error(`Aucun model Prisma ne match avec le fichier: ${fileName}`);
                 continue;
             }
             for (const data of jsonData) {

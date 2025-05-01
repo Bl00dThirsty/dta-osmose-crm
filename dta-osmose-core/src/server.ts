@@ -9,6 +9,7 @@ import { PrismaClient } from '@prisma/client';
 import { errorHandler } from '../src/error/errorHandler';
 import dashboardRoutes from './routes/dashboardRoutes';
 import productRoutes from './routes/productRoutes';
+import customerRoutes from './routes/customerRoutes';
 
 export const prisma = new PrismaClient();
 
@@ -27,6 +28,7 @@ app.use(cookieParser());
 /* ROUTES */
 app.use("/dashboard", dashboardRoutes);
 app.use("/products", productRoutes)
+app.use("/customers", customerRoutes)
 
 // Error handling middleware
 app.use(errorHandler);

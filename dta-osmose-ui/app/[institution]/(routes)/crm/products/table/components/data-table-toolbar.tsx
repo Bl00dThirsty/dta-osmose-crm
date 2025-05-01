@@ -6,7 +6,7 @@ import { X, Upload } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { DataTableViewOptions } from "@/app/(routes)/crm/products/table/components/data-table-view-options"
+import { DataTableViewOptions } from "@/app/[institution]/(routes)/crm/products/table/components/data-table-view-options"
 
 import { quantityLevel, statuses } from "../data/data"
 import { DataTableFacetedFilter } from "./data-table-faceted-filter"

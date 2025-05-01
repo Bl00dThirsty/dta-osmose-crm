@@ -101,19 +101,31 @@ model awardHistory {
 
 model customer {
   id              String           @id
+  customId        String          @unique
+  institution     String
   name            String
   phone           String        @unique
-  address         String
-  nameresponsable String        @default("")
-  email           String        @default("")
+  ville           String
+  region          String
+  nameresponsable String?        @default("")
+  email           String?        @default("")
   website         String?        @default("")
-  status          Boolean       @default(true)
+  status          Boolean?       @default(true)
   type_customer   typCat
   created_at      DateTime      @default(now())
   updated_at      DateTime?      @updatedAt
   //saleInvoice     saleInvoice[]
 }
 
+model CustomerCounter {
+  id     Int  @id @default(autoincrement())
+  institution     String
+  month  Int
+  year   Int
+  count  Int  @default(0)
+
+  @@unique([institution, month, year])
+}
 
 model department {
   id     Int     @id @default(autoincrement())

@@ -9,9 +9,6 @@ const CrmPage = async () => {
       title="CRM"
       description={"Tout ce aue vous devez savoir sur les ventes..."}
     >
-      {/*
-      TODO: Think about how to handle the loading of the data to make better UX with suspense
-      */}
       <Suspense fallback={<SuspenseLoading />}>
         <MainPageView />
       </Suspense>
