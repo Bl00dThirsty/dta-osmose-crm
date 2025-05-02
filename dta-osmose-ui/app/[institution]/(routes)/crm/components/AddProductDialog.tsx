@@ -1,5 +1,3 @@
-"use client"
-
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -32,10 +30,11 @@ type ProductFormData = {
 }
 
 type AddProductDialogProps = {
-  onCreate: (ProductData: ProductFormData) => void;
+  onCreate: (ProductData: ProductFormData & { institution: string }) => void;
+  institution: string;
 }
 
-export const AddProductDialog = ({ onCreate }: AddProductDialogProps) => {
+export const AddProductDialog = ({ onCreate, institution }: AddProductDialogProps) => {
   const [formData, setFormData] = useState({
     id: v4(),
     name: "",
@@ -60,7 +59,7 @@ export const AddProductDialog = ({ onCreate }: AddProductDialogProps) => {
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    onCreate(formData);
+    onCreate({ ...formData, institution });
   };
 
   return (

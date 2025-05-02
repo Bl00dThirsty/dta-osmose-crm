@@ -35,15 +35,18 @@ export const metadata: Metadata = {
   },
 };
 
-export default function AppLayout({
+export default async function AppLayout({
   children,
+  params,
 }: {
   children: React.ReactNode;
+  params: { institution: string };
 }) {
+  const { institution } = await params;
   return (
     <SidebarProvider>
     <div className="flex h-screen w-screen">
-      <AppSidebar />
+      <AppSidebar institution={institution} />
       <div className="h-full w-full">
         <Header />
         <div className="overflow-x-auto h-full p-5"> <SidebarTrigger /> {children}</div>

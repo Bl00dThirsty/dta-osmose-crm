@@ -1,7 +1,8 @@
+"use client";
+
 import * as React from "react";
 
 import { NavUser } from "@/app/[institution]/(routes)/components/nav-user";
-
 import {
   AudioWaveform,
   BookOpen,
@@ -38,106 +39,88 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 
-
 const data = {
   user: {
     name: "john",
     email: "Mega Admin",
     avatar: "/avatars/shadcn.jpg",
   },
-  apps: [
-    {
-      name: "Supply Chain",
-      logo:   ChartCandlestick,
-      plan: "Management",
-    },
-    {
-      name: "Ressources humaines",
-      logo: AudioWaveform,
-      plan: "Management",
-    },
-    {
-      name: "Gestion des soins",
-      logo: Command,
-      plan: "Management",
-    },
-  ],
   navMain: [
     {
       title: "Dashoard",
-      url: "#",
+      path: "dashboard",
       icon: () => <LayoutDashboard className="w-20 h-20" />,
       isActive: true,
       items: [
-        { title: "Dashbord Ventes", url: "/crm/dashboard" },
-        { title: "Mon dashboard", url: "#" },
+        { title: "Dashbord Ventes", path: "dashboard" },
+        { title: "Mon dashboard", path: "#" },
       ],
     },
     {
       title: "Produits",
-      url: "/crm/dashboard",
+      path: "products",
       icon: () => <Package size={40} />,
       items: [
-        { title: "Listes des produits", url: "/crm/products" },
-        { title: "Statistiques", url: "#" },
+        { title: "Listes des produits", path: "crm/products" },
+        { title: "Statistiques", path: "#" },
       ],
     },
     {
       title: "Stock de produits",
-      url: "#",
-      icon: () => <TrendingUp  size={40} />,
-      items: [
-        { title: "Tableau de rotation", url: "#" },
-      ],
+      path: "#",
+      icon: () => <TrendingUp size={40} />,
+      items: [{ title: "Tableau de rotation", path: "#" }],
     },
     {
       title: "Fournisseurs",
-      url: "#",
+      path: "#",
       icon: () => <ArrowBigDownDash size={40} />,
       items: [
-        { title: "Liste des fournisseurs", url: "#" },
-        { title: "Commandes", url: "#" },
+        { title: "Liste des fournisseurs", path: "#" },
+        { title: "Commandes", path: "#" },
       ],
     },
     {
       title: "Comptes clients",
-      url: "/crm/customers",
+      path: "customers",
       icon: () => <Crown size={40} />,
       items: [
-        { title: "Liste des comptes clients", url: "/crm/customers" },
-        { title: "Facturation", url: "#" },
+        { title: "Liste des comptes clients", path: "crm/customers" },
+        { title: "Facturation", path: "#" },
       ],
     },
     {
       title: "Paramètres",
-      url: "#",
+      path: "#",
       icon: () => <Settings2 size={40} />,
       items: [
-        { title: "Compte", url: "#" },
-        { title: "Facturation", url: "#" },
-        { title: "Billing", url: "#" },
+        { title: "Compte", path: "#" },
+        { title: "Facturation", path: "#" },
+        { title: "Billing", path: "#" },
       ],
     },
     {
       title: "Documentation",
-      url: "#",
+      path: "#",
       icon: () => <BookOpen size={40} />,
       items: [
-        { title: "Introduction", url: "#" },
-        { title: "Commencer", url: "#" },
-        { title: "Retour / Feedback", url: "#" },
+        { title: "Introduction", path: "#" },
+        { title: "Commencer", path: "#" },
+        { title: "Retour / Feedback", path: "#" },
       ],
     },
   ],
 };
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({
+  institution,
+  ...props
+}: { institution: string } & React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <AppSwitcher />
-        <SidebarGroup className="py-0 group-data-[collapsible=icon]:hidden">
-        </SidebarGroup>
+        <SidebarGroup className="py-0 group-data-[collapsible=icon]:hidden" />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -152,22 +135,28 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               >
                 <SidebarMenuItem>
                   <CollapsibleTrigger asChild>
-                  <div className="space-y-2">
-                  <SidebarMenuButton tooltip={item.title}>
-                    <div className="w-6 h-6 flex items-center justify-center">
-                      {item.icon && item.icon()}
+                    <div className="space-y-2">
+                      <SidebarMenuButton tooltip={item.title}>
+                        <div className="w-6 h-6 flex items-center justify-center">
+                          {item.icon && item.icon()}
+                        </div>
+                        <span>{item.title}</span>
+                        <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                      </SidebarMenuButton>
                     </div>
-                      <span>{item.title}</span>
-                      <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                    </SidebarMenuButton>
-                  </div>
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <SidebarMenuSub>
                       {item.items?.map((subItem) => (
                         <SidebarMenuSubItem key={subItem.title}>
                           <SidebarMenuSubButton asChild>
-                            <a href={subItem.url}>
+                            <a
+                              href={
+                                subItem.path.startsWith("#")
+                                  ? "#"
+                                  : `/${institution}/${subItem.path}`
+                              }
+                            >
                               <span>{subItem.title}</span>
                             </a>
                           </SidebarMenuSubButton>

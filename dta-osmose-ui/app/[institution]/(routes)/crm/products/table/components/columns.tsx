@@ -9,10 +9,6 @@ import { Product } from "@/state/api"
 import { DataTableColumnHeader } from "./data-table-column-header"
 import { DataTableRowActions } from "./data-table-row-actions"
 
-const statusMap: Record<string, { label: string, color: string }> = {
-  "true": { label: "Actif", color: "green" },
-  "false": { label: "Inactif", color: "red" },
-}
 
 
 export const columns: ColumnDef<Product>[] = [
@@ -48,26 +44,26 @@ export const columns: ColumnDef<Product>[] = [
     cell: ({ row }) => <div className="w-[80px]">{row.getValue("id")}</div>,
   },
   {
-    accessorKey: "name",
+    accessorKey: "EANCode",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Nom" />
+      <DataTableColumnHeader column={column} title="Code EAN" />
     ),
-    cell: ({ row }) => <div className="w-[140px]">{row.getValue("name")}</div>,
+    cell: ({ row }) => <div className="w-[140px]">{row.getValue("EANCode")}</div>,
   },
   {
-    accessorKey: "quantity",
+    accessorKey: "brand",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Quantité" />
+      <DataTableColumnHeader column={column} title="Marque" />
     ),
-    cell: ({ row }) => <div className="w-[80px]">{row.getValue("quantity")}</div>,
+    cell: ({ row }) => <div className="w-[80px]">{row.getValue("brand")}</div>,
   },
   {
-    accessorKey: "label",
+    accessorKey: "designation",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Label" />
+      <DataTableColumnHeader column={column} title="Désignation" />
     ),
     cell: ({ row }) => (
-      <Badge>{row.getValue("label")}</Badge>
+      <Badge>{row.getValue("designation")}</Badge>
     ),
   },
   {
@@ -78,20 +74,6 @@ export const columns: ColumnDef<Product>[] = [
     cell: ({ row }) => <div className="w-[100px]">{row.getValue("purchase_price")} €</div>,
   },
   {
-    accessorKey: "gtsPrice",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="GTS Price" />
-    ),
-    cell: ({ row }) => <div className="w-[100px]">{row.getValue("gtsPrice")} €</div>,
-  },
-  {
-    accessorKey: "sellingPriceHT",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Prix vente HT" />
-    ),
-    cell: ({ row }) => <div className="w-[100px]">{row.getValue("sellingPriceHT")} €</div>,
-  },
-  {
     accessorKey: "sellingPriceTTC",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Prix vente TTC" />
@@ -99,26 +81,18 @@ export const columns: ColumnDef<Product>[] = [
     cell: ({ row }) => <div className="w-[100px]">{row.getValue("sellingPriceTTC")} €</div>,
   },
   {
-    accessorKey: "status",
+    accessorKey: "restockingThreshold",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Statut" />
+      <DataTableColumnHeader column={column} title="Seuil App." />
     ),
-    cell: ({ row }) => {
-      const value = row.getValue("status") as boolean
-      const status = statusMap[value.toString()]
-      return (
-        <div className={`text-${status.color}-600 font-semibold`}>
-          {status.label}
-        </div>
-      )
-    },
+    cell: ({ row }) => <div>{row.getValue("restockingThreshold")}</div>,
   },
   {
-    accessorKey: "collisage",
+    accessorKey: "warehouse",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Collisage" />
+      <DataTableColumnHeader column={column} title="Entrepôt de stockage" />
     ),
-    cell: ({ row }) => <div>{row.getValue("collisage")}</div>,
+    cell: ({ row }) => <div>{row.getValue("warehouse")}</div>,
   },
   {
     id: "actions",

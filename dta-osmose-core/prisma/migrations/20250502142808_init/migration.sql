@@ -108,18 +108,33 @@ CREATE TABLE "awardHistory" (
 -- CreateTable
 CREATE TABLE "customer" (
     "id" TEXT NOT NULL,
+    "customId" TEXT NOT NULL,
+    "institution" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "phone" TEXT NOT NULL,
-    "address" TEXT NOT NULL,
-    "nameresponsable" TEXT NOT NULL DEFAULT '',
-    "email" TEXT NOT NULL DEFAULT '',
+    "ville" TEXT NOT NULL,
+    "quarter" TEXT NOT NULL,
+    "region" TEXT,
+    "nameresponsable" TEXT DEFAULT '',
+    "email" TEXT DEFAULT '',
     "website" TEXT DEFAULT '',
-    "status" BOOLEAN NOT NULL DEFAULT true,
+    "status" BOOLEAN DEFAULT true,
     "type_customer" "typCat" NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3),
 
     CONSTRAINT "customer_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "CustomerCounter" (
+    "id" SERIAL NOT NULL,
+    "institution" TEXT NOT NULL,
+    "month" INTEGER NOT NULL,
+    "year" INTEGER NOT NULL,
+    "count" INTEGER NOT NULL DEFAULT 0,
+
+    CONSTRAINT "CustomerCounter_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -157,15 +172,17 @@ CREATE TABLE "designationHistory" (
 -- CreateTable
 CREATE TABLE "product" (
     "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
+    "EANCode" TEXT NOT NULL,
+    "brand" TEXT NOT NULL,
+    "designation" TEXT NOT NULL,
     "quantity" INTEGER NOT NULL,
-    "signature" TEXT NOT NULL,
-    "gtsPrice" DOUBLE PRECISION NOT NULL,
-    "sellingPriceHT" DOUBLE PRECISION NOT NULL,
+    "restockingThreshold" INTEGER NOT NULL,
     "sellingPriceTTC" DOUBLE PRECISION NOT NULL,
     "purchase_price" DOUBLE PRECISION NOT NULL,
-    "label" TEXT,
-    "status" BOOLEAN NOT NULL DEFAULT true,
+    "warehouse" TEXT NOT NULL,
+    "institution" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "imageName" TEXT,
     "idSupplier" INTEGER,
     "product_category_id" INTEGER,
@@ -173,15 +190,19 @@ CREATE TABLE "product" (
     "unit_type" TEXT,
     "sku" TEXT,
     "reorder_quantity" INTEGER,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "collisage" INTEGER NOT NULL,
-    "marge" DOUBLE PRECISION,
-    "gencode" TEXT,
-    "marque" TEXT,
-    "depense" DOUBLE PRECISION,
 
     CONSTRAINT "product_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ProductCounter" (
+    "id" SERIAL NOT NULL,
+    "institution" TEXT NOT NULL,
+    "month" INTEGER NOT NULL,
+    "year" INTEGER NOT NULL,
+    "count" INTEGER NOT NULL DEFAULT 0,
+
+    CONSTRAINT "ProductCounter_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -233,16 +254,25 @@ CREATE TABLE "weeklyHoliday" (
 CREATE UNIQUE INDEX "award_name_key" ON "award"("name");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "customer_customId_key" ON "customer"("customId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "customer_phone_key" ON "customer"("phone");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "CustomerCounter_institution_month_year_key" ON "CustomerCounter"("institution", "month", "year");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "designation_name_key" ON "designation"("name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "product_name_key" ON "product"("name");
+CREATE UNIQUE INDEX "product_EANCode_key" ON "product"("EANCode");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "product_sku_key" ON "product"("sku");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ProductCounter_institution_month_year_key" ON "ProductCounter"("institution", "month", "year");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "user_userName_key" ON "user"("userName");

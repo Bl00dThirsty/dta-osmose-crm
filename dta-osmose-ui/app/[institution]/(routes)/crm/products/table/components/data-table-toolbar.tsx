@@ -2,6 +2,7 @@
 
 import { Table } from "@tanstack/react-table"
 import { X, Upload } from "lucide-react"
+import { useParams } from "next/navigation"
 
 
 import { Button } from "@/components/ui/button"
@@ -17,16 +18,15 @@ import Papa from "papaparse"
 import { useState } from "react"
 
 type ProductFormData = {
-  name: string;
-  quantity: number;
-  signature: string;
-  gtsPrice: number;
-  sellingPriceHT: number;
-  sellingPriceTTC: number;
-  purchase_price: number;
-  label: string;
-  status?: boolean;
-  collisage: number;
+  quantity: number,
+  EANCode: string,
+  brand: string,
+  designation: string,
+  restockingThreshold: number,
+  warehouse: string,
+  sellingPriceTTC: number,
+  purchase_price: number,
+  institution: string,
 }
 interface DataTableToolbarProps<TData> {
   table: Table<TData>
@@ -40,7 +40,9 @@ export function DataTableToolbar<TData>({
   const handleCreateProduct = async (productData: ProductFormData) => {
     await createProduct(productData);
   }
-  
+  const params = useParams();
+  const institution = params?.institution as string;
+
   const [file, setFile] = useState<File | null>(null)
   const [createProduct] = useCreateProductMutation()
   
@@ -50,7 +52,6 @@ export function DataTableToolbar<TData>({
         setFile(selectedFile)
       }
     }
-  
     const handleUpload = () => {
       if (!file) return
   
@@ -63,16 +64,14 @@ export function DataTableToolbar<TData>({
           for (const product of products) {
             try {
               await createProduct({
-                name: product.name,
                 quantity: Number(product.quantity) || 0,
-                signature: product.signature,
-                gtsPrice: Number(product.gtsPrice) || 0,
-                sellingPriceHT: Number(product.sellingPriceHT) || 0,
+                brand: product.brand,
+                designation: product.designation,
+                restockingThreshold: Number(product.restockingThreshold) || 0,
                 sellingPriceTTC: Number(product.sellingPriceTTC) || 0,
                 purchase_price: Number(product.purchase_price) || 0,
-                label: product.label,
-                collisage: Number(product.collisage) || 0,
-                status: product.status?.toString().toLowerCase() === "true",
+                warehouse: product.warehouse,
+                institution: product.institution,            
               }).unwrap()
             } catch (error) {
               console.error("Erreur lors de l'ajout du produit :", error)
@@ -122,7 +121,7 @@ export function DataTableToolbar<TData>({
           </Button>
         )}
       </div>
-      <AddProductDialog onCreate={handleCreateProduct} />
+      <AddProductDialog onCreate={handleCreateProduct} institution={institution} />
       <Dialog>
         <DialogTrigger asChild>
           <Button variant="outline" className="px-2 lg:px-3"><Upload className="mr-2" /> Importer CSV</Button>

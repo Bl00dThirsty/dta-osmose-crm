@@ -2,29 +2,26 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export interface Product {
     id: string; 
-    name: string;  
+    EANCode: string;  
     quantity: number;       
-    signature: string;
-    gtsPrice: number;
-    sellingPriceHT: number;
+    brand: string;
+    designation: string;
     sellingPriceTTC: number;
     purchase_price: number;
-    label: string;
-    status?: boolean;
-    collisage: number;
+    restockingThreshold: number;
+    warehouse: string;
 }
 
 export interface NewProduct {
-    name: string;  
+    id: string; 
+    EANCode: string;  
     quantity: number;       
-    signature: string;
-    gtsPrice: number;
-    sellingPriceHT: number;
+    brand: string;
+    designation: string;
     sellingPriceTTC: number;
     purchase_price: number;
-    label: string;
-    status?: boolean;
-    collisage: number;
+    restockingThreshold: number;
+    warehouse: string;
 }
 export interface DashboardMetrics {
     popularProducts: Product[];
