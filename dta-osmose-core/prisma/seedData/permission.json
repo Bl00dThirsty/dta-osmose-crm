@@ -1,0 +1,11 @@
+[
+  {
+    "name":"create-user"
+  },
+  {
+    "name":"create-product"
+  },
+  {
+    "name":"view-product"
+  }
+]

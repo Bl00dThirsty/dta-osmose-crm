@@ -10,9 +10,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createProduct = exports.getProducts = void 0;
-const client_1 = require("@prisma/client");
+//import { PrismaClient } from "@prisma/client";
+const { PrismaClient } = require("@prisma/client");
 const uuid_1 = require("uuid");
-const prisma = new client_1.PrismaClient();
+const prisma = new PrismaClient();
 const getProducts = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {

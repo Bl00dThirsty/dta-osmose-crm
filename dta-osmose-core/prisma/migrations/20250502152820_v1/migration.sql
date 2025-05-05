@@ -113,6 +113,7 @@ CREATE TABLE "customer" (
     "address" TEXT NOT NULL,
     "nameresponsable" TEXT NOT NULL DEFAULT '',
     "email" TEXT NOT NULL DEFAULT '',
+    "password" TEXT NOT NULL,
     "website" TEXT DEFAULT '',
     "status" BOOLEAN NOT NULL DEFAULT true,
     "type_customer" "typCat" NOT NULL,
@@ -185,6 +186,39 @@ CREATE TABLE "product" (
 );
 
 -- CreateTable
+CREATE TABLE "role" (
+    "id" SERIAL NOT NULL,
+    "name" TEXT NOT NULL,
+    "status" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "role_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "permission" (
+    "id" SERIAL NOT NULL,
+    "name" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "permission_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "rolePermission" (
+    "id" SERIAL NOT NULL,
+    "role_id" INTEGER NOT NULL,
+    "permission_id" INTEGER NOT NULL,
+    "status" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "rolePermission_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "user" (
     "id" SERIAL NOT NULL,
     "firstName" TEXT,
@@ -199,34 +233,19 @@ CREATE TABLE "user" (
     "zipCode" TEXT,
     "country" TEXT,
     "joinDate" TIMESTAMP(3),
-    "leaveDate" TIMESTAMP(3),
+    "birthday" TEXT,
     "employeeId" TEXT,
     "bloodGroup" TEXT,
     "image" TEXT,
-    "employmentStatusId" INTEGER,
     "departmentId" INTEGER,
-    "roleId" INTEGER,
-    "shiftId" INTEGER,
-    "leavePolicyId" INTEGER,
+    "role" TEXT,
+    "salary" DOUBLE PRECISION,
     "weeklyHolidayId" INTEGER,
     "status" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "user_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "weeklyHoliday" (
-    "id" SERIAL NOT NULL,
-    "name" TEXT NOT NULL,
-    "startDay" TEXT NOT NULL,
-    "endDay" TEXT NOT NULL,
-    "status" BOOLEAN NOT NULL DEFAULT true,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "weeklyHoliday_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -243,6 +262,15 @@ CREATE UNIQUE INDEX "product_name_key" ON "product"("name");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "product_sku_key" ON "product"("sku");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "role_name_key" ON "role"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "permission_name_key" ON "permission"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "rolePermission_role_id_permission_id_key" ON "rolePermission"("role_id", "permission_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "user_userName_key" ON "user"("userName");
@@ -275,7 +303,10 @@ ALTER TABLE "designationHistory" ADD CONSTRAINT "designationHistory_designationI
 ALTER TABLE "designationHistory" ADD CONSTRAINT "designationHistory_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "user" ADD CONSTRAINT "user_departmentId_fkey" FOREIGN KEY ("departmentId") REFERENCES "department"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "rolePermission" ADD CONSTRAINT "rolePermission_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "role"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "user" ADD CONSTRAINT "user_weeklyHolidayId_fkey" FOREIGN KEY ("weeklyHolidayId") REFERENCES "weeklyHoliday"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "rolePermission" ADD CONSTRAINT "rolePermission_permission_id_fkey" FOREIGN KEY ("permission_id") REFERENCES "permission"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "user" ADD CONSTRAINT "user_departmentId_fkey" FOREIGN KEY ("departmentId") REFERENCES "department"("id") ON DELETE SET NULL ON UPDATE CASCADE;

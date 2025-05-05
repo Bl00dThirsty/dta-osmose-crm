@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
+const { PrismaClient } = require("@prisma/client");
 import { v4 as uuidv4 } from 'uuid'
 
 const prisma = new PrismaClient();

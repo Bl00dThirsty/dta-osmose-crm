@@ -1,7 +1,14 @@
-import { PrismaClient } from "@prisma/client";
+const { PrismaClient } = require("@prisma/client");
 import fs from "fs";
 import path from "path";
+const bcrypt = require("bcrypt");
+import dotenv from "dotenv";
+
+require("dotenv").config();
+
 const prisma = new PrismaClient();
+const saltRounds = 10;
+
 
 async function deleteAllData(orderedFileNames: string[]) {
   const modelNames = orderedFileNames.map((fileName) => {
@@ -22,16 +29,159 @@ async function deleteAllData(orderedFileNames: string[]) {
   }
 }
 
+// async function seedUsers() {
+//   const authFilePath = path.join(__dirname, "seedData", "auth.json");
+//   const rawData = fs.readFileSync(authFilePath, "utf-8");
+//   const users = JSON.parse(rawData);
+
+//   for (const user of users) {
+//     if (user.password) {
+//       user.password = await bcrypt.hash(user.password, saltRounds);
+//     }
+
+//     // Créer utilisateur (ex: dans la table `user`)
+//     await prisma.user.deleteMany({});
+//     await prisma.user.create({
+//       data: {
+//         ...user,
+//       },
+//     });
+
+//     console.log(`Seeded user: ${user.email}`);
+//   }
+// }
+
+const permissions = [
+  "create-product",
+  "view-product",
+  "create-user",
+];
+
+const roles = ["admin", "staff", "manager", "Particulier"];
+
+const adminPermissions = [...permissions];
+const staffPermissions = [...permissions];
+const managerPermissions = [
+  "view-product",
+];
+const particularPermissions = [...managerPermissions];
+
+const rolePermissionsMap: Record<string, string[]> = {
+  admin: adminPermissions,
+  staff: staffPermissions,
+  manager: managerPermissions,
+  Particulier: particularPermissions
+};
+
+async function createPermissions() {
+  for (const name of permissions
+    .concat(managerPermissions)
+    .concat(particularPermissions)) {
+    const exists = await prisma.permission.findUnique({ where: { name } });
+    if (!exists) {
+      await prisma.permission.create({ data: { name } });
+    }
+  }
+}
+
+async function createRoles() {
+  for (const roleName of roles) {
+    const exists = await prisma.role.findUnique({ where: { name: roleName } });
+    if (!exists) {
+      await prisma.role.create({ data: { name: roleName } });
+    }
+  }
+}
+
+async function assignRolePermissions() {
+  for (const [roleName, perms] of Object.entries(rolePermissionsMap)) {
+    const role = await prisma.role.findUnique({ where: { name: roleName } });
+    if (!role) continue;
+
+    for (const permName of perms) {
+      const permission = await prisma.permission.findUnique({ where: { name: permName } });
+      if (!permission) continue;
+
+      const exists = await prisma.rolePermission.findUnique({
+        where: {
+          role_id_permission_id: {
+            role_id: role.id,
+            permission_id: permission.id
+          }
+        }
+      });
+
+      if (!exists) {
+        await prisma.rolePermission.create({
+          data: {
+            role_id: role.id,
+            permission_id: permission.id
+          }
+        });
+      }
+    }
+  }
+}
+
+async function createUsers() {
+  const users = [
+    {
+      userName: "admin",
+      firstName: "admin",
+      lastName: "admin",
+      email: "admin@gmail.com",
+      password: await bcrypt.hash("admin", saltRounds),
+      role: "admin",
+    },
+    {
+      userName: "staff",
+      firstName: "staff",
+      lastName: "staff",
+      email: "staff@gmail.com",
+      password: await bcrypt.hash("staff", saltRounds),
+      role: "staff",
+    },
+    {
+      userName: "manager",
+      firstName: "manager",
+      lastName: "manager",
+      email: "manager@gmail.com",
+      password: await bcrypt.hash("manager", saltRounds),
+      role: "manager",
+    }
+  ];
+
+  for (const user of users) {
+    const exists = await prisma.user.findUnique({ where: { email: user.email } });
+    if (!exists) {
+      // Vérifie si le rôle existe
+      const roleExists = await prisma.role.findUnique({ where: { name: user.role } });
+      if (!roleExists) {
+        console.warn(`Role "${user.role}" not found, skipping user "${user.email}"`);
+        continue;
+      }
+
+      await prisma.user.create({ data: user });
+      console.log(`User ${user.email} created with role ${user.role}`);
+    }
+  }
+}
+
 async function main() {
+
+  await createPermissions();
+  await createRoles();
+  await assignRolePermissions();
+  await createUsers();
   const dataDirectory = path.join(__dirname, "seedData");
 
   const orderedFileNames = [
     "product.json",
-    "customer.json",
-    "expenseSummary.json",
-    "sales.json",
-    "salesSummary.json",
-    "purchases.json",
+    //"customer.json",
+    // "expenseSummary.json",
+    // "sales.json",
+    // "salesSummary.json",
+    // "purchases.json",
   ];
 
   await deleteAllData(orderedFileNames);

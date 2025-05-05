@@ -106,6 +106,7 @@ model customer {
   address         String
   nameresponsable String        @default("")
   email           String        @default("")
+  password        String
   website         String?        @default("")
   status          Boolean       @default(true)
   type_customer   typCat
@@ -141,16 +142,6 @@ model designationHistory {
   designation   designation @relation(fields: [designationId], references: [id])
   user          user        @relation(fields: [userId], references: [id])
 }
-
-/*
-model permission {
-  id             Int              @id @default(autoincrement())
-  name           String           @unique
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime
-  rolePermission rolePermission[]
-}*/
-
 
 model product {
   id                           String                         @id
@@ -347,32 +338,40 @@ model salePromiseProduct {
   product            product     @relation(fields: [product_id], references: [id], onDelete: Cascade)
   salePromise        salePromise @relation(fields: [promise_id], references: [id], onDelete: Cascade)
 }
-
+*/
 
 model role {
   id             Int              @id @default(autoincrement())
   name           String           @unique
+  rolePermission rolePermission[]
   status         Boolean          @default(true)
   createdAt      DateTime         @default(now())
-  updatedAt      DateTime
+  updatedAt      DateTime         @default(now()) 
+}
+
+model permission {
+  id             Int              @id @default(autoincrement())
+  name           String           @unique
   rolePermission rolePermission[]
-  user           user[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @default(now())
+  
 }
 
 model rolePermission {
   id            Int        @id @default(autoincrement())
+  role          role       @relation(fields: [role_id], references: [id], onDelete: Cascade)
   role_id       Int
+  permission    permission @relation(fields: [permission_id], references: [id], onDelete: Cascade)
   permission_id Int
   status        Boolean    @default(true)
   createdAt     DateTime   @default(now())
-  updatedAt     DateTime
-  permission    permission @relation(fields: [permission_id], references: [id], onDelete: Cascade)
-  role          role       @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  updatedAt     DateTime   @updatedAt
 
   @@unique([role_id, permission_id])
 }
 
-model salaryHistory {
+/*model salaryHistory {
   id        Int       @id @default(autoincrement())
   userId    Int
   salary    Float
@@ -392,14 +391,14 @@ model supplier {
   address         String
   status          Boolean           @default(true)
   created_at      DateTime          @default(now())
-  updated_at      DateTime
+  updated_at      DateTime          @default(now())
   product         product[]
   purchaseInvoice purchaseInvoice[]
 }
-
-
-
 */
+
+
+
 
 model user {
   id                 Int                  @id @default(autoincrement())
@@ -415,19 +414,18 @@ model user {
   zipCode            String?
   country            String?
   joinDate           DateTime?
-  leaveDate          DateTime?
+  birthday           String?
   employeeId         String?              @unique
   bloodGroup         String?
   image              String?
-  employmentStatusId Int?
+  //employmentStatusId Int?
   departmentId       Int?
-  roleId             Int?
-  shiftId            Int?
-  leavePolicyId      Int?
+  role               String?
+  salary             Float?
   weeklyHolidayId    Int?
   status             Boolean              @default(true)
   createdAt          DateTime             @default(now())
-  updatedAt          DateTime
+  updatedAt          DateTime             @default(now())
   AuditLog           AuditLog[]
   attendance         attendance[]
   awardHistory       awardHistory[]
@@ -436,20 +434,10 @@ model user {
   //saleInvoice        saleInvoice[]
   //salePromise        salePromise[]
   department         department?          @relation(fields: [departmentId], references: [id])
-  //role               role?                @relation(fields: [roleId], references: [id])
-  weeklyHoliday      weeklyHoliday?       @relation(fields: [weeklyHolidayId], references: [id])
+  
+  
 }
 
-model weeklyHoliday {
-  id        Int      @id @default(autoincrement())
-  name      String
-  startDay  String
-  endDay    String
-  status    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime
-  user      user[]
-}
 
 enum typCat {
   Pharmacie
