@@ -7,7 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model AuditLog {
+/*model AuditLog {
   id         Int      @id @default(autoincrement())
   userId     Int
   action     String
@@ -16,7 +16,7 @@ model AuditLog {
   timestamp  DateTime @default(now())
   details    String?
   user       user     @relation(fields: [userId], references: [id])
-}
+}*/
 
 model Reporting {
   id                Int      @id @default(autoincrement())
@@ -58,7 +58,7 @@ model appSetting {
 
 
 
-model attendance {
+/*model attendance {
   id            Int       @id @default(autoincrement())
   userId        Int
   inTime        DateTime
@@ -73,9 +73,9 @@ model attendance {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime
   user          user      @relation(fields: [userId], references: [id])
-}
+}*/
 
-model award {
+/*model award {
   id           Int            @id @default(autoincrement())
   name         String         @unique
   description  String?
@@ -84,9 +84,9 @@ model award {
   createdAt    DateTime       @default(now())
   updatedAt    DateTime
   awardHistory awardHistory[]
-}
+}*/
 
-model awardHistory {
+/*model awardHistory {
   id          Int      @id @default(autoincrement())
   userId      Int
   awardId     Int
@@ -97,7 +97,7 @@ model awardHistory {
   updatedAt   DateTime
   award       award    @relation(fields: [awardId], references: [id])
   user        user     @relation(fields: [userId], references: [id])
-}
+}*/
 
 model customer {
   id              String           @id
@@ -125,14 +125,14 @@ model department {
 
 model designation {
   id                 Int                  @id @default(autoincrement())
-  name               String               @unique
+  name               String               
   status             Boolean              @default(true)
   createdAt          DateTime             @default(now())
-  updatedAt          DateTime
-  designationHistory designationHistory[]
+  updatedAt          DateTime             @updatedAt
+  user               user[]
 }
 
-model designationHistory {
+/*model designationHistory {
   id            Int         @id @default(autoincrement())
   userId        Int
   designationId Int
@@ -141,7 +141,7 @@ model designationHistory {
   comment       String?
   designation   designation @relation(fields: [designationId], references: [id])
   user          user        @relation(fields: [userId], references: [id])
-}
+}*/
 
 model product {
   id                           String                         @id
@@ -410,32 +410,32 @@ model user {
   phone              String?              @unique
   street             String?
   city               String?
-  state              String?
   zipCode            String?
-  country            String?
+  gender            String?
   joinDate           DateTime?
   birthday           String?
   employeeId         String?              @unique
+  CnpsId            String?   @unique
   bloodGroup         String?
-  image              String?
-  //employmentStatusId Int?
   departmentId       Int?
+  designationId      Int?
   role               String?
   salary             Float?
-  weeklyHolidayId    Int?
+  emergencyPhone1    String?
+  emergencyname1     String?
+  emergencylink1     String?
   status             Boolean              @default(true)
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @default(now())
-  AuditLog           AuditLog[]
-  attendance         attendance[]
-  awardHistory       awardHistory[]
-  designationHistory designationHistory[]
+  //AuditLog           AuditLog[]
+  //attendance         attendance[]
+  //awardHistory       awardHistory[]
+  designation         designation?          @relation(fields: [designationId], references: [id])
   //salaryHistory      salaryHistory[]
   //saleInvoice        saleInvoice[]
   //salePromise        salePromise[]
   department         department?          @relation(fields: [departmentId], references: [id])
-  
-  
+   
 }
 
 

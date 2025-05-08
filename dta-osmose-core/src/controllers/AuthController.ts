@@ -45,12 +45,31 @@ export const login = async (
         res.status(400).json({ message: "Email or password is incorrect" });
         return;
       }
+      
+      let permissions = [];
+      if (user.role) {
+        const role = await prisma.role.findUnique({
+          where: {
+            name: user.role
+          },
+          include: {
+            rolePermission: {
+              include: {
+                permission: true
+              }
+            }
+          }
+        });
+        permissions = role.rolePermission.map((rp:any) => rp.permission.name);
+      }
   
       // Création du token
-      const token = jwt.sign(
+      const accessToken = jwt.sign(
         {
           sub: user.id,
           email: user.email,
+          permissions,
+          role: user.role
           //userType
         },
         secret,
@@ -62,8 +81,9 @@ export const login = async (
   
       res.json({
         ...userWithoutPassword,
-        token
+        accessToken
       });
+    
   
     } catch (error) {
       console.error("Login error:", error);
@@ -114,31 +134,21 @@ export const register = async (
             phone: req.body.phone,
             street: req.body.street,
             city: req.body.city,
-            state: req.body.state,
             zipCode: req.body.zipCode,
-            country: req.body.country,
-            Birthday: req.body.Birthday,
+            birthday: req.body.birthday,
             CnpsId: req.body.CnpsId,
-            Category: req.body.Category,
             gender: req.body.gender,
             joinDate: join_date,
             employeeId: req.body.employeeId,
             bloodGroup: req.body.bloodGroup,
-            image: req.body.image,
             role: req.body.role,
             salary: req.body.salary,
-            employmentStatusId: req.body.employmentStatusId,
+            emergencyPhone1: req.body.emergencyPhone1,
+            emergencyname1: req.body.emergencyname1,
+            emergencylink1: req.body.emergencylink1,
+            designationId: req.body.designationId,
             departmentId: req.body.departmentId,
-            
-            designationHistory: {
-              create: {
-                designationId: req.body.designationId,
-                startDate: req.body.designationStartDate ? new Date(req.body.designationStartDate) : null,
-                endDate: req.body.designationEndDate ? new Date(req.body.designationEndDate) : null,
-                comment: req.body.designationComment
-              }
-            },
-            
+              
           }
         });
         const { password, ...userWithoutPassword } = createUser;
@@ -169,3 +179,5 @@ export const register = async (
       res.status(500).json({ message: "Erreur lors de la déconnexion." });
     }
   };
+
+  

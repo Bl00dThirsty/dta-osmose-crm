@@ -37,28 +37,13 @@ function deleteAllData(orderedFileNames) {
         }
     });
 }
-// async function seedUsers() {
-//   const authFilePath = path.join(__dirname, "seedData", "auth.json");
-//   const rawData = fs.readFileSync(authFilePath, "utf-8");
-//   const users = JSON.parse(rawData);
-//   for (const user of users) {
-//     if (user.password) {
-//       user.password = await bcrypt.hash(user.password, saltRounds);
-//     }
-//     // Créer utilisateur (ex: dans la table `user`)
-//     await prisma.user.deleteMany({});
-//     await prisma.user.create({
-//       data: {
-//         ...user,
-//       },
-//     });
-//     console.log(`Seeded user: ${user.email}`);
-//   }
-// }
 const permissions = [
     "create-product",
     "view-product",
     "create-user",
+    "create-department",
+    "readAll-department",
+    "delete-department",
 ];
 const roles = ["admin", "staff", "manager", "Particulier"];
 const adminPermissions = [...permissions];
@@ -177,6 +162,8 @@ function main() {
         const dataDirectory = path_1.default.join(__dirname, "seedData");
         const orderedFileNames = [
             "product.json",
+            "department.json",
+            "designation.json",
             //"customer.json",
             // "expenseSummary.json",
             // "sales.json",
