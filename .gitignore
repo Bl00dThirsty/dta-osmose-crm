@@ -1,7 +1,6 @@
 dta-osmose-ui/node_modules/
 dta-osmose-core/node_modules/
-dta-osmose-ui/dist/
 dta-osmose-core/dist/
-dta-osmose-ui/.env/
+dta-osmose-ui/.env*/
 dta-osmose-core/.env/
 dta-osmose-ui/.next/
