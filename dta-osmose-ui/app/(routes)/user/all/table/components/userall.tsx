@@ -3,7 +3,7 @@
 "use client";
 
 import Link from "next/link";
-import { useGetUsersQuery } from "@/state/api"; // adapte selon ton setup
+import { useGetUsersQuery } from "@/state/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function UserListPage() {

@@ -92,12 +92,16 @@ const DashboardPage = () => {
         <DashboardCard href="/admin/users" title="Utilisateurs actifs">
         <div className="text-2xl font-medium"></div>
         </DashboardCard>
+        
         <DashboardCard
-          href="/employees"
+          href="/user/all"
           title="Employés"
         >
+          {/* {dashboardMetrics?.popularUsers.map((user) => ( */}
           <div className="text-2xl font-medium"></div>
+          {/* ))} */}
         </DashboardCard>
+        
         <DashboardCard
           href="/crm/accounts"
           title="Comptes"

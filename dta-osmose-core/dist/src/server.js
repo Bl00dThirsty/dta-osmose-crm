@@ -33,7 +33,7 @@ app.use(body_parser_1.default.urlencoded({ extended: false }));
 // Middleware
 //app.use(cors());
 app.use((0, cors_1.default)({
-    origin: ['http://localhost:3000'], // <-- autorise le frontend Next.js local
+    origin: ['http://localhost:3001'], // <-- autorise le frontend Next.js local
     credentials: true, // <-- permet l'envoi des cookies (token de session, etc.)
 }));
 app.use(express_1.default.json());

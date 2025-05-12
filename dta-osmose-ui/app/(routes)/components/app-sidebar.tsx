@@ -116,6 +116,8 @@ const data = {
       items: [
         { title: "Ajouter un utilisateur", url: "/user/add" },
         { title: "Liste des utilisateurs", url: "/user/all" },
+        { title: "Role & Permissions", url: "/role" },
+        { title: "Designations", url: "/rh/designation" },
         
       ],
     },

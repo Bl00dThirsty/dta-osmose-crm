@@ -1,14 +1,14 @@
 "use client"
 
 import React from "react";
-import Container from "../../components/ui/Container";
+import Container from "../components/ui/Container";
 //import UserPage from "./table/page";
 import { redirect } from 'next/navigation';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { columns } from "./table/columns"
 import { DataTable } from "./table/data-table"
-import { useGetDesignationsQuery, useGetRolesQuery } from "@/state/api"
+import { useGetRolesQuery } from "@/state/api"
 
 const DesignationsPage = () => {
   const router = useRouter();
@@ -19,7 +19,7 @@ const DesignationsPage = () => {
       router.push('/sign-in');
     }
   }, [token]);
-const { data: designation, isLoading, isError } = useGetDesignationsQuery()
+const { data: role, isLoading, isError } = useGetRolesQuery()
 
 if (isLoading) return <p>Chargement...</p>
 if (isError) return <p>Erreur lors du chargement.</p>
@@ -27,8 +27,8 @@ if (isError) return <p>Erreur lors du chargement.</p>
 
   return (
     <Container
-      title="Tableau des différents postes"
-      description="Ce composant affiche une vue d'ensemble des postes définis et enregistrés de l'entreprise."
+      title="Tableau des différents Roles"
+      description="Ce composant affiche une vue d'ensemble des roles possibles pour chaque utilisateur."
     >
     <div className="h-full w-full overflow-x-auto">
       <section className="overflow-hidden rounded-[0.5rem] border bg-background shadow-zinc-50">
@@ -37,11 +37,11 @@ if (isError) return <p>Erreur lors du chargement.</p>
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Hey! 👋🏽</h2>
         <p className="text-muted-foreground">
-          Ici vous trouverez la liste de tous les postes enregistrés !
+          Ici vous trouverez la liste de tous les roles enregistrés !
         </p>
       </div>
     </div>
-    <DataTable data={designation || []} columns={columns} />
+    <DataTable data={role || []} columns={columns} />
   </div>
         </section>
       </div>
