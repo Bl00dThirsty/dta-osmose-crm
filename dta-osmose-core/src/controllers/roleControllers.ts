@@ -146,6 +146,61 @@ export const createRole = async (
       res.status(400).json({ message: "Erreur lors de la recherche du role" });
     }
   };
+  
+  export const getPermissionsByRoleId = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    const roleId = parseInt(req.params.id, 10);
+    const skip = req.query.skip ? Number(req.query.skip) : 0;
+    const limit = req.query.limit ? Number(req.query.limit) : 10;
+    try {
+      const permissions = await prisma.rolePermission.findMany({
+        where: {
+          role_id: roleId,
+        },
+        include: {
+          permission: true,
+        },
+      });
+  
+      res.json(permissions.map((rp:any) => ({
+        id: rp.id,
+        permissionId: rp.permission_id,
+        name: rp.permission.name,
+        status: rp.status,
+        createdAt: rp.createdAt,
+      })));
+    } catch (error) {
+      console.error("Erreur lors de la récupération des permissions :", error);
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  };
+
+  // DELETE /roles/:roleId/permissions/:permissionId
+export const deleteRolePermission = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { roleId, permissionId } = req.params;
+
+  try {
+    await prisma.rolePermission.delete({
+      where: {
+        role_id_permission_id: {
+          role_id: parseInt(roleId),
+          permission_id: parseInt(permissionId),
+        },
+      },
+    });
+
+    res.json({ message: "Permission supprimée du rôle avec succès" });
+  } catch (error) {
+    console.error("Erreur lors de la suppression :", error);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+};
+
 
   export const  deleteSingleRole = async (
     req: Request,

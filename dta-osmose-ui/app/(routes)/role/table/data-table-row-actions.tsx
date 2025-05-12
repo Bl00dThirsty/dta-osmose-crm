@@ -2,8 +2,9 @@
 
 import { Row } from "@tanstack/react-table"
 import { MoreHorizontal } from "lucide-react"
-
+import { useDeleteRoleMutation } from "@/state/api"
 import { Button } from "@/components/ui/button"
+import { useRouter } from 'next/navigation';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,8 +29,7 @@ import {
   DialogCancel,
   DialogAction,
 } from "@/components/ui/dialog"
-
-import { labels } from "@/app/(routes)/crm/products/table/data/data"
+import { useState } from "react"
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>
@@ -38,8 +38,23 @@ interface DataTableRowActionsProps<TData> {
 export function DataTableRowActions<TData>({
   row,
 }: DataTableRowActionsProps<TData>) {
+  const router = useRouter();
+  const roleId = (row.original as any).id;
+  const [deleteRole] = useDeleteRoleMutation()
+  const [open, setOpen] = useState(false);
+
+  const handleDelete = async () => {
+    try {
+      await deleteRole(roleId).unwrap()
+      console.log("Designation supprimé avec succès")
+      router.push(`/role`);
+    } catch (error) {
+      console.log("Erreur lors de la suppression :")
+    }
+  }
 
   return (
+    <>
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
@@ -51,27 +66,31 @@ export function DataTableRowActions<TData>({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[160px]">
-        <DropdownMenuItem>Modifier</DropdownMenuItem>
-        <DropdownMenuItem>Supprimer</DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>Labels</DropdownMenuSubTrigger>
-          <DropdownMenuSubContent>
-            <DropdownMenuRadioGroup>
-              {labels.map((label) => (
-                <DropdownMenuRadioItem key={label.value} value={label.value}>
-                  {label.label}
-                </DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
-          </DropdownMenuSubContent>
-        </DropdownMenuSub>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem>
-          Delete
-          <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
+        <DropdownMenuItem onClick={() => router.push(`/role/${roleId}`)}>
+          Voir
         </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => setOpen(true)} className="text-red-600">
+          Supprimer
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
       </DropdownMenuContent>
     </DropdownMenu>
+
+    <Dialog open={open} onOpenChange={setOpen}>
+     <DialogContent>
+       <DialogHeader>
+         <DialogTitle>Confirmation</DialogTitle>
+         <DialogDescription>
+           Voulez-vous vraiment supprimer ce role ?
+         </DialogDescription>
+       </DialogHeader>
+       <DialogFooter>
+         <DialogCancel onClick={() => setOpen(false)}>Annuler</DialogCancel>
+         <DialogAction onClick={handleDelete}>Oui</DialogAction>
+       </DialogFooter>
+     </DialogContent>
+   </Dialog>
+   </>
+    
   )
 }

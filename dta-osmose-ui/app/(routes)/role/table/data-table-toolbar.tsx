@@ -8,10 +8,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DataTableViewOptions } from "@/app/(routes)/crm/products/table/components/data-table-view-options"
 
-import { quantityLevel, statuses } from "@/app/(routes)/crm/products/table/data/data"
 import { DataTableFacetedFilter } from "../../user/all/table/components/data-table-faceted-filter"
-//import { AddDesignationDialog } from "../../../crm/components/AddDesignation"
-import { NewDesignation, useCreateRolesMutation } from "@/state/api"
+import { AddRoleDialog } from "../../crm/components/AddRole"
+import { useCreateRolesMutation } from "@/state/api"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import Papa from "papaparse"
 import { useState } from "react"
@@ -91,7 +90,7 @@ export function DataTableToolbar<TData>({
           </Button>
         )}
       </div>
-      {/* <AddDesignationDialog onCreate={handleCreateDesignation} /> */}
+      <AddRoleDialog onCreate={handleCreateDesignation} />
       <DataTableViewOptions table={table} />
     </div>
   )

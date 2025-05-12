@@ -68,9 +68,22 @@ export interface NewDesignation {
 export interface Role {
   id:number;
   name: string;
+  rolePermission?: {
+    permission:{
+      id: number;
+      name: string;
+    }
+  }
 }
 export interface NewRole {
   name: string;
+  rolePermission?: {
+    permission:{
+      id:number;
+      name: string;
+    }
+  }
+
 }
 export interface DashboardMetrics {
     popularProducts: Product[];
@@ -88,7 +101,7 @@ export const api = createApi({
         return headers;
       }, }),
     reducerPath: "api",
-    tagTypes: ["DashboardMetrics", "Products", "Users", "Designations"],
+    tagTypes: ["DashboardMetrics", "Products", "Users", "Designations", "Roles"],
     endpoints: (build) => ({
         getDashboardMetrics: build.query<DashboardMetrics, void>({
             query: () => "/dashboard",
@@ -117,6 +130,7 @@ export const api = createApi({
           //Designation
           getDesignations: build.query<{ id: number; name: string }[], void>({
             query: () => "/designation",
+            providesTags: ["Designations"],
           }),
           createDesignations: build.mutation<Designation, NewDesignation>({
             query: (NewDesignation) => ({
@@ -124,6 +138,7 @@ export const api = createApi({
               method: "POST",
               body: NewDesignation,
             }),
+            invalidatesTags: ["Designations"],
            }),
            deleteDesignation: build.mutation<void, string>({
             query: (id) => ({
@@ -135,7 +150,8 @@ export const api = createApi({
 
           //role
           getRoles: build.query<{ id: number; name: string }[], void>({
-            query: () => "/role",
+            query: () => "/role?query=all",
+            providesTags: ["Roles"],
           }),
           createRoles: build.mutation<Role, NewRole>({
             query: (NewRole) => ({
@@ -143,7 +159,19 @@ export const api = createApi({
               method: "POST",
               body: NewRole,
             }),
+            invalidatesTags: ["Roles"],
            }),
+           getRoleById: build.query<Role, string>({
+            query: (id) => `/role/${id}`, // Construire l'URL avec l'ID de l'utilisateur
+            providesTags: (result, error, id) => [{ type: "Roles", id }], // Associer un tag pour l'invalidation
+          }),
+           deleteRole: build.mutation<void, string>({
+            query: (id) => ({
+              url: `/role/${id}`,
+              method: 'DELETE',
+            }),
+            invalidatesTags: ["Roles"],
+          }),
 
 
           //Users
@@ -174,4 +202,4 @@ export const api = createApi({
 
 export const { useGetDashboardMetricsQuery, useGetProductsQuery, useCreateProductMutation, useGetDepartmentsQuery,
     useGetDesignationsQuery, useCreateDesignationsMutation, useDeleteDesignationMutation,
-    useGetRolesQuery, useCreateRolesMutation, useGetUsersQuery, useGetUserByIdQuery, useDeleteUserMutation} = api;
+    useGetRolesQuery, useCreateRolesMutation, useGetRoleByIdQuery, useDeleteRoleMutation, useGetUsersQuery, useGetUserByIdQuery, useDeleteUserMutation} = api;

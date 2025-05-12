@@ -47,12 +47,11 @@ export function DataTableRowActions<TData>({
 
   // Supposons que ton utilisateur a un ID accessible par row.original.id
   const userId = (row.original as any).id;
-  const user = row.original as any // adapte ici si tu as une interface User
   const [deleteUser] = useDeleteUserMutation()
-
+  
   const handleDelete = async () => {
     try {
-      await deleteUser(user.id).unwrap()
+      await deleteUser(userId).unwrap()
       console.log("Utilisateur supprimé avec succès")
     } catch (error) {
       console.error("Erreur lors de la suppression :", error)
@@ -60,6 +59,7 @@ export function DataTableRowActions<TData>({
   }
 
   return (
+    <>
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
@@ -76,28 +76,30 @@ export function DataTableRowActions<TData>({
         </DropdownMenuItem>
       
         <DropdownMenuItem>Modifier</DropdownMenuItem>
-        <Dialog>
-          <DialogTrigger asChild>
+        
             <DropdownMenuItem className="text-red-600">
               Supprimer
             </DropdownMenuItem>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Confirmation</DialogTitle>
-              <DialogDescription>
-                Voulez-vous vraiment supprimer cet utilisateur ?
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <DialogCancel>Annuler</DialogCancel>
-              <DialogAction onClick={handleDelete}>Oui</DialogAction>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+          
         <DropdownMenuSeparator />
         
       </DropdownMenuContent>
     </DropdownMenu>
+
+<Dialog open={open} onOpenChange={setOpen}>
+<DialogContent>
+  <DialogHeader>
+    <DialogTitle>Confirmation</DialogTitle>
+    <DialogDescription>
+      Voulez-vous vraiment supprimer cette utilisateur ?
+    </DialogDescription>
+  </DialogHeader>
+  <DialogFooter>
+    <DialogCancel onClick={() => setOpen(false)}>Annuler</DialogCancel>
+    <DialogAction onClick={handleDelete}>Oui</DialogAction>
+  </DialogFooter>
+</DialogContent>
+</Dialog>
+</>
   )
 }

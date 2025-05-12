@@ -158,6 +158,7 @@ export const getAllUser = async (
     }
   };
 
+  // GET /roles/:id/permission
   export const deleteSingleUser = async (
     req: Request,
     res: Response
@@ -171,15 +172,16 @@ export const getAllUser = async (
         // Vérifier si le user existe
         if (!existingUser) {
           res.status(404).json({ message: "User non trouvé" });
+          return;
         }
-        const deleteUser = await prisma.user.delete({
+        await prisma.user.delete({
             where: {
               id: Number(req.params.id)
             },
-            data: {
-              status: req.body.status
-            }
-          });
+        });
+          // if (!deleteUser) {
+          //   res.status(404).json({ message: "User delete to failed" });
+          // }
           // await produceUserEvent('delete', deleteUser);
            res.status(200).json({ message: "User deleted successfully" }); 
     } catch (error) {

@@ -5,7 +5,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 
-import { Designation } from "@/state/api"
+import { Role } from "@/state/api"
 import { DataTableColumnHeader } from "../../user/all/table/components/data-table-column-header"
 import { DataTableRowActions } from "./data-table-row-actions"
 
@@ -15,7 +15,7 @@ const statusMap: Record<string, { label: string, color: string }> = {
 }
 
 
-export const columns: ColumnDef<Designation>[] = [
+export const columns: ColumnDef<Role>[] = [
   {
     id: "select",
     header: ({ table }) => (
