@@ -43,7 +43,7 @@ app.use("/dashboard", dashboardRoutes_1.default);
 app.use("/products", productRoutes_1.default);
 app.use("/auth", AuthRoutes_1.default);
 app.use("/role", roleRoutes_1.default);
-app.use("/pemission", permissionRoutes_1.default);
+app.use("/permission", permissionRoutes_1.default);
 app.use("/role-permission", rolePermissionRoute_1.default);
 app.use("/department", department_Routes_1.default);
 app.use("/designation", designationRoutes_1.default);

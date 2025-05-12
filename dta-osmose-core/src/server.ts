@@ -41,7 +41,7 @@ app.use("/dashboard", dashboardRoutes);
 app.use("/products", productRoutes);
 app.use("/auth", AuthRoutes);
 app.use("/role", roleRoutes);
-app.use("/pemission", permissionRoutes);
+app.use("/permission", permissionRoutes);
 app.use("/role-permission", rolePermissionRoutes);
 app.use("/department", departmentRoutes);
 app.use("/designation", designationRoute);

@@ -14,6 +14,9 @@ interface Permission {
 export default function RolePermissionsPage() {
   const { id } = useParams()
   const [permissions, setPermissions] = useState<Permission[]>([])
+  const [allPermissions, setAllPermissions] = useState<Permission[]>([])
+  const [selectedPermissionIds, setSelectedPermissionIds] = useState<number[]>([])
+  const [adding, setAdding] = useState(false)
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
@@ -33,6 +36,16 @@ export default function RolePermissionsPage() {
     }
   }
 
+  const fetchAllPermissions = async () => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/permission`)
+      const data = await res.json()
+      setAllPermissions(data)
+    } catch (error) {
+      console.error("Erreur lors du chargement des permissions globales", error)
+    }
+  }
+  
   const handleDelete = async (permissionId: number) => {
     try {
       await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/role/${id}/permission/${permissionId}`, {
@@ -48,8 +61,45 @@ export default function RolePermissionsPage() {
     }
   }
 
+  const toggleSelect = (id: number) => {
+    setSelectedPermissionIds(prev =>
+      prev.includes(id) ? prev.filter(pid => pid !== id) : [...prev, id]
+    )
+  }
+
+  const handleAddPermissions = async () => {
+    if (selectedPermissionIds.length === 0) return
+    setAdding(true)
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/role-permission`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+        body: JSON.stringify({
+          role_id: Number(id),
+          permission_id: selectedPermissionIds,
+        }),
+      })
+  
+      if (res.ok) {
+        setSelectedPermissionIds([])
+        fetchPermissions()
+      } else {
+        console.error("Erreur lors de l'ajout des permissions")
+      }
+    } catch (error) {
+      console.error("Erreur lors de l'ajout", error)
+    } finally {
+      setAdding(false)
+    }
+  }
+  
+
   useEffect(() => {
     fetchPermissions()
+    fetchAllPermissions()
   }, [id, page])
   const totalPages = Math.ceil(total / limit)
 
@@ -57,8 +107,34 @@ export default function RolePermissionsPage() {
   if (!fetchPermissions) return <p>Utilisateur introuvable.</p>;
 
   return (
+    
     <div className="p-4">
       <h1 className="text-xl font-bold mb-4">Permissions du rôle</h1>
+      <div className="mb-6">
+          <h2 className="text-lg font-semibold mb-2">Ajouter des permissions</h2>
+          <div className="border rounded p-2 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-64 overflow-y-auto border p-2 rounded">
+              {allPermissions.map((perm) => (
+              <label key={perm.id} className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={selectedPermissionIds.includes(perm.id)}
+                onChange={() => toggleSelect(perm.id)}
+                />
+               <span>{perm.name}</span>
+              </label>
+               ))}
+          </div>
+          </div>
+           <Button
+              onClick={handleAddPermissions}
+              disabled={adding || selectedPermissionIds.length === 0}
+              className="mt-3"
+            >
+            {adding ? "Ajout en cours..." : "Ajouter"}
+           </Button>
+      </div>
+
       <table className="min-w-full border">
         <thead>
           <tr className="bg-black-100 text-left">
