@@ -1,33 +1,42 @@
 "use client"
 
-import Image from "next/image"
+import { useEffect, useState } from "react"
+import { useSearchParams } from "next/navigation"
+import { columns } from "@/app/[institution]/(routes)/crm/products/table/components/columns"
+import { DataTable } from "@/app/[institution]/(routes)/crm/products/table/components/data-table"
+import { Product } from "@/state/api"
 
-import { columns } from "./components/columns"
-import { DataTable } from "./components/data-table"
-import { useGetProductsQuery } from "@/state/api"
+export default function ProductsTable() {
+  const searchParams = useSearchParams()
+  const institution = searchParams.get("institution") || ""
 
+  const [products, setProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
 
-const ProductPage = () => {
-  const { data: products, isLoading, isError } = useGetProductsQuery()
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true)
+        const res = await fetch(`http://localhost:8000/products?institution=${institution}`)
+        const data = await res.json()
+        setProducts(data)
+      } catch (error) {
+        console.error("Erreur de chargement des produits :", error)
+      } finally {
+        setLoading(false)
+      }
+    }
 
-  if (isLoading) return <p>Chargement...</p>
-  if (isError) return <p>Erreur lors du chargement.</p>
+    if (institution) {
+      fetchProducts()
+    }
+  }, [institution])
+
+  if (loading) return <div>Chargement des produits...</div>
 
   return (
-    <div className="hidden h-full flex-1 flex-col space-y-8 p-8 md:flex">
-      <div className="flex items-center justify-between space-y-2">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Hey! 👋🏽</h2>
-          <p className="text-muted-foreground">
-            Ici vous trouverez la liste de tous les produits enregistrés !
-          </p>
-        </div>
-      </div>
-      <DataTable data={products || []} columns={columns} />
+    <div className="container mx-auto py-10">
+      <DataTable columns={columns} data={products} />
     </div>
   )
 }
-
-export default ProductPage;
-
-

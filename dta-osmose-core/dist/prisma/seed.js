@@ -16,47 +16,43 @@ const client_1 = require("@prisma/client");
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const prisma = new client_1.PrismaClient();
-function deleteAllData(orderedFileNames) {
+function deleteAllData() {
     return __awaiter(this, void 0, void 0, function* () {
-        const modelNames = orderedFileNames.map((fileName) => {
-            const modelName = path_1.default.basename(fileName, path_1.default.extname(fileName));
-            return modelName.charAt(0) + modelName.slice(1);
-        });
-        for (const modelName of modelNames) {
-            const model = prisma[modelName];
-            if (model) {
-                yield model.deleteMany({});
-                console.log(`Données de ${modelName} éffacées...`);
-            }
-            else {
-                console.error(`Model ${modelName} not found. Assure toi d'avoir correctement entré le nom.`);
-            }
-        }
+        yield prisma.product.deleteMany({});
+        yield prisma.institution.deleteMany({});
+        console.log("Toutes les données ont été supprimées.");
     });
 }
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
+        yield deleteAllData();
+        // Création manuelle des institutions
+        const iba = yield prisma.institution.create({
+            data: {
+                id: "iba",
+                name: "IBA",
+            },
+        });
+        const asermpharma = yield prisma.institution.create({
+            data: {
+                id: "asermpharma",
+                name: "Asermpharma",
+            },
+        });
+        console.log("Institutions créées.");
         const dataDirectory = path_1.default.join(__dirname, "seedData");
-        const orderedFileNames = [
-            "product.json",
-            "customer.json",
-        ];
-        yield deleteAllData(orderedFileNames);
-        for (const fileName of orderedFileNames) {
-            const filePath = path_1.default.join(dataDirectory, fileName);
-            const jsonData = JSON.parse(fs_1.default.readFileSync(filePath, "utf-8"));
-            const modelName = path_1.default.basename(fileName, path_1.default.extname(fileName));
-            const model = prisma[modelName];
-            if (!model) {
-                console.error(`Aucun model Prisma ne match avec le fichier: ${fileName}`);
-                continue;
-            }
+        const productsPath = path_1.default.join(dataDirectory, "product.json");
+        if (fs_1.default.existsSync(productsPath)) {
+            const jsonData = JSON.parse(fs_1.default.readFileSync(productsPath, "utf-8"));
             for (const data of jsonData) {
-                yield model.create({
-                    data,
+                yield prisma.product.create({
+                    data: Object.assign(Object.assign({}, data), { institution: iba.id }),
                 });
             }
-            console.log(`Seeded ${modelName} with data from ${fileName}`);
+            console.log("Produits importés.");
+        }
+        else {
+            console.error("Fichier product.json introuvable.");
         }
     });
 }

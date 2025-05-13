@@ -13,7 +13,7 @@ export interface Product {
 }
 
 export interface NewProduct {
-    id: string; 
+    id?: string; 
     EANCode: string;  
     quantity: number;       
     brand: string;

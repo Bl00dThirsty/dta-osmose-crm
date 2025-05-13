@@ -14,17 +14,17 @@ const client_1 = require("@prisma/client");
 const uuid_1 = require("uuid");
 const prisma = new client_1.PrismaClient();
 const getProducts = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
+    var _a;
     try {
         const search = (_a = req.query.search) === null || _a === void 0 ? void 0 : _a.toString();
-        const institution = (_b = req.query.institution) === null || _b === void 0 ? void 0 : _b.toString();
+        const institution = req.params.institution;
         if (!institution) {
             res.status(400).json({ message: "Institution manquante." });
             return;
         }
         const products = yield prisma.product.findMany({
-            where: Object.assign({ institution }, (search && {
-                name: {
+            where: Object.assign({ institutionId: institution }, (search && {
+                designation: {
                     contains: search,
                     mode: "insensitive",
                 },
@@ -40,9 +40,10 @@ const getProducts = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
 exports.getProducts = getProducts;
 const createProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { quantity, EANCode, brand, designation, restockingThreshold, warehouse, sellingPriceTTC, purchase_price, institution, } = req.body;
+        const institution = req.params.institution;
+        const { quantity, EANCode, brand, designation, restockingThreshold, warehouse, sellingPriceTTC, purchase_price, } = req.body;
         if (!institution) {
-            res.status(400).json({ message: "Institution manquante." });
+            res.status(400).json({ message: "Institution manquante dans l'URL." });
             return;
         }
         const product = yield prisma.product.create({
@@ -56,7 +57,9 @@ const createProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* 
                 warehouse,
                 sellingPriceTTC,
                 purchase_price,
-                institution,
+                institution: {
+                    connect: { id: institution },
+                },
             },
         });
         res.status(201).json(product);
