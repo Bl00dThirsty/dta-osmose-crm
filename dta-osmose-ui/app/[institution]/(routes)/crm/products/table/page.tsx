@@ -5,19 +5,22 @@ import { useSearchParams } from "next/navigation"
 import { columns } from "@/app/[institution]/(routes)/crm/products/table/components/columns"
 import { DataTable } from "@/app/[institution]/(routes)/crm/products/table/components/data-table"
 import { Product } from "@/state/api"
+import { useParams } from "next/navigation"
 
 export default function ProductsTable() {
-  const searchParams = useSearchParams()
-  const institution = searchParams.get("institution") || ""
+  const { institution } = useParams() as { institution: string }
+
 
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (!institution) return;
+    
     const fetchProducts = async () => {
       try {
         setLoading(true)
-        const res = await fetch(`http://localhost:8000/products?institution=${institution}`)
+        const res = await fetch(`http://localhost:8000/institutions/${institution}/products`)
         const data = await res.json()
         setProducts(data)
       } catch (error) {

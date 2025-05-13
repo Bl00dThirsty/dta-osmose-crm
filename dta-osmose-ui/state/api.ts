@@ -35,21 +35,23 @@ export const api = createApi({
             query: () => "/dashboard",
             providesTags: ["DashboardMetrics"]
         }),
-        getProducts: build.query<Product[], string | void>({
-            query: (search) => ({
-                url: "/products",
-                params: search ? { search } : {}
+        getProducts: build.query<Product[], { institution: string; search?: string }>({
+            query: ({ institution, search }) => ({
+                url: `/institutions/${institution}/products`,
+                params: search ? { search } : {},
             }),
-            providesTags: ["Products"]
+            providesTags: ["Products"],
         }),
-        createProduct: build.mutation<Product, NewProduct>({
-            query: (newProduct) => ({
-              url: "/products",
-              method: "POST",
-              body: newProduct,
+
+        createProduct: build.mutation<Product, { data: NewProduct; institution: string }>({
+            query: ({ data, institution }) => ({
+                url: `/institutions/${institution}/products`,
+                method: "POST",
+                body: data,
             }),
             invalidatesTags: ["Products"],
-          }), 
+        }),
+ 
     }),
 });
 
