@@ -27,7 +27,7 @@ app.use(cookieParser());
 
 /* ROUTES */
 app.use("/dashboard", dashboardRoutes);
-app.use("/products", productRoutes)
+app.use("/", productRoutes)
 app.use("/customers", customerRoutes)
 
 // Error handling middleware

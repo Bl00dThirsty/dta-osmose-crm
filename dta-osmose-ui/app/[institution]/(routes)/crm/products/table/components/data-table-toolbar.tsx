@@ -19,7 +19,7 @@ import { quantityLevel, statuses } from "../data/data"
 
 type ProductFormData = {
   quantity: number
-  EANCode?: string
+  EANCode: string
   brand: string
   designation: string
   restockingThreshold: number
@@ -41,9 +41,9 @@ export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>)
 
   const handleCreateProduct = async (productData: ProductFormData) => {
     try {
-      await createProduct({ ...productData, institution }).unwrap()
-    } catch (error) {
-      console.error("Erreur lors de la création :", error)
+      await createProduct({ data: productData, institution }).unwrap()
+    } catch (error: any) {
+        console.error("Erreur lors de la création :", error?.data || error.message || error)
     }
   }
 
@@ -62,14 +62,17 @@ export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>)
         for (const rawProduct of data) {
           try {
             await createProduct({
-              quantity: Number(rawProduct.quantity) || 0,
-              brand: rawProduct.brand,
-              designation: rawProduct.designation,
-              restockingThreshold: Number(rawProduct.restockingThreshold) || 0,
-              sellingPriceTTC: Number(rawProduct.sellingPriceTTC) || 0,
-              purchase_price: Number(rawProduct.purchase_price) || 0,
-              warehouse: rawProduct.warehouse,
               institution,
+              data: {
+                quantity: Number(rawProduct.quantity) || 0,
+                brand: rawProduct.brand,
+                designation: rawProduct.designation,
+                restockingThreshold: Number(rawProduct.restockingThreshold) || 0,
+                sellingPriceTTC: Number(rawProduct.sellingPriceTTC) || 0,
+                purchase_price: Number(rawProduct.purchase_price) || 0,
+                warehouse: rawProduct.warehouse,
+                EANCode: rawProduct.EANCode || "",
+              },
             }).unwrap()
           } catch (error) {
             console.error("Erreur lors de l'import d'un produit :", error)
@@ -96,13 +99,6 @@ export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>)
           className="h-8 w-[150px] lg:w-[250px]"
         />
 
-        {table.getColumn("status") && (
-          <DataTableFacetedFilter
-            column={table.getColumn("status")}
-            title="Statut"
-            options={statuses}
-          />
-        )}
 
         {table.getColumn("quantity") && (
           <DataTableFacetedFilter
@@ -125,7 +121,8 @@ export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>)
       </div>
 
       <div className="flex items-center gap-2">
-        <AddProductDialog onCreate={handleCreateProduct} institution={institution} />
+        <AddProductDialog onCreate={(productData) => handleCreateProduct(productData)} />
+
 
         <Dialog>
           <DialogTrigger asChild>

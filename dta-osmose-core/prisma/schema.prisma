@@ -164,15 +164,15 @@ model permission {
   rolePermission rolePermission[]
 }*/
 model institution {
-  id       String    @id @default(uuid())
-  name     String
-  products product[] 
+  id        String    @id @default(uuid())
+  name      String
+  slug      String    @unique
+  products  product[]
 }
 
 model product {
-  id                           String                         @id @default(uuid())
-  //productId                    String                         @unique
-  EANCode                      String                         @unique
+  id                           String         @id @default(uuid())
+  EANCode                      String         @unique
   brand                        String
   designation                  String
   quantity                     Int
@@ -180,26 +180,19 @@ model product {
   sellingPriceTTC              Float
   purchase_price               Float
   warehouse                    String
-  created_at                   DateTime                       @default(now())
-  updated_at                   DateTime                       @default(now())
+  created_at                   DateTime       @default(now())
+  updated_at                   DateTime       @default(now())
   institutionId                String
-  institution                  institution @relation(fields: [institutionId], references: [id])
+  institution                  institution    @relation(fields: [institutionId], references: [id])
   imageName                    String?
   idSupplier                   Int?
   product_category_id          Int?
   unit_measurement             Float?
   unit_type                    String?
-  sku                          String?                        @unique
+  sku                          String?        @unique
   reorder_quantity             Int?
-  //collisage                    Int
-  //supplier                     supplier                       @relation(fields: [idSupplier], references: [id])
-  //product_category             product_category?              @relation(fields: [product_category_id], references: [id])
-  //returnPurchaseInvoiceProduct returnPurchaseInvoiceProduct[]
-  //returnSaleInvoiceProduct     returnSaleInvoiceProduct[]
-  //saleInvoiceProduct           saleInvoiceProduct[]
-  //salePromiseProduct           salePromiseProduct[]
-
 }
+
 
 model ProductCounter {
   id     Int  @id @default(autoincrement())

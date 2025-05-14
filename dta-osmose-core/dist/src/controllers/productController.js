@@ -40,10 +40,18 @@ const getProducts = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
 exports.getProducts = getProducts;
 const createProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const institution = req.params.institution;
+        const institutionSlug = req.params.institution;
         const { quantity, EANCode, brand, designation, restockingThreshold, warehouse, sellingPriceTTC, purchase_price, } = req.body;
-        if (!institution) {
+        if (!institutionSlug) {
             res.status(400).json({ message: "Institution manquante dans l'URL." });
+            return;
+        }
+        // 🔍 Chercher l'institution à partir du slug
+        const institution = yield prisma.institution.findUnique({
+            where: { slug: institutionSlug },
+        });
+        if (!institution) {
+            res.status(404).json({ message: "Institution introuvable." });
             return;
         }
         const product = yield prisma.product.create({
@@ -58,7 +66,7 @@ const createProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* 
                 sellingPriceTTC,
                 purchase_price,
                 institution: {
-                    connect: { id: institution },
+                    connect: { id: institution.id },
                 },
             },
         });

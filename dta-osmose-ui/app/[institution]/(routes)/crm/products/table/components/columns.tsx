@@ -67,6 +67,13 @@ export const columns: ColumnDef<Product>[] = [
     ),
   },
   {
+    accessorKey: "quantity",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Quantité" />
+    ),
+    cell: ({ row }) => <div className="w-[100px]">{row.getValue("quantity")} </div>,
+  },
+  {
     accessorKey: "purchase_price",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Prix d'achat" />

@@ -37,7 +37,8 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
 
 export const createProduct = async (req: Request, res: Response): Promise<void> => {
   try {
-    const institution = req.params.institution;
+    const institutionSlug = req.params.institution;
+
     const {
       quantity,
       EANCode,
@@ -49,8 +50,18 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
       purchase_price,
     } = req.body;
 
-    if (!institution) {
+    if (!institutionSlug) {
       res.status(400).json({ message: "Institution manquante dans l'URL." });
+      return;
+    }
+
+    // 🔍 Chercher l'institution à partir du slug
+    const institution = await prisma.institution.findUnique({
+      where: { slug: institutionSlug },
+    });
+
+    if (!institution) {
+      res.status(404).json({ message: "Institution introuvable." });
       return;
     }
 
@@ -66,11 +77,10 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
         sellingPriceTTC,
         purchase_price,
         institution: {
-          connect: { id: institution },
+          connect: { id: institution.id },
         },
       },
     });
-    
 
     res.status(201).json(product);
   } catch (error) {

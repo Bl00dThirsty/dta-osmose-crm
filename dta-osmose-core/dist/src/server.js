@@ -30,7 +30,7 @@ app.use(express_1.default.json());
 app.use((0, cookie_parser_1.default)());
 /* ROUTES */
 app.use("/dashboard", dashboardRoutes_1.default);
-app.use("/products", productRoutes_1.default);
+app.use("/", productRoutes_1.default);
 app.use("/customers", customerRoutes_1.default);
 // Error handling middleware
 app.use(errorHandler_1.errorHandler);

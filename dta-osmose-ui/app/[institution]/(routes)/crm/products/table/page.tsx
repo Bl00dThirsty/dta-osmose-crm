@@ -16,7 +16,7 @@ export default function ProductsTable() {
 
   useEffect(() => {
     if (!institution) return;
-    
+
     const fetchProducts = async () => {
       try {
         setLoading(true)
