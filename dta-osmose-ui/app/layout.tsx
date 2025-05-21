@@ -3,7 +3,7 @@ import { Inter } from "next/font/google";
 import { ReactNode } from "react";
 import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/app/providers/ThemeProvider";
-import { AuthProvider } from "./(auth)/sign-in/context/authContext";
+import { AuthProvider } from "./[institution]/(auth)/sign-in/context/authContext";
 import store from "@/redux/store";
 import Providers from "./_providers";
 

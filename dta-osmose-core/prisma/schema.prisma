@@ -100,21 +100,33 @@ model appSetting {
 }*/
 
 model customer {
-  id              String           @id
+  id              Int         @id @default(autoincrement())
+  customId        String          @unique
   name            String
   phone           String        @unique
-  address         String
-  nameresponsable String        @default("")
-  email           String        @default("")
-  password        String
-  website         String?        @default("")
-  status          Boolean       @default(true)
-  type_customer   typCat
+  email           String        @unique
+  ville           String?
+  nameresponsable String?
+  quarter         String?
+  region          String?
+  role            String         @default("Particulier")
+  status          Boolean?       @default(true)
+  type_customer   String         @default("Pharmacie")
+  website         String?
   created_at      DateTime      @default(now())
   updated_at      DateTime?      @updatedAt
   //saleInvoice     saleInvoice[]
 }
 
+/*model CustomerCounter {
+  id     Int  @id @default(autoincrement())
+  institution     String
+  month  Int
+  year   Int
+  count  Int  @default(0)
+
+  @@unique([institution, month, year])
+}*/
 
 model department {
   id     Int     @id @default(autoincrement())
@@ -143,38 +155,46 @@ model designation {
   user          user        @relation(fields: [userId], references: [id])
 }*/
 
+model institution {
+  id        String    @id @default(uuid())
+  name      String
+  slug      String    @unique
+  products  product[]
+}
+
 model product {
-  id                           String                         @id
-  name                         String                         @unique
+  id                           String         @id @default(uuid())
+  EANCode                      String         @unique
+  brand                        String
+  designation                  String
   quantity                     Int
-  signature                    String
-  gtsPrice                     Float
-  sellingPriceHT               Float
+  restockingThreshold          Int
   sellingPriceTTC              Float
   purchase_price               Float
-  label                        String?
-  status                       Boolean                        @default(true)                        
+  warehouse                    String
+  created_at                   DateTime       @default(now())
+  updated_at                   DateTime       @default(now())
+  institutionId                String
+  institution                  institution    @relation(fields: [institutionId], references: [id])
   imageName                    String?
   idSupplier                   Int?
   product_category_id          Int?
   unit_measurement             Float?
   unit_type                    String?
-  sku                          String?                        @unique
+  sku                          String?        @unique
   reorder_quantity             Int?
-  created_at                   DateTime                       @default(now())
-  updated_at                   DateTime                       @default(now())
-  collisage                    Int
-  marge                        Float?
-  gencode                      String?
-  marque                       String?
-  depense                      Float?
-  //supplier                     supplier                       @relation(fields: [idSupplier], references: [id])
-  //product_category             product_category?              @relation(fields: [product_category_id], references: [id])
-  //returnPurchaseInvoiceProduct returnPurchaseInvoiceProduct[]
-  //returnSaleInvoiceProduct     returnSaleInvoiceProduct[]
-  //saleInvoiceProduct           saleInvoiceProduct[]
-  //salePromiseProduct           salePromiseProduct[]
 }
+
+model ProductCounter {
+  id     Int  @id @default(autoincrement())
+  institution     String
+  month  Int
+  year   Int
+  count  Int  @default(0)
+
+  @@unique([institution, month, year])
+}
+
 /*
 model product_category {
   id        Int       @id @default(autoincrement())

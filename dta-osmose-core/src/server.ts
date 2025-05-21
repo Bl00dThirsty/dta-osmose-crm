@@ -15,7 +15,8 @@ import permissionRoutes from './routes/permissionRoutes';
 import rolePermissionRoutes from './routes/rolePermissionRoute';
 import departmentRoutes from './routes/department.Routes';
 import designationRoute from './routes/designationRoutes';
-import userRoutes from './routes/userRoutes'
+import userRoutes from './routes/userRoutes';
+import customerRoutes from './routes/customerRoutes'
 
 export const prisma = new PrismaClient();
 
@@ -29,7 +30,7 @@ app.use(bodyParser.urlencoded({extended: false}));
 // Middleware
 //app.use(cors());
 app.use(cors({
-  origin: ['http://localhost:3000'], // <-- autorise le frontend Next.js local
+  origin: 'http://localhost:3000', // <-- autorise le frontend Next.js local
   credentials: true, // <-- permet l'envoi des cookies (token de session, etc.)
 }));
 
@@ -38,7 +39,8 @@ app.use(cookieParser());
 
 /* ROUTES */
 app.use("/dashboard", dashboardRoutes);
-app.use("/products", productRoutes);
+app.use("/", productRoutes);
+app.use("/customer", customerRoutes)
 app.use("/auth", AuthRoutes);
 app.use("/role", roleRoutes);
 app.use("/permission", permissionRoutes);

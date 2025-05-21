@@ -10,7 +10,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createProduct = exports.getProducts = void 0;
-//import { PrismaClient } from "@prisma/client";
 const { PrismaClient } = require("@prisma/client");
 const uuid_1 = require("uuid");
 const prisma = new PrismaClient();
@@ -18,42 +17,72 @@ const getProducts = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     var _a;
     try {
         const search = (_a = req.query.search) === null || _a === void 0 ? void 0 : _a.toString();
+        const institutionSlug = req.params.institution;
+        if (!institutionSlug) {
+            res.status(400).json({ message: "Institution manquante." });
+            return;
+        }
+        // Étape 1 : Chercher l'institution à partir du slug
+        const institution = yield prisma.institution.findUnique({
+            where: { slug: institutionSlug },
+        });
+        if (!institution) {
+            res.status(404).json({ message: "Institution introuvable." });
+            return;
+        }
         const products = yield prisma.product.findMany({
-            where: {
-                name: {
+            where: Object.assign({ institutionId: institution.id }, (search && {
+                designation: {
                     contains: search,
+                    mode: "insensitive",
                 },
-            },
+            })),
         });
         res.json(products);
     }
     catch (error) {
+        console.error(error);
         res.status(500).json({ message: "Erreur lors de la recherche du produit" });
     }
 });
 exports.getProducts = getProducts;
 const createProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { name, quantity, signature, gtsPrice, sellingPriceHT, sellingPriceTTC, purchase_price, collisage, label, status } = req.body;
+        const institutionSlug = req.params.institution;
+        const { quantity, EANCode, brand, designation, restockingThreshold, warehouse, sellingPriceTTC, purchase_price, } = req.body;
+        if (!institutionSlug) {
+            res.status(400).json({ message: "Institution manquante dans l'URL." });
+            return;
+        }
+        // 🔍 Chercher l'institution à partir du slug
+        const institution = yield prisma.institution.findUnique({
+            where: { slug: institutionSlug },
+        });
+        if (!institution) {
+            res.status(404).json({ message: "Institution introuvable." });
+            return;
+        }
         const product = yield prisma.product.create({
             data: {
                 id: (0, uuid_1.v4)(),
-                name,
                 quantity,
-                signature,
-                gtsPrice,
-                sellingPriceHT,
+                EANCode,
+                brand,
+                designation,
+                restockingThreshold,
+                warehouse,
                 sellingPriceTTC,
                 purchase_price,
-                collisage,
-                label,
-                status
+                institution: {
+                    connect: { id: institution.id },
+                },
             },
         });
         res.status(201).json(product);
     }
     catch (error) {
-        res.status(500).json({});
+        console.error(error);
+        res.status(500).json({ message: "Erreur lors de la création du produit." });
     }
 });
 exports.createProduct = createProduct;

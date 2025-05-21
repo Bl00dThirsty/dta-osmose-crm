@@ -25,6 +25,7 @@ function deleteAllData(orderedFileNames) {
             const modelName = path_1.default.basename(fileName, path_1.default.extname(fileName));
             return modelName.charAt(0) + modelName.slice(1);
         });
+        // await prisma.institution.deleteMany({})
         for (const modelName of modelNames) {
             const model = prisma[modelName];
             if (model) {
@@ -160,17 +161,60 @@ function main() {
         yield assignRolePermissions();
         yield createUsers();
         const dataDirectory = path_1.default.join(__dirname, "seedData");
+        // Ces fichiers seront traités séparément plus bas
         const orderedFileNames = [
-            "product.json",
+            "customer.json",
+            "institution.json",
+            "product.json", // on gère ce fichier à part
             "department.json",
             "designation.json",
-            //"customer.json",
-            // "expenseSummary.json",
-            // "sales.json",
-            // "salesSummary.json",
-            // "purchases.json",
         ];
+        // Suppression des anciennes données
         yield deleteAllData(orderedFileNames);
+        // // --- Création manuelle des institutions ---
+        // const iba = await prisma.institution.create({
+        //   data: {
+        //     id: "iba",
+        //     name: "IBA",
+        //   },
+        // });
+        // const asermpharma = await prisma.institution.create({
+        //   data: {
+        //     id: "asermpharma",
+        //     name: "Asermpharma",
+        //   },
+        // });
+        // console.log("Institutions créées.");
+        // // --- Traitement spécial pour les produits ---
+        // const productsPath = path.join(dataDirectory, "product.json");
+        // if (fs.existsSync(productsPath)) {
+        //   const jsonData = JSON.parse(fs.readFileSync(productsPath, "utf-8"));
+        //   for (const data of jsonData) {
+        //     const { institution, ...productData } = data;
+        //     let institutionId;
+        //     if (institution === "iba") {
+        //       institutionId = iba.id;
+        //     } else if (institution === "asermpharma") {
+        //       institutionId = asermpharma.id;
+        //     } else {
+        //       console.warn(`Institution inconnue pour le produit "${data.designation}"`);
+        //       continue;
+        //     }
+        //     await prisma.product.create({
+        //       data: {
+        //         ...productData,
+        //         institution: {
+        //           connect: { id: institutionId },
+        //         },
+        //       },
+        //     });
+        //   }
+        //   console.log("Produits importés.");
+        // } else {
+        //   console.error("Fichier product.json introuvable.");
+        // }
+        // // --- Importation générique des autres fichiers ---
+        // const remainingFiles = orderedFileNames.filter(f => f !== "product.json");
         for (const fileName of orderedFileNames) {
             const filePath = path_1.default.join(dataDirectory, fileName);
             const jsonData = JSON.parse(fs_1.default.readFileSync(filePath, "utf-8"));
@@ -181,9 +225,7 @@ function main() {
                 continue;
             }
             for (const data of jsonData) {
-                yield model.create({
-                    data,
-                });
+                yield model.create({ data });
             }
             console.log(`Seeded ${modelName} with data from ${fileName}`);
         }

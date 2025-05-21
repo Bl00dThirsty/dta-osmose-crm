@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createCustomer = exports.getCustomers = void 0;
+exports.getSingleCustomer = exports.createCustomer = exports.getCustomers = void 0;
 const { PrismaClient } = require("@prisma/client");
 const uuid_1 = require("uuid");
 const prisma = new PrismaClient();
@@ -33,18 +33,22 @@ const getCustomers = (req, res) => __awaiter(void 0, void 0, void 0, function* (
 exports.getCustomers = getCustomers;
 const createCustomer = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { name, phone, address, nameresponsable, email, website, status, type_customer } = req.body;
+        const { customId, name, phone, nameresponsable, email, ville, website, status, type_customer, role, quarter, region } = req.body;
         const customer = yield prisma.customer.create({
             data: {
                 id: (0, uuid_1.v4)(),
+                customId,
                 name,
                 phone,
-                address,
                 nameresponsable,
                 email,
+                ville,
                 website,
                 status,
                 type_customer,
+                role,
+                quarter,
+                region
             },
         });
         res.status(201).json(customer);
@@ -54,3 +58,24 @@ const createCustomer = (req, res) => __awaiter(void 0, void 0, void 0, function*
     }
 });
 exports.createCustomer = createCustomer;
+const getSingleCustomer = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) {
+            res.status(400).json({ message: "ID invalide" });
+            return;
+        }
+        const singlecustomer = yield prisma.customer.findUnique({
+            where: { id },
+        });
+        if (!singlecustomer) {
+            res.status(404).json({ message: "client non trouvé" });
+            return;
+        }
+    }
+    catch (error) {
+        console.error("Erreur lors de la récupération du client :", error);
+        res.status(500).json({ message: "Erreur serveur" });
+    }
+});
+exports.getSingleCustomer = getSingleCustomer;

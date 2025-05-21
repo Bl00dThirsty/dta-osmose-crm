@@ -1,30 +1,27 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export interface Product {
-    id: string; 
-    name: string;  
-    quantity: number;       
-    signature: string;
-    gtsPrice: number;
-    sellingPriceHT: number;
-    sellingPriceTTC: number;
-    purchase_price: number;
-    label: string;
-    status?: boolean;
-    collisage: number;
+  id: string; 
+  EANCode?: string;  
+  quantity: number;       
+  brand: string;
+  designation: string;
+  sellingPriceTTC: number;
+  purchase_price: number;
+  restockingThreshold: number;
+  warehouse: string;
 }
 
 export interface NewProduct {
-    name: string;  
-    quantity: number;       
-    signature: string;
-    gtsPrice: number;
-    sellingPriceHT: number;
-    sellingPriceTTC: number;
-    purchase_price: number;
-    label: string;
-    status?: boolean;
-    collisage: number;
+  id?: string; 
+  EANCode?: string;  
+  quantity: number;       
+  brand: string;
+  designation: string;
+  sellingPriceTTC: number;
+  purchase_price: number;
+  restockingThreshold: number;
+  warehouse: string;
 }
 
 export interface User {
@@ -85,6 +82,38 @@ export interface NewRole {
   }
 
 }
+
+export interface Customer { 
+  id:number;
+  customId: string;
+  name: string;
+  phone: string;
+  nameresponsable?: string;
+  email: string;
+  ville?: string;
+  website: string;
+  status?: boolean;
+  type_customer?: string;
+  role: string;
+  quarter?: string;
+  region?: string; 
+}
+
+export interface NewCustomer {
+  customId: string;
+  name: string;
+  phone: string;
+  nameresponsable?: string;
+  email: string;
+  ville?: string;
+  website: string;
+  status?: boolean;
+  type_customer?: string;
+  role: string;
+  quarter?: string;
+  region?: string; 
+}
+
 export interface DashboardMetrics {
     popularProducts: Product[];
     popularUsers: User[];
@@ -107,18 +136,18 @@ export const api = createApi({
             query: () => "/dashboard",
             providesTags: ["DashboardMetrics"]
         }),
-        getProducts: build.query<Product[], string | void>({
-            query: (search) => ({
-                url: "/products",
+        getProducts: build.query<Product[], { institution: string; search?: string }>({
+            query: ({ institution, search }) => ({
+                url: `/institutions/${institution}/products`,
                 params: search ? { search } : {}
             }),
             providesTags: ["Products"]
         }),
-        createProduct: build.mutation<Product, NewProduct>({
-            query: (newProduct) => ({
-              url: "/products",
+        createProduct: build.mutation<Product, { data: NewProduct; institution: string }>({
+            query: ({ data, institution }) => ({
+              url: `/institutions/${institution}/products`,
               method: "POST",
-              body: newProduct,
+              body: data,
             }),
             invalidatesTags: ["Products"],
         }), 
@@ -161,10 +190,6 @@ export const api = createApi({
             }),
             invalidatesTags: ["Roles"],
            }),
-           getRoleById: build.query<Role, string>({
-            query: (id) => `/role/${id}`, // Construire l'URL avec l'ID de l'utilisateur
-            providesTags: (result, error, id) => [{ type: "Roles", id }], // Associer un tag pour l'invalidation
-          }),
            deleteRole: build.mutation<void, string>({
             query: (id) => ({
               url: `/role/${id}`,
@@ -172,7 +197,6 @@ export const api = createApi({
             }),
             invalidatesTags: ["Roles"],
           }),
-
 
           //Users
           getUsers: build.query<User[], string | void>({
@@ -195,11 +219,28 @@ export const api = createApi({
             }),
             invalidatesTags: (result, error, id) => [{ type: 'Users', id }],
           }),
+
+          //customer
+          getCustomers: build.query<Customer[], string | void>({
+            
+            query: (search) => ({
+                url: "/customer",
+                params: search ? { search } : {}
+            }),
+            
+          }),
+          createCustomers: build.mutation<Customer, NewCustomer>({
+            query: (NewCustomer) => ({
+              url: "/customer",
+              method: "POST",
+              body: NewCustomer,
+            }),
+           }),
           
           
     }),
 });
 
 export const { useGetDashboardMetricsQuery, useGetProductsQuery, useCreateProductMutation, useGetDepartmentsQuery,
-    useGetDesignationsQuery, useCreateDesignationsMutation, useDeleteDesignationMutation,
-    useGetRolesQuery, useCreateRolesMutation, useGetRoleByIdQuery, useDeleteRoleMutation, useGetUsersQuery, useGetUserByIdQuery, useDeleteUserMutation} = api;
+    useGetDesignationsQuery, useCreateDesignationsMutation, useDeleteDesignationMutation,useGetRolesQuery, useCreateRolesMutation, 
+    useDeleteRoleMutation, useGetUsersQuery, useGetUserByIdQuery, useDeleteUserMutation,  useGetCustomersQuery, useCreateCustomersMutation,} = api;

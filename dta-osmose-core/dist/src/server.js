@@ -22,6 +22,7 @@ const rolePermissionRoute_1 = __importDefault(require("./routes/rolePermissionRo
 const department_Routes_1 = __importDefault(require("./routes/department.Routes"));
 const designationRoutes_1 = __importDefault(require("./routes/designationRoutes"));
 const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
+const customerRoutes_1 = __importDefault(require("./routes/customerRoutes"));
 exports.prisma = new PrismaClient();
 dotenv_1.default.config();
 const app = (0, express_1.default)();
@@ -33,14 +34,15 @@ app.use(body_parser_1.default.urlencoded({ extended: false }));
 // Middleware
 //app.use(cors());
 app.use((0, cors_1.default)({
-    origin: ['http://localhost:3000'], // <-- autorise le frontend Next.js local
+    origin: 'http://localhost:3000', // <-- autorise le frontend Next.js local
     credentials: true, // <-- permet l'envoi des cookies (token de session, etc.)
 }));
 app.use(express_1.default.json());
 app.use((0, cookie_parser_1.default)());
 /* ROUTES */
 app.use("/dashboard", dashboardRoutes_1.default);
-app.use("/products", productRoutes_1.default);
+app.use("/", productRoutes_1.default);
+app.use("/customer", customerRoutes_1.default);
 app.use("/auth", AuthRoutes_1.default);
 app.use("/role", roleRoutes_1.default);
 app.use("/permission", permissionRoutes_1.default);
