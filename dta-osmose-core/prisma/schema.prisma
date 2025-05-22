@@ -34,8 +34,6 @@ model Reporting {
   createdAt         DateTime @default(now())
 }
 
-
-
 model announcement {
   id          Int      @id @default(autoincrement())
   title       String
@@ -55,8 +53,6 @@ model appSetting {
   website      String
   footer       String
 }
-
-
 
 model attendance {
   id            Int       @id @default(autoincrement())
@@ -100,30 +96,29 @@ model awardHistory {
 }
 
 model customer {
-  id              String           @id
-  customId        String          @unique
+  id              String    @id
+  customId        String    @unique
   institution     String
   name            String
-  phone           String        @unique
+  phone           String    @unique
   ville           String
   quarter         String
   region          String?
-  nameresponsable String?        @default("")
-  email           String?        @default("")
-  website         String?        @default("")
-  status          Boolean?       @default(true)
+  nameresponsable String?   @default("")
+  email           String?   @default("")
+  website         String?   @default("")
+  status          Boolean?  @default(true)
   type_customer   typCat
-  created_at      DateTime      @default(now())
-  updated_at      DateTime?      @updatedAt
-  //saleInvoice     saleInvoice[]
+  created_at      DateTime  @default(now())
+  updated_at      DateTime? @updatedAt
 }
 
 model CustomerCounter {
-  id     Int  @id @default(autoincrement())
-  institution     String
-  month  Int
-  year   Int
-  count  Int  @default(0)
+  id          Int    @id @default(autoincrement())
+  institution String
+  month       Int
+  year        Int
+  count       Int    @default(0)
 
   @@unique([institution, month, year])
 }
@@ -155,272 +150,52 @@ model designationHistory {
   user          user        @relation(fields: [userId], references: [id])
 }
 
-/*
-model permission {
-  id             Int              @id @default(autoincrement())
-  name           String           @unique
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime
-  rolePermission rolePermission[]
-}*/
+/// model permission {
+///   id             Int              @id @default(autoincrement())
+///   name           String           @unique
+///   createdAt      DateTime         @default(now())
+///   updatedAt      DateTime
+///   rolePermission rolePermission[]
+/// }
 model institution {
-  id        String    @id @default(uuid())
-  name      String
-  slug      String    @unique
-  products  product[]
+  id       String    @id @default(uuid())
+  name     String
+  slug     String    @unique
+  products product[]
 }
 
 model product {
-  id                           String         @id @default(uuid())
-  EANCode                      String         @unique
-  brand                        String
-  designation                  String
-  quantity                     Int
-  restockingThreshold          Int
-  sellingPriceTTC              Float
-  purchase_price               Float
-  warehouse                    String
-  created_at                   DateTime       @default(now())
-  updated_at                   DateTime       @default(now())
-  institutionId                String
-  institution                  institution    @relation(fields: [institutionId], references: [id])
-  imageName                    String?
-  idSupplier                   Int?
-  product_category_id          Int?
-  unit_measurement             Float?
-  unit_type                    String?
-  sku                          String?        @unique
-  reorder_quantity             Int?
+  id                  String      @id @default(uuid())
+  EANCode             String      @unique
+  brand               String
+  designation         String
+  quantity            Int
+  restockingThreshold Int
+  sellingPriceTTC     Float
+  purchase_price      Float
+  warehouse           String
+  created_at          DateTime    @default(now())
+  updated_at          DateTime    @default(now())
+  imageName           String?
+  idSupplier          Int?
+  product_category_id Int?
+  unit_measurement    Float?
+  unit_type           String?
+  sku                 String?     @unique
+  reorder_quantity    Int?
+  institutionId       String
+  institution         institution @relation(fields: [institutionId], references: [id])
 }
 
-
 model ProductCounter {
-  id     Int  @id @default(autoincrement())
-  institution     String
-  month  Int
-  year   Int
-  count  Int  @default(0)
+  id          Int    @id @default(autoincrement())
+  institution String
+  month       Int
+  year        Int
+  count       Int    @default(0)
 
   @@unique([institution, month, year])
 }
-
-
-/*
-model product_category {
-  id        Int       @id @default(autoincrement())
-  name      String    @unique
-  createdAt DateTime  @default(now())
-  updatedAt DateTime
-  product   product[]
-}
-*/
-/*
-model publicHoliday {
-  id        Int      @id @default(autoincrement())
-  name      String
-  date      DateTime
-  status    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime
-}
-
-model purchaseInvoice {
-  id                     Int                      @id @default(autoincrement())
-  date                   DateTime
-  total_amount           Float
-  discount               Float
-  paid_amount            Float
-  due_amount             Float
-  supplier_id            Int
-  note                   String?
-  supplier_memo_no       String?
-  created_at             DateTime                 @default(now())
-  updated_at             DateTime
-  supplier               supplier                 @relation(fields: [supplier_id], references: [id], onDelete: Cascade)
-  purchaseInvoiceProduct purchaseInvoiceProduct[]
-  returnPurchaseInvoice  returnPurchaseInvoice[]
-}
-
-model purchaseInvoiceProduct {
-  id                     Int             @id @default(autoincrement())
-  product_id             Int
-  invoice_id             Int
-  product_quantity       Int
-  product_purchase_price Float
-  created_at             DateTime        @default(now())
-  updated_at             DateTime
-  purchaseInvoice        purchaseInvoice @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
-  product                product         @relation(fields: [product_id], references: [id], onDelete: Cascade)
-}
-
-model returnPurchaseInvoice {
-  id                           Int                            @id @default(autoincrement())
-  date                         DateTime
-  total_amount                 Float
-  note                         String?
-  purchaseInvoice_id           Int
-  status                       Boolean                        @default(true)
-  created_at                   DateTime                       @default(now())
-  updated_at                   DateTime
-  purchaseInvoice              purchaseInvoice                @relation(fields: [purchaseInvoice_id], references: [id], onDelete: Cascade)
-  returnPurchaseInvoiceProduct returnPurchaseInvoiceProduct[]
-}
-
-model returnPurchaseInvoiceProduct {
-  id                     Int                   @id @default(autoincrement())
-  product_id             Int
-  invoice_id             Int
-  product_quantity       Int
-  product_purchase_price Float
-  created_at             DateTime              @default(now())
-  updated_at             DateTime
-  returnPurchaseInvoice  returnPurchaseInvoice @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
-  product                product               @relation(fields: [product_id], references: [id], onDelete: Cascade)
-}
-
-*/
-// VENTE DE PRODUITS
-/*
-model returnSaleInvoice {
-  id                       Int                        @id @default(autoincrement())
-  date                     DateTime
-  total_amount             Float
-  note                     String?
-  saleInvoice_id           Int
-  status                   Boolean                    @default(true)
-  created_at               DateTime                   @default(now())
-  updated_at               DateTime
-  saleInvoice              saleInvoice                @relation(fields: [saleInvoice_id], references: [id], onDelete: Cascade)
-  returnSaleInvoiceProduct returnSaleInvoiceProduct[]
-}
-
-model returnSaleInvoiceProduct {
-  id                 Int               @id @default(autoincrement())
-  product_id         Int
-  invoice_id         Int
-  product_quantity   Int
-  product_sale_price Float
-  created_at         DateTime          @default(now())
-  updated_at         DateTime
-  returnSaleInvoice  returnSaleInvoice @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
-  product            product           @relation(fields: [product_id], references: [id], onDelete: Cascade)
-}
-
-model saleInvoice {
-  id                 Int                  @id @default(autoincrement())
-  date               DateTime
-  total_amount       Float
-  discount           Float
-  paid_amount        Float
-  due_amount         Float
-  profit             Float
-  customer_id        Int
-  user_id            Int
-  note               String?
-  created_at         DateTime             @default(now())
-  updated_at         DateTime
-  returnSaleInvoice  returnSaleInvoice[]
-  customer           customer             @relation(fields: [customer_id], references: [id], onDelete: Cascade)
-  user               user                 @relation(fields: [user_id], references: [id])
-  saleInvoiceProduct saleInvoiceProduct[]
-}
-
-model saleInvoiceProduct {
-  id                 Int         @id @default(autoincrement())
-  product_id         Int
-  invoice_id         Int
-  product_quantity   Int
-  product_sale_price Float
-  created_at         DateTime    @default(now())
-  updated_at         DateTime
-  saleInvoice        saleInvoice @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
-  product            product     @relation(fields: [product_id], references: [id], onDelete: Cascade)
-}
-
-model salePromise {
-  id                 Int                  @id @default(autoincrement())
-  date               DateTime
-  dueDate            DateTime?
-  reminderDate       DateTime?
-  companyName        String?
-  customer_address   String?
-  total_amount       Float
-  discount           Float
-  customer_name      String
-  customer_phone     String
-  customer_id        Int?
-  user_id            Int
-  note               String?
-  created_at         DateTime             @default(now())
-  updated_at         DateTime
-  user               user                 @relation(fields: [user_id], references: [id])
-  salePromiseProduct salePromiseProduct[]
-}
-
-model salePromiseProduct {
-  id                 Int         @id @default(autoincrement())
-  product_id         Int
-  promise_id         Int
-  product_quantity   Int
-  product_sale_price Float
-  created_at         DateTime    @default(now())
-  updated_at         DateTime
-  product            product     @relation(fields: [product_id], references: [id], onDelete: Cascade)
-  salePromise        salePromise @relation(fields: [promise_id], references: [id], onDelete: Cascade)
-}
-
-
-model role {
-  id             Int              @id @default(autoincrement())
-  name           String           @unique
-  status         Boolean          @default(true)
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime
-  rolePermission rolePermission[]
-  user           user[]
-}
-
-model rolePermission {
-  id            Int        @id @default(autoincrement())
-  role_id       Int
-  permission_id Int
-  status        Boolean    @default(true)
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime
-  permission    permission @relation(fields: [permission_id], references: [id], onDelete: Cascade)
-  role          role       @relation(fields: [role_id], references: [id], onDelete: Cascade)
-
-  @@unique([role_id, permission_id])
-}
-
-model salaryHistory {
-  id        Int       @id @default(autoincrement())
-  userId    Int
-  salary    Float
-  startDate String
-  endDate   DateTime?
-  comment   String?
-  status    Boolean   @default(true)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime
-  user      user      @relation(fields: [userId], references: [id])
-}
-
-model supplier {
-  id              Int               @id @default(autoincrement())
-  name            String
-  phone           String            @unique
-  address         String
-  status          Boolean           @default(true)
-  created_at      DateTime          @default(now())
-  updated_at      DateTime
-  product         product[]
-  purchaseInvoice purchaseInvoice[]
-}
-
-
-
-*/
 
 model user {
   id                 Int                  @id @default(autoincrement())
@@ -453,11 +228,7 @@ model user {
   attendance         attendance[]
   awardHistory       awardHistory[]
   designationHistory designationHistory[]
-  //salaryHistory      salaryHistory[]
-  //saleInvoice        saleInvoice[]
-  //salePromise        salePromise[]
   department         department?          @relation(fields: [departmentId], references: [id])
-  //role               role?                @relation(fields: [roleId], references: [id])
   weeklyHoliday      weeklyHoliday?       @relation(fields: [weeklyHolidayId], references: [id])
 }
 

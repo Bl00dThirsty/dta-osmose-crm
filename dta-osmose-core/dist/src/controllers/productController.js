@@ -17,13 +17,20 @@ const getProducts = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     var _a;
     try {
         const search = (_a = req.query.search) === null || _a === void 0 ? void 0 : _a.toString();
-        const institution = req.params.institution;
-        if (!institution) {
+        const institutionSlug = req.params.institution;
+        if (!institutionSlug) {
             res.status(400).json({ message: "Institution manquante." });
             return;
         }
+        const institution = yield prisma.institution.findUnique({
+            where: { slug: institutionSlug },
+        });
+        if (!institution) {
+            res.status(404).json({ message: "Institution introuvable." });
+            return;
+        }
         const products = yield prisma.product.findMany({
-            where: Object.assign({ institutionId: institution }, (search && {
+            where: Object.assign({ institutionId: institution.id }, (search && {
                 designation: {
                     contains: search,
                     mode: "insensitive",
@@ -46,7 +53,6 @@ const createProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             res.status(400).json({ message: "Institution manquante dans l'URL." });
             return;
         }
-        // 🔍 Chercher l'institution à partir du slug
         const institution = yield prisma.institution.findUnique({
             where: { slug: institutionSlug },
         });

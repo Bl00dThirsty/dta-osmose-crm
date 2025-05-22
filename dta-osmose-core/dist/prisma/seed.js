@@ -16,12 +16,12 @@ const client_1 = require("@prisma/client");
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const prisma = new client_1.PrismaClient();
-// Fonction pour supprimer les données existantes des modèles spécifiés
+// Supprime les données existantes des modèles dans l'ordre inverse de dépendance
 function supprimerToutesLesDonnees(nomsDeFichiers) {
     return __awaiter(this, void 0, void 0, function* () {
         const nomsDeModeles = nomsDeFichiers.map((nomFichier) => {
             const nomModele = path_1.default.basename(nomFichier, path_1.default.extname(nomFichier));
-            return nomModele.charAt(0).toUpperCase() + nomModele.slice(1);
+            return nomModele.charAt(0) + nomModele.slice(1); // minuscule -> majuscule
         });
         for (const nomModele of nomsDeModeles) {
             const modele = prisma[nomModele];
@@ -30,7 +30,7 @@ function supprimerToutesLesDonnees(nomsDeFichiers) {
                 console.log(`Données supprimées du modèle : ${nomModele}`);
             }
             else {
-                console.error(`Modèle ${nomModele} introuvable. Vérifiez que le nom du fichier correspond bien au nom du modèle Prisma.`);
+                console.error(`Modèle ${nomModele} introuvable. Vérifiez le nom du fichier.`);
             }
         }
     });
@@ -38,20 +38,19 @@ function supprimerToutesLesDonnees(nomsDeFichiers) {
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         const dossierDeDonnees = path_1.default.join(__dirname, "seedData");
+        // L'ordre est important : d'abord institution, puis product
         const nomsDeFichiers = [
-            "product.json",
             "institution.json",
+            "product.json",
         ];
-        // Supprimer d'abord les anciennes données
-        yield supprimerToutesLesDonnees(nomsDeFichiers);
-        // Insérer les nouvelles données
+        yield supprimerToutesLesDonnees([...nomsDeFichiers].reverse()); // suppression dans l'ordre inverse
         for (const nomFichier of nomsDeFichiers) {
             const cheminFichier = path_1.default.join(dossierDeDonnees, nomFichier);
             const donneesJson = JSON.parse(fs_1.default.readFileSync(cheminFichier, "utf-8"));
             const nomModele = path_1.default.basename(nomFichier, path_1.default.extname(nomFichier));
             const modele = prisma[nomModele];
             if (!modele) {
-                console.error(`Aucun modèle Prisma correspondant au fichier : ${nomFichier}`);
+                console.error(`Aucun modèle Prisma trouvé pour le fichier : ${nomFichier}`);
                 continue;
             }
             for (const donnees of donneesJson) {
