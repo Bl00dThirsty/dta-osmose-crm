@@ -1,4 +1,5 @@
 [
+<<<<<<< HEAD
   {
     "id": "institution-iba",
     "name": "IBA",
@@ -10,3 +11,16 @@
     "slug": "asermpharma"
   }
 ]
+=======
+    {
+      "id": "institution-iba",
+      "slug": "iba",
+      "name": "IBA"
+    },
+    {
+      "id": "institution-asermpharma",
+      "slug": "asermpharma",
+      "name": "Asermpharma"
+    }
+  ]
+>>>>>>> origin/yvana

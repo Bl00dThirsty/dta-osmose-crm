@@ -7,7 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model AuditLog {
+/*model AuditLog {
   id         Int      @id @default(autoincrement())
   userId     Int
   action     String
@@ -16,7 +16,7 @@ model AuditLog {
   timestamp  DateTime @default(now())
   details    String?
   user       user     @relation(fields: [userId], references: [id])
-}
+}*/
 
 model Reporting {
   id                Int      @id @default(autoincrement())
@@ -54,7 +54,13 @@ model appSetting {
   footer       String
 }
 
+<<<<<<< HEAD
 model attendance {
+=======
+
+
+/*model attendance {
+>>>>>>> origin/yvana
   id            Int       @id @default(autoincrement())
   userId        Int
   inTime        DateTime
@@ -69,9 +75,9 @@ model attendance {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime
   user          user      @relation(fields: [userId], references: [id])
-}
+}*/
 
-model award {
+/*model award {
   id           Int            @id @default(autoincrement())
   name         String         @unique
   description  String?
@@ -80,9 +86,9 @@ model award {
   createdAt    DateTime       @default(now())
   updatedAt    DateTime
   awardHistory awardHistory[]
-}
+}*/
 
-model awardHistory {
+/*model awardHistory {
   id          Int      @id @default(autoincrement())
   userId      Int
   awardId     Int
@@ -93,9 +99,10 @@ model awardHistory {
   updatedAt   DateTime
   award       award    @relation(fields: [awardId], references: [id])
   user        user     @relation(fields: [userId], references: [id])
-}
+}*/
 
 model customer {
+<<<<<<< HEAD
   id              String    @id
   customId        String    @unique
   institution     String
@@ -122,6 +129,35 @@ model CustomerCounter {
 
   @@unique([institution, month, year])
 }
+=======
+  id              Int         @id @default(autoincrement())
+  customId        String          @unique
+  name            String
+  phone           String        @unique
+  email           String        @unique
+  ville           String?
+  nameresponsable String?
+  quarter         String?
+  region          String?
+  role            String         @default("Particulier")
+  status          Boolean?       @default(true)
+  type_customer   String         @default("Pharmacie")
+  website         String?
+  created_at      DateTime      @default(now())
+  updated_at      DateTime?      @updatedAt
+  //saleInvoice     saleInvoice[]
+}
+
+/*model CustomerCounter {
+  id     Int  @id @default(autoincrement())
+  institution     String
+  month  Int
+  year   Int
+  count  Int  @default(0)
+
+  @@unique([institution, month, year])
+}*/
+>>>>>>> origin/yvana
 
 model department {
   id     Int     @id @default(autoincrement())
@@ -132,14 +168,14 @@ model department {
 
 model designation {
   id                 Int                  @id @default(autoincrement())
-  name               String               @unique
+  name               String               
   status             Boolean              @default(true)
   createdAt          DateTime             @default(now())
-  updatedAt          DateTime
-  designationHistory designationHistory[]
+  updatedAt          DateTime             @updatedAt
+  user               user[]
 }
 
-model designationHistory {
+/*model designationHistory {
   id            Int         @id @default(autoincrement())
   userId        Int
   designationId Int
@@ -148,6 +184,7 @@ model designationHistory {
   comment       String?
   designation   designation @relation(fields: [designationId], references: [id])
   user          user        @relation(fields: [userId], references: [id])
+<<<<<<< HEAD
 }
 
 /// model permission {
@@ -185,6 +222,67 @@ model product {
   reorder_quantity    Int?
   institutionId       String
   institution         institution @relation(fields: [institutionId], references: [id])
+=======
+}*/
+
+model institution {
+  id        String    @id @default(uuid())
+  name      String
+  slug      String    @unique
+  products  product[]
+}
+
+model product {
+  id                           String         @id @default(uuid())
+  EANCode                      String         @unique
+  brand                        String
+  designation                  String
+  quantity                     Int
+  restockingThreshold          Int
+  sellingPriceTTC              Float
+  purchase_price               Float
+  warehouse                    String
+  created_at                   DateTime       @default(now())
+  updated_at                   DateTime       @default(now())
+  institutionId                String
+  institution                  institution    @relation(fields: [institutionId], references: [id])
+  imageName                    String?
+  idSupplier                   Int?
+  product_category_id          Int?
+  unit_measurement             Float?
+  unit_type                    String?
+  sku                          String?        @unique
+  reorder_quantity             Int?
+}
+
+model ProductCounter {
+  id     Int  @id @default(autoincrement())
+  institution     String
+  month  Int
+  year   Int
+  count  Int  @default(0)
+
+  @@unique([institution, month, year])
+}
+
+/*
+model product_category {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime
+  product   product[]
+}
+*/
+/*
+model publicHoliday {
+  id        Int      @id @default(autoincrement())
+  name      String
+  date      DateTime
+  status    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+>>>>>>> origin/yvana
 }
 
 model ProductCounter {
@@ -197,6 +295,198 @@ model ProductCounter {
   @@unique([institution, month, year])
 }
 
+<<<<<<< HEAD
+=======
+model purchaseInvoiceProduct {
+  id                     Int             @id @default(autoincrement())
+  product_id             Int
+  invoice_id             Int
+  product_quantity       Int
+  product_purchase_price Float
+  created_at             DateTime        @default(now())
+  updated_at             DateTime
+  purchaseInvoice        purchaseInvoice @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+  product                product         @relation(fields: [product_id], references: [id], onDelete: Cascade)
+}
+
+model returnPurchaseInvoice {
+  id                           Int                            @id @default(autoincrement())
+  date                         DateTime
+  total_amount                 Float
+  note                         String?
+  purchaseInvoice_id           Int
+  status                       Boolean                        @default(true)
+  created_at                   DateTime                       @default(now())
+  updated_at                   DateTime
+  purchaseInvoice              purchaseInvoice                @relation(fields: [purchaseInvoice_id], references: [id], onDelete: Cascade)
+  returnPurchaseInvoiceProduct returnPurchaseInvoiceProduct[]
+}
+
+model returnPurchaseInvoiceProduct {
+  id                     Int                   @id @default(autoincrement())
+  product_id             Int
+  invoice_id             Int
+  product_quantity       Int
+  product_purchase_price Float
+  created_at             DateTime              @default(now())
+  updated_at             DateTime
+  returnPurchaseInvoice  returnPurchaseInvoice @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+  product                product               @relation(fields: [product_id], references: [id], onDelete: Cascade)
+}
+
+*/
+// VENTE DE PRODUITS
+/*
+model returnSaleInvoice {
+  id                       Int                        @id @default(autoincrement())
+  date                     DateTime
+  total_amount             Float
+  note                     String?
+  saleInvoice_id           Int
+  status                   Boolean                    @default(true)
+  created_at               DateTime                   @default(now())
+  updated_at               DateTime
+  saleInvoice              saleInvoice                @relation(fields: [saleInvoice_id], references: [id], onDelete: Cascade)
+  returnSaleInvoiceProduct returnSaleInvoiceProduct[]
+}
+
+model returnSaleInvoiceProduct {
+  id                 Int               @id @default(autoincrement())
+  product_id         Int
+  invoice_id         Int
+  product_quantity   Int
+  product_sale_price Float
+  created_at         DateTime          @default(now())
+  updated_at         DateTime
+  returnSaleInvoice  returnSaleInvoice @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+  product            product           @relation(fields: [product_id], references: [id], onDelete: Cascade)
+}
+
+model saleInvoice {
+  id                 Int                  @id @default(autoincrement())
+  date               DateTime
+  total_amount       Float
+  discount           Float
+  paid_amount        Float
+  due_amount         Float
+  profit             Float
+  customer_id        Int
+  user_id            Int
+  note               String?
+  created_at         DateTime             @default(now())
+  updated_at         DateTime
+  returnSaleInvoice  returnSaleInvoice[]
+  customer           customer             @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  user               user                 @relation(fields: [user_id], references: [id])
+  saleInvoiceProduct saleInvoiceProduct[]
+}
+
+model saleInvoiceProduct {
+  id                 Int         @id @default(autoincrement())
+  product_id         Int
+  invoice_id         Int
+  product_quantity   Int
+  product_sale_price Float
+  created_at         DateTime    @default(now())
+  updated_at         DateTime
+  saleInvoice        saleInvoice @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+  product            product     @relation(fields: [product_id], references: [id], onDelete: Cascade)
+}
+
+model salePromise {
+  id                 Int                  @id @default(autoincrement())
+  date               DateTime
+  dueDate            DateTime?
+  reminderDate       DateTime?
+  companyName        String?
+  customer_address   String?
+  total_amount       Float
+  discount           Float
+  customer_name      String
+  customer_phone     String
+  customer_id        Int?
+  user_id            Int
+  note               String?
+  created_at         DateTime             @default(now())
+  updated_at         DateTime
+  user               user                 @relation(fields: [user_id], references: [id])
+  salePromiseProduct salePromiseProduct[]
+}
+
+model salePromiseProduct {
+  id                 Int         @id @default(autoincrement())
+  product_id         Int
+  promise_id         Int
+  product_quantity   Int
+  product_sale_price Float
+  created_at         DateTime    @default(now())
+  updated_at         DateTime
+  product            product     @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  salePromise        salePromise @relation(fields: [promise_id], references: [id], onDelete: Cascade)
+}
+*/
+
+model role {
+  id             Int              @id @default(autoincrement())
+  name           String           @unique
+  rolePermission rolePermission[]
+  status         Boolean          @default(true)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @default(now()) 
+}
+
+model permission {
+  id             Int              @id @default(autoincrement())
+  name           String           @unique
+  rolePermission rolePermission[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @default(now())
+  
+}
+
+model rolePermission {
+  id            Int        @id @default(autoincrement())
+  role          role       @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  role_id       Int
+  permission    permission @relation(fields: [permission_id], references: [id], onDelete: Cascade)
+  permission_id Int
+  status        Boolean    @default(true)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@unique([role_id, permission_id])
+}
+
+/*model salaryHistory {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  salary    Float
+  startDate String
+  endDate   DateTime?
+  comment   String?
+  status    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime
+  user      user      @relation(fields: [userId], references: [id])
+}
+
+model supplier {
+  id              Int               @id @default(autoincrement())
+  name            String
+  phone           String            @unique
+  address         String
+  status          Boolean           @default(true)
+  created_at      DateTime          @default(now())
+  updated_at      DateTime          @default(now())
+  product         product[]
+  purchaseInvoice purchaseInvoice[]
+}
+*/
+
+
+
+
+>>>>>>> origin/yvana
 model user {
   id                 Int                  @id @default(autoincrement())
   firstName          String?
@@ -207,22 +497,23 @@ model user {
   phone              String?              @unique
   street             String?
   city               String?
-  state              String?
   zipCode            String?
-  country            String?
+  gender            String?
   joinDate           DateTime?
-  leaveDate          DateTime?
+  birthday           String?
   employeeId         String?              @unique
+  CnpsId            String?   @unique
   bloodGroup         String?
-  image              String?
-  employmentStatusId Int?
   departmentId       Int?
-  roleId             Int?
-  shiftId            Int?
-  leavePolicyId      Int?
-  weeklyHolidayId    Int?
+  designationId      Int?
+  role               String?
+  salary             Float?
+  emergencyPhone1    String?
+  emergencyname1     String?
+  emergencylink1     String?
   status             Boolean              @default(true)
   createdAt          DateTime             @default(now())
+<<<<<<< HEAD
   updatedAt          DateTime
   AuditLog           AuditLog[]
   attendance         attendance[]
@@ -230,18 +521,20 @@ model user {
   designationHistory designationHistory[]
   department         department?          @relation(fields: [departmentId], references: [id])
   weeklyHoliday      weeklyHoliday?       @relation(fields: [weeklyHolidayId], references: [id])
+=======
+  updatedAt          DateTime             @default(now())
+  //AuditLog           AuditLog[]
+  //attendance         attendance[]
+  //awardHistory       awardHistory[]
+  designation         designation?          @relation(fields: [designationId], references: [id])
+  //salaryHistory      salaryHistory[]
+  //saleInvoice        saleInvoice[]
+  //salePromise        salePromise[]
+  department         department?          @relation(fields: [departmentId], references: [id])
+   
+>>>>>>> origin/yvana
 }
 
-model weeklyHoliday {
-  id        Int      @id @default(autoincrement())
-  name      String
-  startDay  String
-  endDay    String
-  status    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime
-  user      user[]
-}
 
 enum typCat {
   Pharmacie

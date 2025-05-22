@@ -1,0 +1,23 @@
+[
+    {
+      
+      "customId": "Client0001",
+      "name": "Pharmacie ABC",
+      "phone": "6998741526",
+      "email": "client1@example.com",
+      "role": "Particulier",
+      "quarter":"simbock",
+      "nameresponsable": "Jean pierre"
+    },
+    {
+      
+      "customId": "Client0002",
+      "name": "Cosmetique ABC",
+      "phone": "6998741574",
+      "email": "client2@example.com",
+      "role": "Particulier",
+      "quarter":"simbockII",
+      "nameresponsable": "Jean paul"
+    }
+  ]
+  

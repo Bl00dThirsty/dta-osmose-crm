@@ -1,7 +1,10 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/yvana
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

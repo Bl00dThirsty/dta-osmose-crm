@@ -121,6 +121,45 @@ function DialogDescription({
   )
 }
 
+<<<<<<< HEAD
+=======
+function DialogCancel({
+  className,
+  ...props
+}: React.ComponentProps<"button">) {
+  return (
+    <button
+      data-slot="dialog-cancel"
+      type="button"
+      className={cn(
+        "inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function DialogAction({
+  className,
+  ...props
+}: React.ComponentProps<"button">) {
+  return (
+    <button
+      data-slot="dialog-action"
+      type="button" // ou "button" selon l’usage
+      className={cn(
+        "inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+
+
+>>>>>>> origin/yvana
 export {
   Dialog,
   DialogClose,
@@ -132,4 +171,9 @@ export {
   DialogPortal,
   DialogTitle,
   DialogTrigger,
+<<<<<<< HEAD
+=======
+  DialogCancel,
+  DialogAction,
+>>>>>>> origin/yvana
 }

@@ -1,5 +1,9 @@
 import { Request, Response } from "express";
+<<<<<<< HEAD
 import { PrismaClient } from "@prisma/client";
+=======
+const { PrismaClient } = require("@prisma/client");
+>>>>>>> origin/yvana
 import { v4 as uuidv4 } from 'uuid';
 
 const prisma = new PrismaClient();
@@ -14,7 +18,11 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
+<<<<<<< HEAD
     
+=======
+    // Étape 1 : Chercher l'institution à partir du slug
+>>>>>>> origin/yvana
     const institution = await prisma.institution.findUnique({
       where: { slug: institutionSlug },
     });
@@ -35,6 +43,10 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
         }),
       },
     });
+<<<<<<< HEAD
+=======
+    
+>>>>>>> origin/yvana
 
     res.json(products);
   } catch (error) {
@@ -64,6 +76,10 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
+<<<<<<< HEAD
+=======
+    // 🔍 Chercher l'institution à partir du slug
+>>>>>>> origin/yvana
     const institution = await prisma.institution.findUnique({
       where: { slug: institutionSlug },
     });

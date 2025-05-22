@@ -16,7 +16,11 @@ export default function ProductsTable() {
 
   useEffect(() => {
     if (!institution) return;
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> origin/yvana
     const fetchProducts = async () => {
       try {
         setLoading(true)

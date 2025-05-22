@@ -8,14 +8,22 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DataTableViewOptions } from "@/app/[institution]/(routes)/crm/products/table/components/data-table-view-options"
 
+<<<<<<< HEAD
 import { quantityLevel, statuses } from "../data/data"
 import { DataTableFacetedFilter } from "./data-table-faceted-filter"
 import { AddProductDialog } from "../../../components/AddProductDialog"
 import { NewProduct, useCreateProductMutation } from "@/state/api"
+=======
+import { quantityLevel, statuses } from "@/app/[institution]/(routes)/crm/products/table/data/data"
+import { DataTableFacetedFilter } from "./data-table-faceted-filter"
+import { AddCustomerDialog } from "../../../components/AddCustomer"
+import { NewProduct, useCreateCustomersMutation } from "@/state/api"
+>>>>>>> origin/yvana
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import Papa from "papaparse"
 import { useState } from "react"
 
+<<<<<<< HEAD
 type ProductFormData = {
   name: string;
   quantity: number;
@@ -27,6 +35,21 @@ type ProductFormData = {
   label: string;
   status?: boolean;
   collisage: number;
+=======
+type CustomerFormData = {
+  customId: string;
+  name: string;
+  phone: string;
+  nameresponsable?: string;
+  email: string;
+  ville?: string;
+  website: string;
+  status?: boolean;
+  type_customer?: string;
+  role: string;
+  quarter?: string;
+  region?: string;
+>>>>>>> origin/yvana
 }
 interface DataTableToolbarProps<TData> {
   table: Table<TData>
@@ -37,6 +60,7 @@ export function DataTableToolbar<TData>({
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
 
+<<<<<<< HEAD
   const handleCreateProduct = async (productData: ProductFormData) => {
     await createProduct(productData);
   }
@@ -85,18 +109,33 @@ export function DataTableToolbar<TData>({
         }
       })
     }
+=======
+  const handleCreateProduct = async (customerData: CustomerFormData) => {
+    await createCustomer(customerData);
+  }
+  
+  const [file, setFile] = useState<File | null>(null)
+  const [createCustomer] = useCreateCustomersMutation()
+  
+   
+>>>>>>> origin/yvana
   
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">
         <Input
+<<<<<<< HEAD
           placeholder="Filtrer les produits..."
+=======
+          placeholder="Filtrer les customers..."
+>>>>>>> origin/yvana
           value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("name")?.setFilterValue(event.target.value)
           }
           className="h-8 w-[150px] lg:w-[250px]"
         />
+<<<<<<< HEAD
         {table.getColumn("status") && (
           <DataTableFacetedFilter
             column={table.getColumn("status")}
@@ -111,6 +150,16 @@ export function DataTableToolbar<TData>({
             options={quantityLevel}
           />
         )}
+=======
+        {table.getColumn("email") && (
+          <DataTableFacetedFilter
+            column={table.getColumn("email")}
+            title="email"
+            options={statuses}
+          />
+        )}
+        
+>>>>>>> origin/yvana
         {isFiltered && (
           <Button
             variant="ghost"
@@ -122,6 +171,7 @@ export function DataTableToolbar<TData>({
           </Button>
         )}
       </div>
+<<<<<<< HEAD
       <AddProductDialog onCreate={handleCreateProduct} />
       <Dialog>
         <DialogTrigger asChild>
@@ -137,6 +187,9 @@ export function DataTableToolbar<TData>({
           </Button>
         </DialogContent>
     </Dialog>
+=======
+      <AddCustomerDialog onCreate={handleCreateProduct} />
+>>>>>>> origin/yvana
       <DataTableViewOptions table={table} />
     </div>
   )

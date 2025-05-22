@@ -12,10 +12,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const client_1 = require("@prisma/client");
+const { PrismaClient } = require("@prisma/client");
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
-const prisma = new client_1.PrismaClient();
+const prisma = new PrismaClient();
+const saltRounds = 10;
 // Supprime les données existantes des modèles dans l'ordre inverse de dépendance
 function supprimerToutesLesDonnees(nomsDeFichiers) {
     return __awaiter(this, void 0, void 0, function* () {

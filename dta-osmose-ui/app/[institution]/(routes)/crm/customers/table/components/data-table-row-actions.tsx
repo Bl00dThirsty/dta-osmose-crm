@@ -18,6 +18,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
+<<<<<<< HEAD
+=======
+import { labels } from "@/app/[institution]/(routes)/crm/products/table/data/data"
+>>>>>>> origin/yvana
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>
@@ -44,6 +48,18 @@ export function DataTableRowActions<TData>({
         <DropdownMenuSeparator />
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>Labels</DropdownMenuSubTrigger>
+<<<<<<< HEAD
+=======
+          <DropdownMenuSubContent>
+            <DropdownMenuRadioGroup>
+              {labels.map((label) => (
+                <DropdownMenuRadioItem key={label.value} value={label.value}>
+                  {label.label}
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuSubContent>
+>>>>>>> origin/yvana
         </DropdownMenuSub>
         <DropdownMenuSeparator />
         <DropdownMenuItem>
