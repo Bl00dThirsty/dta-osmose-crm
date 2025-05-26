@@ -71,11 +71,11 @@ export const columns: ColumnDef<Customer>[] = [
     cell: ({ row }) => <div className="w-[100px]">{row.getValue("nameresponsable")}</div>,
   },
   {
-    accessorKey: "email",
+    accessorKey: "type_customer",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="email" />
+      <DataTableColumnHeader column={column} title="type_customer" />
     ),
-    cell: ({ row }) => <div className="w-[100px]">{row.getValue("email")}</div>,
+    cell: ({ row }) => <div className="w-[100px]">{row.getValue("type_customer")}</div>,
   },
   {
     accessorKey: "quarter",

@@ -9,26 +9,15 @@ import { Input } from "@/components/ui/input"
 import { DataTableViewOptions } from "@/app/[institution]/(routes)/crm/products/table/components/data-table-view-options"
 
 import { quantityLevel, statuses } from "@/app/[institution]/(routes)/crm/products/table/data/data"
-import { DataTableFacetedFilter } from "./data-table-faceted-filter"
-import { AddCustomerDialog } from "../../../components/AddCustomer"
-import { NewProduct, useCreateCustomersMutation } from "@/state/api"
+import { DataTableFacetedFilter } from "../../../user/all/table/components/data-table-faceted-filter"
+import { AddDesignationDialog } from "../../../crm/components/AddDesignation"
+import { NewDesignation, useCreateDesignationsMutation } from "@/state/api"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import Papa from "papaparse"
 import { useState } from "react"
 
-type CustomerFormData = {
-  customId: string;
+type DesignationFormData = {
   name: string;
-  phone: string;
-  nameresponsable?: string;
-  email: string;
-  ville?: string;
-  website: string;
-  status?: boolean;
-  type_customer?: string;
-  role: string;
-  quarter?: string;
-  region?: string;
 }
 interface DataTableToolbarProps<TData> {
   table: Table<TData>
@@ -39,33 +28,57 @@ export function DataTableToolbar<TData>({
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
 
-  const handleCreateProduct = async (customerData: CustomerFormData) => {
-    await createCustomer(customerData);
+  const handleCreateDesignation = async (designationData: DesignationFormData) => {
+    await createDesignation(designationData);
   }
   
   const [file, setFile] = useState<File | null>(null)
-  const [createCustomer] = useCreateCustomersMutation()
+  const [createDesignation] = useCreateDesignationsMutation()
   
-   
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const selectedFile = e.target.files?.[0]
+      if (selectedFile) {
+        setFile(selectedFile)
+      }
+    }
+  
+    const handleUpload = () => {
+      if (!file) return
+  
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: async (results) => {
+          const designations = results.data as any[]
+  
+          for (const designation of designations) {
+            try {
+              await createDesignation({
+                name: designation.name,
+              }).unwrap()
+            } catch (error) {
+              console.error("Erreur lors de l'ajout du produit :", error)
+            }
+          }
+          alert("Produits importés avec succès...")
+        },
+        error: (err) => {
+          console.error("Erreur lors de la lecture du CSV :", err)
+        }
+      })
+    }
   
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">
         <Input
-          placeholder="Filtrer les customers..."
+          placeholder="Filtrer les produits..."
           value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("name")?.setFilterValue(event.target.value)
           }
           className="h-8 w-[150px] lg:w-[250px]"
         />
-        {table.getColumn("type_customer") && (
-          <DataTableFacetedFilter
-            column={table.getColumn("type_customer")}
-            title="type du client"
-            options={statuses}
-          />
-        )}
         
         {isFiltered && (
           <Button
@@ -78,7 +91,7 @@ export function DataTableToolbar<TData>({
           </Button>
         )}
       </div>
-      <AddCustomerDialog onCreate={handleCreateProduct} />
+      <AddDesignationDialog onCreate={handleCreateDesignation} />
       <DataTableViewOptions table={table} />
     </div>
   )

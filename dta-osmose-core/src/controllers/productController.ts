@@ -98,3 +98,29 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
     res.status(500).json({ message: "Erreur lors de la création du produit." });
   }
 };
+
+export const getSingleProduct = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      res.status(400).json({ message: "ID du produit manquant." });
+      return;
+    }
+
+    const product = await prisma.product.findUnique({
+      where: { id },
+    });
+
+    if (!product) {
+      res.status(404).json({ message: "Produit non trouvé." });
+      return;
+    }
+
+    res.status(200).json(product);
+  } catch (error) {
+    console.error("Erreur lors de la récupération du produit :", error);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+};
+

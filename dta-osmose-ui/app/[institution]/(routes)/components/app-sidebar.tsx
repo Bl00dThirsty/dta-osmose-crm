@@ -16,6 +16,7 @@ import {
   ArrowBigDownDash,
   Crown,
   User,
+  ShoppingBag
 } from "lucide-react";
 
 import { AppSwitcher } from "./app-switcher";
@@ -71,6 +72,16 @@ const data = {
       path: "#",
       icon: () => <TrendingUp size={40} />,
       items: [{ title: "Tableau de rotation", path: "#" }],
+    },
+    {
+      title: "Ventes",
+      path: "sales",
+      icon: () => <ShoppingBag size={40} />,
+      items: [
+        { title: "Ventes", path: "sales" },
+        { title: "Liste des ventes", path: "sales/all" },
+        
+      ],
     },
     {
       title: "Fournisseurs",

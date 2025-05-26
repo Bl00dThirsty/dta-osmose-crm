@@ -17,9 +17,6 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useParams } from "next/navigation"
-import { useState } from "react" 
-import { useDeleteCustomerMutation } from "@/state/api"
 import {
   Dialog,
   DialogTrigger,
@@ -31,7 +28,9 @@ import {
   DialogCancel,
   DialogAction,
 } from "@/components/ui/dialog"
-
+import { useState } from "react" 
+import { useDeleteDesignationMutation } from "@/state/api"
+import { labels } from "@/app/[institution]/(routes)/crm/products/table/data/data"
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>
@@ -41,14 +40,13 @@ export function DataTableRowActions<TData>({
   row,
 }: DataTableRowActionsProps<TData>) {
   const router = useRouter();
-  const { institution } = useParams() as { institution: string }
-  const cutomerId = (row.original as any).id;
-  const [deleteCustomer] = useDeleteCustomerMutation()
+  const designation = row.original as any
+  const [deleteDesignation] = useDeleteDesignationMutation()
   const [open, setOpen] = useState(false);
 
   const handleDelete = async () => {
     try {
-      await deleteCustomer(cutomerId).unwrap()
+      await deleteDesignation(designation.id).unwrap()
       console.log("Designation supprimé avec succès")
     } catch (error) {
       console.log("Erreur lors de la suppression :")
@@ -67,33 +65,31 @@ export function DataTableRowActions<TData>({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[160px]">
-        <DropdownMenuItem onClick={() => router.push(`/${institution}/crm/customers/${cutomerId}`)}>
-          Voir
-        </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => setOpen(true)} className="text-red-600">
+        <DropdownMenuItem>Modifier</DropdownMenuItem>
+        
+            <DropdownMenuItem onSelect={() => setOpen(true)} className="text-red-600">
               Supprimer
-            
-        </DropdownMenuItem>
-        <DropdownMenuItem>
-          Modifier
-        </DropdownMenuItem>
+            </DropdownMenuItem>
+          
+        <DropdownMenuSeparator />
       </DropdownMenuContent>
     </DropdownMenu>
 
-<Dialog open={open} onOpenChange={setOpen}>
-<DialogContent>
-  <DialogHeader>
-    <DialogTitle>Confirmation</DialogTitle>
-    <DialogDescription>
-      Voulez-vous vraiment supprimer ce client ?
-    </DialogDescription>
-  </DialogHeader>
-  <DialogFooter>
-    <DialogCancel onClick={() => setOpen(false)}>Annuler</DialogCancel>
-    <DialogAction onClick={handleDelete}>Oui</DialogAction>
-  </DialogFooter>
-</DialogContent>
-</Dialog>
-</>
+     <Dialog open={open} onOpenChange={setOpen}>
+     <DialogContent>
+       <DialogHeader>
+         <DialogTitle>Confirmation</DialogTitle>
+         <DialogDescription>
+           Voulez-vous vraiment supprimer ce poste ?
+         </DialogDescription>
+       </DialogHeader>
+       <DialogFooter>
+         <DialogCancel onClick={() => setOpen(false)}>Annuler</DialogCancel>
+         <DialogAction onClick={handleDelete}>Oui</DialogAction>
+       </DialogFooter>
+     </DialogContent>
+   </Dialog>
+   </>
+
   )
 }

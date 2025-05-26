@@ -1,4 +1,3 @@
-//src/middleware/authorize.ts
 import { expressjwt as jwt } from "express-jwt";
 //var { expressjwt: jwt } = require("express-jwt");
 import { Request, Response, NextFunction, RequestHandler } from "express";

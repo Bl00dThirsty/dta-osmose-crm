@@ -111,10 +111,11 @@ model customer {
   region          String?
   role            String         @default("Particulier")
   status          Boolean?       @default(true)
-  type_customer   String         @default("Pharmacie")
+  type_customer   String?         @default("Pharmacie")
   website         String?
   created_at      DateTime      @default(now())
   updated_at      DateTime?      @updatedAt
+  saleInvoice     saleInvoice[]
   //saleInvoice     saleInvoice[]
 }
 
@@ -160,6 +161,7 @@ model institution {
   name      String
   slug      String    @unique
   products  product[]
+  saleInvoice  saleInvoice[]
 }
 
 model product {
@@ -183,6 +185,7 @@ model product {
   unit_type                    String?
   sku                          String?        @unique
   reorder_quantity             Int?
+  saleItem                     saleItem[]
 }
 
 model ProductCounter {
@@ -193,6 +196,39 @@ model ProductCounter {
   count  Int  @default(0)
 
   @@unique([institution, month, year])
+}
+
+//vente 
+model saleInvoice {
+  id              String      @id @default(uuid())
+  invoiceNumber   String      @unique
+  customerId      Int
+  userId          Int
+  institutionId   String
+  totalAmount     Float
+  discount        Float
+  finalAmount     Float
+  paymentStatus   String      @default("PENDING") // PENDING, PAID, PARTIAL
+  paymentMethod   String?     // CASH, CARD, TRANSFER
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  customer        customer    @relation(fields: [customerId], references: [id])
+  user            user        @relation(fields: [userId], references: [id])
+  institution     institution @relation(fields: [institutionId], references: [id])
+  items           saleItem[]
+}
+
+model saleItem {
+  id              String      @id @default(uuid())
+  invoiceId       String
+  productId       String
+  quantity        Int
+  unitPrice       Float
+  totalPrice      Float
+
+  invoice         saleInvoice @relation(fields: [invoiceId], references: [id])
+  product         product     @relation(fields: [productId], references: [id])
 }
 
 /*
@@ -452,7 +488,7 @@ model user {
   //awardHistory       awardHistory[]
   designation         designation?          @relation(fields: [designationId], references: [id])
   //salaryHistory      salaryHistory[]
-  //saleInvoice        saleInvoice[]
+  saleInvoice        saleInvoice[]
   //salePromise        salePromise[]
   department         department?          @relation(fields: [departmentId], references: [id])
    

@@ -3,7 +3,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useGetUserByIdQuery } from "@/state/api"; 
+import { useGetProductByIdQuery } from "@/state/api"; 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -19,10 +19,10 @@ import {
 export default function DetailUserPage() {
   const router = useRouter();
   const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-  const InfoItem = ({ label, value }: { label: string; value?: string | null }) => (
+  const InfoItem = ({ label, value, values }: { label: string; value?: string | null; values?:number }) => (
     <div className="flex">
       <span className="font-medium text-gray-600 w-40 flex-shrink-0">{label} :</span>
-      <span className="text-gray-800">{value || 'Non renseigné'}</span>
+      <span className="text-gray-800">{value || values || 'Non renseigné'}</span>
     </div>
   );
   useEffect(() => {
@@ -31,14 +31,14 @@ export default function DetailUserPage() {
     }
   }, [token]);
   const { id } = useParams();
-  const { data: user, isLoading, error } = useGetUserByIdQuery(id as string);
+  const { data: product, isLoading, error } = useGetProductByIdQuery(id as string);
 
   const handleGoBack = () => {
     router.back();
   };
 
   if (isLoading) return <p>Chargement...</p>;
-  if (error || !user) return <p>Utilisateur introuvable.</p>;
+  if (error || !product) return <p>Produit introuvable.</p>;
 
   return (
     
@@ -55,10 +55,10 @@ export default function DetailUserPage() {
       
       <CardHeader className="pb-2">
         <CardTitle className="text-3xl font-semibold text-center text-white-800">
-          {user.firstName} {user.lastName}
+          {product.designation}
         </CardTitle>
         <CardDescription className="text-center text-white-500">
-          Fiche d'information détaillée
+          Informations détaillées
         </CardDescription>
       </CardHeader>
       
@@ -67,22 +67,12 @@ export default function DetailUserPage() {
           {/* Colonne de gauche */}
           <div className="space-y-4">
             <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium text-gray-700 mb-3 pb-2 border-b">Informations personnelles</h3>
+              <h3 className="text-lg font-medium text-gray-700 mb-3 pb-2 border-b">Informations</h3>
               <div className="space-y-3">
-                <InfoItem label="Email" value={user.email} />
-                <InfoItem label="Téléphone" value={user.phone} />
-                <InfoItem label="Sexe" value={user.gender} />
-                <InfoItem label="Date de naissance" value={user.birthday} />
-              </div>
-            </div>
-            
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium text-gray-700 mb-3 pb-2 border-b">Poste</h3>
-              <div className="space-y-3">
-                <InfoItem label="Poste" value={user.designation?.name} />
-                <InfoItem label="Département" value={user.department?.name} />
-                <InfoItem label="Matricule" value={user.employeeId} />
-                <InfoItem label="CNPS" value={user.CnpsId} />
+                <InfoItem label="EANCode" value={product.EANCode} />
+                <InfoItem label="Catégorie" value={product.brand} />
+                <InfoItem label="Quantité" values={product.quantity} />
+                <InfoItem label="Quantité de réapprovisionnement" values={product.restockingThreshold} />
               </div>
             </div>
           </div>
@@ -90,23 +80,16 @@ export default function DetailUserPage() {
           {/* Colonne de droite */}
           <div className="space-y-4">
             <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium text-gray-700 mb-3 pb-2 border-b">Adresse</h3>
+              <h3 className="text-lg font-medium text-gray-700 mb-3 pb-2 border-b">Prix</h3>
               <div className="space-y-3">
-                <InfoItem 
+                {/* <InfoItem 
                   label="Adresse complète" 
                   value={`${user.street}, ${user.city} ${user.zipCode}`} 
-                />
-              </div>
-            </div>
-            
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium text-gray-700 mb-3 pb-2 border-b">Contacts d'urgence</h3>
-              <div className="space-y-3">
-                <InfoItem 
-                  label={user.emergencyname1 || "Contact 1"} 
-                  value={`${user.emergencylink1} - ${user.emergencyPhone1}`} 
-                />
-                {/* Vous pouvez ajouter d'autres contacts d'urgence ici */}
+                  
+                /> */}
+                <InfoItem label="Prix de vente" values={product.sellingPriceTTC} />
+                <InfoItem label="Prix d'achat" values={product.purchase_price} />
+                <InfoItem label="Entrepôt" value={product.warehouse} />
               </div>
             </div>
           </div>
