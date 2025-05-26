@@ -54,13 +54,7 @@ model appSetting {
   footer       String
 }
 
-<<<<<<< HEAD
 model attendance {
-=======
-
-
-/*model attendance {
->>>>>>> origin/yvana
   id            Int       @id @default(autoincrement())
   userId        Int
   inTime        DateTime
@@ -102,34 +96,6 @@ model attendance {
 }*/
 
 model customer {
-<<<<<<< HEAD
-  id              String    @id
-  customId        String    @unique
-  institution     String
-  name            String
-  phone           String    @unique
-  ville           String
-  quarter         String
-  region          String?
-  nameresponsable String?   @default("")
-  email           String?   @default("")
-  website         String?   @default("")
-  status          Boolean?  @default(true)
-  type_customer   typCat
-  created_at      DateTime  @default(now())
-  updated_at      DateTime? @updatedAt
-}
-
-model CustomerCounter {
-  id          Int    @id @default(autoincrement())
-  institution String
-  month       Int
-  year        Int
-  count       Int    @default(0)
-
-  @@unique([institution, month, year])
-}
-=======
   id              Int         @id @default(autoincrement())
   customId        String          @unique
   name            String
@@ -157,7 +123,6 @@ model CustomerCounter {
 
   @@unique([institution, month, year])
 }*/
->>>>>>> origin/yvana
 
 model department {
   id     Int     @id @default(autoincrement())
@@ -184,45 +149,6 @@ model designation {
   comment       String?
   designation   designation @relation(fields: [designationId], references: [id])
   user          user        @relation(fields: [userId], references: [id])
-<<<<<<< HEAD
-}
-
-/// model permission {
-///   id             Int              @id @default(autoincrement())
-///   name           String           @unique
-///   createdAt      DateTime         @default(now())
-///   updatedAt      DateTime
-///   rolePermission rolePermission[]
-/// }
-model institution {
-  id       String    @id @default(uuid())
-  name     String
-  slug     String    @unique
-  products product[]
-}
-
-model product {
-  id                  String      @id @default(uuid())
-  EANCode             String      @unique
-  brand               String
-  designation         String
-  quantity            Int
-  restockingThreshold Int
-  sellingPriceTTC     Float
-  purchase_price      Float
-  warehouse           String
-  created_at          DateTime    @default(now())
-  updated_at          DateTime    @default(now())
-  imageName           String?
-  idSupplier          Int?
-  product_category_id Int?
-  unit_measurement    Float?
-  unit_type           String?
-  sku                 String?     @unique
-  reorder_quantity    Int?
-  institutionId       String
-  institution         institution @relation(fields: [institutionId], references: [id])
-=======
 }*/
 
 model institution {
@@ -282,7 +208,6 @@ model publicHoliday {
   status    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime
->>>>>>> origin/yvana
 }
 
 model ProductCounter {
@@ -295,8 +220,6 @@ model ProductCounter {
   @@unique([institution, month, year])
 }
 
-<<<<<<< HEAD
-=======
 model purchaseInvoiceProduct {
   id                     Int             @id @default(autoincrement())
   product_id             Int
@@ -486,7 +409,6 @@ model supplier {
 
 
 
->>>>>>> origin/yvana
 model user {
   id                 Int                  @id @default(autoincrement())
   firstName          String?
@@ -513,15 +435,6 @@ model user {
   emergencylink1     String?
   status             Boolean              @default(true)
   createdAt          DateTime             @default(now())
-<<<<<<< HEAD
-  updatedAt          DateTime
-  AuditLog           AuditLog[]
-  attendance         attendance[]
-  awardHistory       awardHistory[]
-  designationHistory designationHistory[]
-  department         department?          @relation(fields: [departmentId], references: [id])
-  weeklyHoliday      weeklyHoliday?       @relation(fields: [weeklyHolidayId], references: [id])
-=======
   updatedAt          DateTime             @default(now())
   //AuditLog           AuditLog[]
   //attendance         attendance[]
@@ -532,7 +445,6 @@ model user {
   //salePromise        salePromise[]
   department         department?          @relation(fields: [departmentId], references: [id])
    
->>>>>>> origin/yvana
 }
 
 

@@ -15,6 +15,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const { PrismaClient } = require("@prisma/client");
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
+const bcrypt = require("bcrypt");
+require("dotenv").config();
 const prisma = new PrismaClient();
 const saltRounds = 10;
 // Supprime les données existantes des modèles dans l'ordre inverse de dépendance
@@ -24,11 +26,12 @@ function supprimerToutesLesDonnees(nomsDeFichiers) {
             const nomModele = path_1.default.basename(nomFichier, path_1.default.extname(nomFichier));
             return nomModele.charAt(0) + nomModele.slice(1); // minuscule -> majuscule
         });
-        for (const nomModele of nomsDeModeles) {
-            const modele = prisma[nomModele];
-            if (modele) {
-                yield modele.deleteMany({});
-                console.log(`Données supprimées du modèle : ${nomModele}`);
+        // await prisma.institution.deleteMany({})
+        for (const modelName of modelNames) {
+            const model = prisma[modelName];
+            if (model) {
+                yield model.deleteMany({});
+                console.log(`Cleared data from ${modelName}`);
             }
             else {
                 console.error(`Modèle ${nomModele} introuvable. Vérifiez le nom du fichier.`);
@@ -36,20 +39,188 @@ function supprimerToutesLesDonnees(nomsDeFichiers) {
         }
     });
 }
+const permissions = [
+    "create-product",
+    "view-product",
+    "create-user",
+    "create-department",
+    "readAll-department",
+    "delete-department",
+];
+const roles = ["admin", "staff", "manager", "Particulier"];
+const adminPermissions = [...permissions];
+const staffPermissions = [...permissions];
+const managerPermissions = [
+    "view-product",
+];
+const particularPermissions = [...managerPermissions];
+const rolePermissionsMap = {
+    admin: adminPermissions,
+    staff: staffPermissions,
+    manager: managerPermissions,
+    Particulier: particularPermissions
+};
+function createPermissions() {
+    return __awaiter(this, void 0, void 0, function* () {
+        for (const name of permissions
+            .concat(managerPermissions)
+            .concat(particularPermissions)) {
+            const exists = yield prisma.permission.findUnique({ where: { name } });
+            if (!exists) {
+                yield prisma.permission.create({ data: { name } });
+            }
+        }
+    });
+}
+function createRoles() {
+    return __awaiter(this, void 0, void 0, function* () {
+        for (const roleName of roles) {
+            const exists = yield prisma.role.findUnique({ where: { name: roleName } });
+            if (!exists) {
+                yield prisma.role.create({ data: { name: roleName } });
+            }
+        }
+    });
+}
+function assignRolePermissions() {
+    return __awaiter(this, void 0, void 0, function* () {
+        for (const [roleName, perms] of Object.entries(rolePermissionsMap)) {
+            const role = yield prisma.role.findUnique({ where: { name: roleName } });
+            if (!role)
+                continue;
+            for (const permName of perms) {
+                const permission = yield prisma.permission.findUnique({ where: { name: permName } });
+                if (!permission)
+                    continue;
+                const exists = yield prisma.rolePermission.findUnique({
+                    where: {
+                        role_id_permission_id: {
+                            role_id: role.id,
+                            permission_id: permission.id
+                        }
+                    }
+                });
+                if (!exists) {
+                    yield prisma.rolePermission.create({
+                        data: {
+                            role_id: role.id,
+                            permission_id: permission.id
+                        }
+                    });
+                }
+            }
+        }
+    });
+}
+function createUsers() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const users = [
+            {
+                userName: "admin",
+                firstName: "admin",
+                lastName: "admin",
+                email: "admin@gmail.com",
+                password: yield bcrypt.hash("admin", saltRounds),
+                role: "admin",
+            },
+            {
+                userName: "staff",
+                firstName: "staff",
+                lastName: "staff",
+                email: "staff@gmail.com",
+                password: yield bcrypt.hash("staff", saltRounds),
+                role: "staff",
+            },
+            {
+                userName: "manager",
+                firstName: "manager",
+                lastName: "manager",
+                email: "manager@gmail.com",
+                password: yield bcrypt.hash("manager", saltRounds),
+                role: "manager",
+            }
+        ];
+        for (const user of users) {
+            const exists = yield prisma.user.findUnique({ where: { email: user.email } });
+            if (!exists) {
+                // Vérifie si le rôle existe
+                const roleExists = yield prisma.role.findUnique({ where: { name: user.role } });
+                if (!roleExists) {
+                    console.warn(`Role "${user.role}" not found, skipping user "${user.email}"`);
+                    continue;
+                }
+                yield prisma.user.create({ data: user });
+                console.log(`User ${user.email} created with role ${user.role}`);
+            }
+        }
+    });
+}
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
-        const dossierDeDonnees = path_1.default.join(__dirname, "seedData");
-        // L'ordre est important : d'abord institution, puis product
-        const nomsDeFichiers = [
+        yield createPermissions();
+        yield createRoles();
+        yield assignRolePermissions();
+        yield createUsers();
+        const dataDirectory = path_1.default.join(__dirname, "seedData");
+        // Ces fichiers seront traités séparément plus bas
+        const orderedFileNames = [
+            "customer.json",
             "institution.json",
-            "product.json",
+            "product.json", // on gère ce fichier à part
+            "department.json",
+            "designation.json",
         ];
-        yield supprimerToutesLesDonnees([...nomsDeFichiers].reverse()); // suppression dans l'ordre inverse
-        for (const nomFichier of nomsDeFichiers) {
-            const cheminFichier = path_1.default.join(dossierDeDonnees, nomFichier);
-            const donneesJson = JSON.parse(fs_1.default.readFileSync(cheminFichier, "utf-8"));
-            const nomModele = path_1.default.basename(nomFichier, path_1.default.extname(nomFichier));
-            const modele = prisma[nomModele];
+        // Suppression des anciennes données
+        yield deleteAllData(orderedFileNames);
+        // // --- Création manuelle des institutions ---
+        // const iba = await prisma.institution.create({
+        //   data: {
+        //     id: "iba",
+        //     name: "IBA",
+        //   },
+        // });
+        // const asermpharma = await prisma.institution.create({
+        //   data: {
+        //     id: "asermpharma",
+        //     name: "Asermpharma",
+        //   },
+        // });
+        // console.log("Institutions créées.");
+        // // --- Traitement spécial pour les produits ---
+        // const productsPath = path.join(dataDirectory, "product.json");
+        // if (fs.existsSync(productsPath)) {
+        //   const jsonData = JSON.parse(fs.readFileSync(productsPath, "utf-8"));
+        //   for (const data of jsonData) {
+        //     const { institution, ...productData } = data;
+        //     let institutionId;
+        //     if (institution === "iba") {
+        //       institutionId = iba.id;
+        //     } else if (institution === "asermpharma") {
+        //       institutionId = asermpharma.id;
+        //     } else {
+        //       console.warn(`Institution inconnue pour le produit "${data.designation}"`);
+        //       continue;
+        //     }
+        //     await prisma.product.create({
+        //       data: {
+        //         ...productData,
+        //         institution: {
+        //           connect: { id: institutionId },
+        //         },
+        //       },
+        //     });
+        //   }
+        //   console.log("Produits importés.");
+        // } else {
+        //   console.error("Fichier product.json introuvable.");
+        // }
+        // // --- Importation générique des autres fichiers ---
+        // const remainingFiles = orderedFileNames.filter(f => f !== "product.json");
+        for (const fileName of orderedFileNames) {
+            const filePath = path_1.default.join(dataDirectory, fileName);
+            const jsonData = JSON.parse(fs_1.default.readFileSync(filePath, "utf-8"));
+            const modelName = path_1.default.basename(fileName, path_1.default.extname(fileName));
+            const model = prisma[modelName];
             if (!modele) {
                 console.error(`Aucun modèle Prisma trouvé pour le fichier : ${nomFichier}`);
                 continue;

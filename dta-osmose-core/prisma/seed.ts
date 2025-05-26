@@ -1,13 +1,10 @@
 const { PrismaClient } = require("@prisma/client");
 import fs from "fs";
 import path from "path";
-<<<<<<< HEAD
-=======
 const bcrypt = require("bcrypt");
 import dotenv from "dotenv";
 
 require("dotenv").config();
->>>>>>> origin/yvana
 
 const prisma = new PrismaClient();
 const saltRounds = 10;
@@ -19,45 +16,18 @@ async function supprimerToutesLesDonnees(nomsDeFichiers: string[]) {
     const nomModele = path.basename(nomFichier, path.extname(nomFichier));
     return nomModele.charAt(0) + nomModele.slice(1); // minuscule -> majuscule
   });
-<<<<<<< HEAD
-
-  for (const nomModele of nomsDeModeles) {
-    const modele: any = prisma[nomModele as keyof typeof prisma];
-    if (modele) {
-      await modele.deleteMany({});
-      console.log(`Données supprimées du modèle : ${nomModele}`);
-=======
   // await prisma.institution.deleteMany({})
   for (const modelName of modelNames) {
     const model: any = prisma[modelName as keyof typeof prisma];
     if (model) {
       await model.deleteMany({});
       console.log(`Cleared data from ${modelName}`);
->>>>>>> origin/yvana
     } else {
       console.error(`Modèle ${nomModele} introuvable. Vérifiez le nom du fichier.`);
     }
   }
 }
 
-<<<<<<< HEAD
-async function main() {
-  const dossierDeDonnees = path.join(__dirname, "seedData");
-
-  // L'ordre est important : d'abord institution, puis product
-  const nomsDeFichiers = [
-    "institution.json",
-    "product.json",
-  ];
-
-  await supprimerToutesLesDonnees([...nomsDeFichiers].reverse()); // suppression dans l'ordre inverse
-
-  for (const nomFichier of nomsDeFichiers) {
-    const cheminFichier = path.join(dossierDeDonnees, nomFichier);
-    const donneesJson = JSON.parse(fs.readFileSync(cheminFichier, "utf-8"));
-    const nomModele = path.basename(nomFichier, path.extname(nomFichier));
-    const modele: any = prisma[nomModele as keyof typeof prisma];
-=======
 
 const permissions = [
   "create-product",
@@ -258,7 +228,6 @@ async function main() {
     const jsonData = JSON.parse(fs.readFileSync(filePath, "utf-8"));
     const modelName = path.basename(fileName, path.extname(fileName));
     const model: any = prisma[modelName as keyof typeof prisma];
->>>>>>> origin/yvana
 
     if (!modele) {
       console.error(`Aucun modèle Prisma trouvé pour le fichier : ${nomFichier}`);
