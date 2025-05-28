@@ -1,7 +1,7 @@
 import { JwtPayload } from "jsonwebtoken";
 
-interface JwtUserPayload {
-    id: number;
+interface JwtUserPayload extends JwtPayload {
+  sub: number;
     role: string;
     permissions: string[];
     email?: string;
@@ -10,7 +10,7 @@ interface JwtUserPayload {
   declare global {
     namespace Express {
       interface Request {
-        user: JwtUserPayload;
+        auth: JwtUserPayload;
       }
     }
   }

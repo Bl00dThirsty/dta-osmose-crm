@@ -1,4 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { toast } from "react-toastify";
 
 export interface Product {
   id: string; 
@@ -160,7 +161,7 @@ export interface SaleInvoice{
 
 export interface NewSaleInvoice{      
   invoiceNumber?:   string ;     
-  customerId :     number;
+  customerId? :     number;
   userId:          number;
   institutionId?:   String;
   totalAmount :    number;
@@ -201,7 +202,7 @@ export const api = createApi({
         return headers;
       }, }),
     reducerPath: "api",
-    tagTypes: ["DashboardMetrics", "Sales", "Products", "Users", "Designations", "Roles", "Customers"],
+    tagTypes: ["DashboardMetrics", "Products", "Users", "Designations", "Roles", "Customers", "Sales"],
     endpoints: (build) => ({
         getDashboardMetrics: build.query<DashboardMetrics, void>({
             query: () => "/dashboard",
@@ -228,13 +229,25 @@ export const api = createApi({
         }),
 
         // Sales
-        createSale: build.mutation<SaleInvoice, { data: NewSaleInvoice; institution: string}>({
-          query: ({ data, institution }) => ({
-          url: `/sale/${institution}/sale`,
-          method: 'POST',
-          body: data,
-        }),
-        invalidatesTags: ['Sales', 'Products']
+        
+        createSale: build.mutation<SaleInvoice, { 
+          customerId: number;
+          userId: number;
+          items: Array<{
+          productId: string;
+          quantity: number;
+          unitPrice: number;
+          }>;
+          discount?: number;
+          paymentMethod?: string;
+          institution: string;
+         }>({
+          query: ({ institution, ...data }) => ({
+              url: `/sale/${institution}/sale`,
+              method: 'POST',
+              body: data
+          }),
+          invalidatesTags: ['Sales', 'Products']
         }),
 
         getSales: build.query<SaleInvoice[], { institution: string }>({

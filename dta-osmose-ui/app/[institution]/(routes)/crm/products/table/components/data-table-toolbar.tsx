@@ -16,6 +16,7 @@ import { AddProductDialog } from "../../../components/AddProductDialog"
 
 import { useCreateProductMutation } from "@/state/api"
 import { quantityLevel, statuses } from "../data/data"
+import { toast } from "react-toastify";
 
 
 
@@ -44,8 +45,10 @@ export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>)
   const handleCreateProduct = async (productData: ProductFormData) => {
     try {
       await createProduct({ data: productData, institution }).unwrap()
+      toast.success("Produit ajouté");
     } catch (error: any) {
         console.log("Erreur lors de la création :", error?.data || error.message || error)
+        toast.error("Erreur lors l'ajout d'un produit, essayez à nouveau");
     }
   }
 

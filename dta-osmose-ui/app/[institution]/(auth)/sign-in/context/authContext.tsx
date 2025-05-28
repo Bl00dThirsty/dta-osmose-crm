@@ -148,6 +148,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // Stockage du token et du nom d'utilisateur
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('user', userData.userName);
+      localStorage.setItem('id', userData.id);
   
       // Mise à jour du contexte utilisateur
       setUser(userData);

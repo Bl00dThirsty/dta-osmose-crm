@@ -22,7 +22,7 @@ const InvoicePage = () => {
 
   return (
     <div className="container mx-auto p-4 max-w-4xl">
-      <div className="bg-white p-6 rounded-lg shadow print:shadow-none">
+      <div className="bg-white p-6 rounded-lg shadow text-gray-500 print:shadow-none">
         <div className="flex justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold">Facture #{sale.invoiceNumber}</h1>

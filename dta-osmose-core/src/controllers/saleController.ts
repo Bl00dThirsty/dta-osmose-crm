@@ -6,12 +6,28 @@ import { v4 as uuidv4 } from 'uuid';
 const prisma = new PrismaClient();
 
 export const createSaleInvoice = async (req: Request, res: Response): Promise<void> =>  {
-  try {
+    console.log('=== DEBUT DE LA REQUETE ===');
+    console.log('Headers:', req.headers);
+    console.log('Params:', req.params);
+    console.log('Body:', req.body);
+    console.log('Auth:', req.auth);
+  
+    try {
     const { customerId, items, discount, paymentMethod } = req.body;
-    const userId = req.user.id;
+   
     const institutionSlug = req.params.institution;
     //const institutionId = req.institution.id;
-
+    // if (!req.auth) {
+    //     res.status(401).json({ error: 'Non autorisé' });
+    //     return;
+    // }
+    //const userId = req.auth.sub;
+    const payload = req.auth;
+    if (!payload?.sub) {
+      res.status(401).json({ error: "Utilisateur non authentifié" });
+      return;
+    }
+    const userId = payload.sub;
     const institution = await prisma.institution.findUnique({
         where: { slug: institutionSlug },
       });
@@ -22,8 +38,8 @@ export const createSaleInvoice = async (req: Request, res: Response): Promise<vo
       }
 
     // Calcul des totaux
-    const subtotal = items.reduce((sum:any, item:any) => sum + (item.quantity * item.unitPrice), 0);
-    const finalAmount = subtotal - (discount || 0);
+    //const subtotal = items.reduce((sum:any, item:any) => sum + (item.quantity * item.unitPrice), 0);
+    //const finalAmount = subtotal - (discount || 0);
 
     // Vérification des stocks
     for (const item of items) {
@@ -45,12 +61,10 @@ export const createSaleInvoice = async (req: Request, res: Response): Promise<vo
         invoiceNumber: uuidv4(),
         customerId,
         userId,
-        institution: {
-            connect: { id: institution.id },
-        },
-        totalAmount: subtotal,
-        discount,
-        finalAmount,
+        institutionId: institution.id,
+        totalAmount: items.reduce((sum:any, item:any) => sum + (item.quantity * item.unitPrice), 0),
+        discount: discount || 0,
+        finalAmount: 0,
         paymentMethod,
         items: {
           create: items.map((item:any) => ({
@@ -67,9 +81,27 @@ export const createSaleInvoice = async (req: Request, res: Response): Promise<vo
             product: true
           }
         },
-        customer: true
+        customer: true,
+        user: true
       }
     });
+
+    // Mise à jour finale
+    const updatedInvoice = await prisma.saleInvoice.update({
+        where: { id: invoice.id },
+        data: {
+          finalAmount: invoice.totalAmount - (invoice.discount || 0)
+        },
+        include: {
+          items: {
+            include: {
+              product: true
+            }
+          },
+          customer: true,
+          user: true
+        }
+      });
 
     // Mise à jour des stocks
     await Promise.all(items.map((item:any) => 
@@ -81,9 +113,12 @@ export const createSaleInvoice = async (req: Request, res: Response): Promise<vo
       })
     ));
 
-    res.status(201).json(invoice);
+    res.status(201).json(updatedInvoice);
   } catch (error) {
-    console.error('Error creating sale invoice:', error);
+    console.error('ERREUR COMPLETE:', error);
+    if (error instanceof Error) {
+      console.error('Stack trace:', error.stack);
+    }
     res.status(500).json({ error: 'Internal server error' });
   }
 };

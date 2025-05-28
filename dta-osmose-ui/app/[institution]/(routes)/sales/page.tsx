@@ -7,6 +7,7 @@ import { useGetCustomersQuery } from '@/state/api';
 import { useGetUsersQuery } from '@/state/api';
 import { useRouter, useParams } from 'next/navigation';
 import { Input } from "@/components/ui/input";
+import { toast } from "react-toastify";
 
 export interface Product {
   id: string;
@@ -46,6 +47,14 @@ const CreateSalePage = () => {
   const { data: customers = [] } = useGetCustomersQuery();
   const { data: users= [] } = useGetUsersQuery();
   const user = users[0];
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+
+  useEffect(() => {
+    // Accéder à localStorage uniquement côté client
+    const idFromStorage = localStorage.getItem("id");
+    setCurrentUserId(idFromStorage ? parseInt(idFromStorage) : null);
+  }, []);
+
   const [createSale] = useCreateSaleMutation();
   const router = useRouter();
 
@@ -96,32 +105,27 @@ const CreateSalePage = () => {
   };
 
   const handleCreateSale = async () => {
-    if (!customerId || !user?.id || selectedProducts.length === 0) return;
+    if (!customerId || !currentUserId || selectedProducts.length === 0) return;
     
     try {
       const result = await createSale({
-        data: {
-          customerId,
-          userId: user.id,
-          totalAmount,
-          finalAmount,
-          items: selectedProducts.map(p => ({
-            id: p.id,
-            productId: p.id,
-            quantity: p.quantity,
-            unitPrice: p.unitPrice,
-            totalPrice: p.totalPrice,
-            
-          })),
-          discount
-        },
-        institution
+        customerId,
+        userId: currentUserId,
+        items: selectedProducts.map(p => ({
+          productId: p.id,
+          quantity: p.quantity,
+          unitPrice: p.unitPrice
+        })),
+        discount,
+        paymentMethod: "ESPECES",
+        institution: institution // À adapter
       }).unwrap();
       
-      
+      toast.success("Vente enregistrée avec succès");
       router.push(`/${institution}/sales/${result.id}`);
     } catch (error) {
-      console.log('Failed to create sale:', error);
+      console.log('Erreur création vente:', error);
+      toast.error("Échec de l'enregistrement");
     }
   };
 
@@ -146,7 +150,7 @@ const CreateSalePage = () => {
             {filteredProducts.map(product => (
               <div 
                 key={product.id} 
-                className="border p-3 rounded cursor-pointer hover:bg-gray-50"
+                className="border p-3 rounded cursor-pointer hover:bg-gray-50 hover:text-red-700"
                 onClick={() => handleAddProduct(product)}
               >
                 <h3 className="font-medium">{product.designation}</h3>
