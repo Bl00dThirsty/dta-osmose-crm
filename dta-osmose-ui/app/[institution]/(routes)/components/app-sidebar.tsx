@@ -54,7 +54,7 @@ const data = {
       icon: () => <LayoutDashboard className="w-20 h-20" />,
       isActive: true,
       items: [
-        { title: "Dashbord Ventes", path: "dashboard" },
+        { title: "Dashbord Ventes", path: "crm/dashboard" },
         { title: "Mon dashboard", path: "#" },
       ],
     },

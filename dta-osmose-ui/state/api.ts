@@ -154,6 +154,8 @@ export interface SaleInvoice{
     name: string;
     phone: string;
     email: string;
+    type_customer?: string;
+    ville?: string;
 
   }
    
@@ -181,14 +183,19 @@ export interface NewSaleInvoice{
     name: string;
     phone: string;
     email: string;
-
+    type_customer?: string;
+    ville?: string;
   }
    
 }
 
 export interface DashboardMetrics {
     popularProducts: Product[];
-    popularUsers: User[];
+    salesByCity: Array<{
+      ville: string;
+      montant: number;
+      nombreVentes: number;
+    }>;
 }
 
 export const api = createApi({

@@ -1,6 +1,5 @@
 'use client';
 
-
 import React from "react";
 import Container from "../../components/ui/Container";
 import CRMKanban from "./_components/CRMKanban";
@@ -8,6 +7,8 @@ import { Bar, BarChart, XAxis } from "recharts"
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart"
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useGetDashboardMetricsQuery } from "@/state/api";
+import { SalesByCityChart } from "./_components/SalesByCityChart";
 
 const CrmDashboardPage = () => {
   const router = useRouter();
@@ -41,6 +42,11 @@ const CrmDashboardPage = () => {
       color: "#60a5fa",
     },
   } satisfies ChartConfig
+
+  const { data: dashboardData, isLoading, error } = useGetDashboardMetricsQuery();
+
+  if (isLoading) return <div>Chargement...</div>;
+  if (error) return <div>Erreur lors du chargement des données</div>;
   
   return (
     <Container
@@ -48,7 +54,7 @@ const CrmDashboardPage = () => {
       description="En cours de développement... Ce composant affiche une vue d'ensemble des ventes éffectuées sur une période définie."
     >
     <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
-      <section className="overflow-hidden rounded-[0.5rem] border bg-background shadow-zinc-50">
+      <section className="overflow-hidden rounded-[0.5rem] border-5 bg-background shadow-zinc-50">
       <ChartContainer config={chartConfig} className="h-[250px] w-full">
         <BarChart accessibilityLayer data={chartData}>
           <XAxis
@@ -64,6 +70,16 @@ const CrmDashboardPage = () => {
           <Bar dataKey="client" fill="var(--color-client)" radius={4} />
           </BarChart>
         </ChartContainer>
+        </section>
+      </div>
+      <div className="grid gap-4 grid-cols-1">
+        <section className="p-4 overflow-hidden rounded-[0.5rem] border-5 bg-background shadow">
+          <h2 className="text-xl font-semibold mb-4">Ventes par ville</h2>
+          {dashboardData?.salesByCity ? (
+            <SalesByCityChart data={dashboardData.salesByCity} />
+          ) : (
+            <p>Aucune donnée disponible</p>
+          )}
         </section>
       </div>
     </Container>
