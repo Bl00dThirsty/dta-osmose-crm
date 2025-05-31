@@ -1,11 +1,11 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
-
+import { Button } from '@/components/ui/button'
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-
-import { SaleInvoice } from "@/state/api"
+import { useRouter, useParams } from 'next/navigation';
+import { SaleInvoice, useUpdateSaleStatusMutation } from "@/state/api"
 import { DataTableColumnHeader } from "../../user/all/table/components/data-table-column-header"
 import { DataTableRowActions } from "./data-table-row-actions"
 
@@ -88,6 +88,55 @@ export const columns: ColumnDef<SaleInvoice>[] = [
       return <div className="w-[80px]">{designation2}</div>;
     },
   },
+  // Ajoutez ces colonnes à votre tableau
+{
+  accessorKey: "ready",
+  header: ({ column }) => (
+    <DataTableColumnHeader column={column} title="Prêt" />
+  ),
+  cell: ({ row }) => {
+    const [updateStatus] = useUpdateSaleStatusMutation();
+    const sale = row.original;
+    const id = (row.original as any).id;
+    const { institution } = useParams() as { institution: string }
+    const handleClick = () => {
+      updateStatus({ id, institution, ready: !sale.ready });
+    };
+
+    return (
+      <button
+        onClick={handleClick}
+        className={`px-2 py-1 rounded text-white ${sale.ready ? 'bg-green-500' : 'bg-red-500'}`}
+      >
+        {sale.ready ? "Oui" : "Non"}
+      </button>
+    );
+  },
+},
+{
+  accessorKey: "delivred",
+  header: ({ column }) => (
+    <DataTableColumnHeader column={column} title="Livré" />
+  ),
+  cell: ({ row }) => {
+    const [updateStatus] = useUpdateSaleStatusMutation();
+    const sale = row.original;
+    const id = (row.original as any).id;
+    const { institution } = useParams() as { institution: string }
+    const handleClick = () => {
+      updateStatus({ id, institution, delivred: !sale.delivred });
+    };
+
+    return (
+      <button
+        onClick={handleClick}
+        className={`px-2 py-1 rounded text-white ${sale.delivred ? 'bg-green-500' : 'bg-red-500'}`}
+      >
+        {sale.delivred ? "Oui" : "Non"}
+      </button>
+    );
+  },
+},
 
   {
     accessorKey: "user.firstName",

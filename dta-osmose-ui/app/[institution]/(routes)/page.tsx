@@ -70,7 +70,7 @@ const DashboardPage = () => {
         </DashboardCard>
         </Suspense>
         <Suspense fallback={<LoadingBox />}>
-          <DashboardCard title="Revenu Attendu">
+          <DashboardCard title="Benefice">
           <div className="text-2xl font-medium">
           <div>
             {/* BODY HEADER */}

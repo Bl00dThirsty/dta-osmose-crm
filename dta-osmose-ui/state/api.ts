@@ -142,6 +142,9 @@ export interface SaleInvoice{
   finalAmount?:     number;
   paymentStatus?:   string ;     
   paymentMethod?:   string ;
+  ready?: boolean;
+  delivred?: boolean;
+  profit: number;
   createdAt:  Date;
   items: SaleItemInput[];
   user: {
@@ -171,6 +174,9 @@ export interface NewSaleInvoice{
   finalAmount:     number;
   paymentStatus?:   string ;     
   paymentMethod?:   string ;
+  ready?: boolean;
+  delivred?: boolean;
+  profit: number;
   createdAt?:  Date;
   items: SaleItemInput[];
   user?: {
@@ -196,6 +202,7 @@ export interface DashboardMetrics {
       montant: number;
       nombreVentes: number;
     }>;
+    
 }
 
 export const api = createApi({
@@ -266,6 +273,21 @@ export const api = createApi({
           query: (id) => `/sale/${id}`,
           providesTags: (result, error, id) => [{ type: 'Sales', id }]
         }),
+
+        // Dans api.ts
+       updateSaleStatus: build.mutation<SaleInvoice, {
+         id: string;
+         ready?: boolean;
+         delivred?: boolean;
+         institution: string;
+       }>({
+        query: ({ id, institution, ...status }) => ({
+    url: `/sale/${institution}/sale/${id}/status`,
+    method: 'PATCH',
+    body: status
+  }),
+  invalidatesTags: (result, error, { id }) => [{ type: 'Sales', id }]
+}),
 
           getDepartments: build.query<{ id: number; name: string }[], void>({
             query: () => "/department",
@@ -370,7 +392,7 @@ export const api = createApi({
 });
 
 export const { useGetDashboardMetricsQuery, useGetProductsQuery, useCreateProductMutation, useGetProductByIdQuery, useCreateSaleMutation, useGetSalesQuery,
-    useGetSaleByIdQuery, useGetDepartmentsQuery,
+    useGetSaleByIdQuery,useUpdateSaleStatusMutation, useGetDepartmentsQuery,
     useGetDesignationsQuery, useCreateDesignationsMutation, useDeleteDesignationMutation,useGetRolesQuery, useCreateRolesMutation, 
     useDeleteRoleMutation, useGetUsersQuery, useGetUserByIdQuery, useDeleteUserMutation,  useGetCustomersQuery, useCreateCustomersMutation,
     useGetCustomerByIdQuery, useDeleteCustomerMutation} = api;

@@ -198,7 +198,8 @@ model ProductCounter {
   @@unique([institution, month, year])
 }
 
-//vente 
+//vente given_amount       Float?
+ // amount_refunded    Float?
 model saleInvoice {
   id              String      @id @default(uuid())
   invoiceNumber   String      @unique
@@ -208,6 +209,7 @@ model saleInvoice {
   totalAmount     Float
   discount        Float
   finalAmount     Float
+  profit          Float   @default(0)
   paymentStatus   String      @default("PENDING") // PENDING, PAID, PARTIAL
   paymentMethod   String?     // CASH, CARD, TRANSFER
   createdAt       DateTime    @default(now())
