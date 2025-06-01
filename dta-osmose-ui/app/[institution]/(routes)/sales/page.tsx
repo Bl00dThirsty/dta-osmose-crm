@@ -39,6 +39,11 @@ const CreateSalePage = () => {
     unitPrice: number;
     totalPrice: number;
   }>>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const productsPerPage = 8;
+  const indexOfLastProduct = currentPage * productsPerPage;
+  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+  
   const [discount, setDiscount] = useState(0);
   const [customerId, setCustomerId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -61,6 +66,9 @@ const CreateSalePage = () => {
   const filteredProducts = products.filter(product =>
     product.designation.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
 
   const totalAmount = selectedProducts.reduce((sum, item) => sum + item.totalPrice, 0);
   const finalAmount = totalAmount - discount;
@@ -147,18 +155,47 @@ const CreateSalePage = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredProducts.map(product => (
-              <div 
-                key={product.id} 
-                className="border p-3 rounded cursor-pointer hover:bg-gray-50 hover:text-red-700"
-                onClick={() => handleAddProduct(product)}
-              >
-                <h3 className="font-medium">{product.designation}</h3>
-                <p>Prix: {product.sellingPriceTTC} FCFA</p>
-                <p>Stock: {product.quantity}</p>
-              </div>
-            ))}
+             {currentProducts.map(product => (
+            <div 
+               key={product.id} 
+               className="border p-3 rounded cursor-pointer hover:bg-gray-50 hover:text-red-700"
+               onClick={() => handleAddProduct(product)}
+            >
+            <h3 className="font-medium">{product.designation}</h3>
+            <p>Prix: {product.sellingPriceTTC} FCFA</p>
+            <p>Stock: {product.quantity}</p>
+            </div>
+           ))}
           </div>
+          <div className="flex justify-center mt-4 space-x-2">
+  <button
+    disabled={currentPage === 1}
+    onClick={() => setCurrentPage(currentPage - 1)}
+    className="px-3 py-1 bg-blue-500 text-white-500 rounded disabled:opacity-50"
+  >
+    ← Précédent
+  </button>
+
+  {Array.from({ length: totalPages }, (_, i) => (
+    <button
+      key={i + 1}
+      onClick={() => setCurrentPage(i + 1)}
+      className={`px-3 py-1 rounded ${currentPage === i + 1 ? 'bg-blue-600 text-gray' : 'bg-gray-200'}`}
+    >
+      {i + 1}
+    </button>
+  ))}
+
+  <button
+    disabled={currentPage === totalPages}
+    onClick={() => setCurrentPage(currentPage + 1)}
+    className="px-3 py-1 bg-blue-500 text-white-500 rounded disabled:opacity-10"
+  >
+    Suivant →
+  </button>
+</div>
+
+
         </div>
         
         {/* Panier */}
