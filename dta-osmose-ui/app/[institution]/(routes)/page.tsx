@@ -32,6 +32,17 @@ const DashboardPage = () => {
 
   
   const {data: dashboardMetrics} = useGetDashboardMetricsQuery();
+  const totalSales = dashboardMetrics?.saleProfitCount
+  .filter(item => item.type === "Ventes")
+  .reduce((sum, item) => sum + (item.amount || 0), 0);
+
+const totalProfits = dashboardMetrics?.saleProfitCount
+  .filter(item => item.type === "Profits")
+  .reduce((sum, item) => sum + (item.amount || 0), 0);
+
+const totalInvoices = dashboardMetrics?.saleProfitCount
+  .filter(item => item.type === "nombre de facture")
+  .reduce((sum, item) => sum + (item.amount || 0), 0);
   
 
   return (
@@ -70,14 +81,14 @@ const DashboardPage = () => {
         </DashboardCard>
         </Suspense>
         <Suspense fallback={<LoadingBox />}>
-          <DashboardCard title="Benefice">
+          <DashboardCard title="Bénéfices">
           <div className="text-2xl font-medium">
           <div>
             {/* BODY HEADER */}
             <div className="flex justify-between items-center mb-6 px-7 mt-5">
               <div className="text-lg font-medium">
                 <p className="text-xs text-gray-400">Valeur</p>
-                <span className="text-2xl font-extrabold">€ 100K</span>
+                <span className="text-2xl font-extrabold">{totalProfits?.toLocaleString() ?? "0"} FCFA</span>
                 <span className="text-green-500 text-sm ml-2">
                   <TrendingUp className="inline w-4 h-4 mr-1" />
                   5.78%
@@ -90,6 +101,24 @@ const DashboardPage = () => {
             </div>
           </DashboardCard>
         </Suspense>
+
+        <DashboardCard title="Nombre de ventes">
+  <div className="px-7 mt-5">
+    <p className="text-xs text-gray-400">Factures générées</p>
+    <span className="text-2xl font-extrabold text-yellow-600">
+      {totalInvoices?.toLocaleString() ?? "0"}
+    </span>
+  </div>
+</DashboardCard>
+
+<DashboardCard title="Total des ventes">
+  <div className="px-7 mt-5">
+    <p className="text-xs text-gray-400">Montant total</p>
+    <span className="text-2xl font-extrabold text-blue-600">
+      {totalSales?.toLocaleString() ?? "0"} FCFA
+    </span>
+  </div>
+</DashboardCard>
 
         <DashboardCard href="/admin/users" title="Utilisateurs actifs">
         <div className="text-2xl font-medium"></div>
@@ -104,7 +133,7 @@ const DashboardPage = () => {
           {/* ))} */}
         </DashboardCard>
         
-        <DashboardCard
+        {/* <DashboardCard
           href="/crm/accounts"
           title="Comptes"
         >
@@ -115,7 +144,7 @@ const DashboardPage = () => {
           title="Opportunités"
         >
           <div className="text-2xl font-medium"></div>
-        </DashboardCard>
+        </DashboardCard> */}
         
       </div>
     </Container>

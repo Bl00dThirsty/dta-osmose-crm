@@ -50,7 +50,7 @@ const data = {
   navMain: [
     {
       title: "Dashoard",
-      path: "dashboard",
+      path: "/",
       icon: () => <LayoutDashboard className="w-20 h-20" />,
       isActive: true,
       items: [

@@ -72,21 +72,21 @@ export const getDashboardMetrics = async (
       const formattedData1 = allSaleInvoice.map((item:any) => {
         return {
           type: "Ventes",
-          date: item.date.toISOString().split("T")[0],
+          date: item.createdAt.toISOString().split("T")[0],
           amount: item._sum.finalAmount
         };
       });
       const formattedData2 = allSaleInvoice.map((item:any) => {
         return {
           type: "Profits",
-          date: item.date.toISOString().split("T")[0],
+          date: item.createdAt.toISOString().split("T")[0],
           amount: item._sum.profit
         };
       });
       const formattedData3 = allSaleInvoice.map((item:any) => {
         return {
           type: "nombre de facture",
-          date: item.date.toISOString().split("T")[0],
+          date: item.createdAt.toISOString().split("T")[0],
           amount: item._count.id
         };
       });

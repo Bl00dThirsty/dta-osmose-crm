@@ -202,6 +202,11 @@ export interface DashboardMetrics {
       montant: number;
       nombreVentes: number;
     }>;
+    saleProfitCount: Array<{
+      type: string; // "Ventes" | "Profits" | "nombre de facture"
+      date: string;
+      amount: number;
+    }>;
     
 }
 
