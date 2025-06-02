@@ -15,6 +15,13 @@ const { PrismaClient } = require("@prisma/client");
 const errorHandler_1 = require("../src/error/errorHandler");
 const dashboardRoutes_1 = __importDefault(require("./routes/dashboardRoutes"));
 const productRoutes_1 = __importDefault(require("./routes/productRoutes"));
+const AuthRoutes_1 = __importDefault(require("./routes/AuthRoutes"));
+const roleRoutes_1 = __importDefault(require("./routes/roleRoutes"));
+const permissionRoutes_1 = __importDefault(require("./routes/permissionRoutes"));
+const rolePermissionRoute_1 = __importDefault(require("./routes/rolePermissionRoute"));
+const department_Routes_1 = __importDefault(require("./routes/department.Routes"));
+const designationRoutes_1 = __importDefault(require("./routes/designationRoutes"));
+const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
 const customerRoutes_1 = __importDefault(require("./routes/customerRoutes"));
 exports.prisma = new PrismaClient();
 dotenv_1.default.config();
@@ -35,7 +42,15 @@ app.use((0, cookie_parser_1.default)());
 /* ROUTES */
 app.use("/dashboard", dashboardRoutes_1.default);
 app.use("/", productRoutes_1.default);
-app.use("/customers", customerRoutes_1.default);
+app.use("/customer", customerRoutes_1.default);
+app.use("/auth", AuthRoutes_1.default);
+app.use("/role", roleRoutes_1.default);
+app.use("/permission", permissionRoutes_1.default);
+app.use("/role-permission", rolePermissionRoute_1.default);
+app.use("/department", department_Routes_1.default);
+app.use("/designation", designationRoutes_1.default);
+app.use("/user", userRoutes_1.default);
+// Error handling middleware
 app.use(errorHandler_1.errorHandler);
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {

@@ -3,11 +3,8 @@ import { Inter } from "next/font/google";
 import { ReactNode } from "react";
 import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/app/providers/ThemeProvider";
-<<<<<<< HEAD
-=======
 import { AuthProvider } from "./[institution]/(auth)/sign-in/context/authContext";
 import store from "@/redux/store";
->>>>>>> origin/yvana
 import Providers from "./_providers";
 
 const inter = Inter({ subsets: ["latin"] });

@@ -121,8 +121,6 @@ function DialogDescription({
   )
 }
 
-<<<<<<< HEAD
-=======
 function DialogCancel({
   className,
   ...props
@@ -159,7 +157,6 @@ function DialogAction({
 
 
 
->>>>>>> origin/yvana
 export {
   Dialog,
   DialogClose,
@@ -171,9 +168,6 @@ export {
   DialogPortal,
   DialogTitle,
   DialogTrigger,
-<<<<<<< HEAD
-=======
   DialogCancel,
   DialogAction,
->>>>>>> origin/yvana
 }

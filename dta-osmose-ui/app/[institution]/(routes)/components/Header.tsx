@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/yvana
 import Feedback from "./Feedback";
 import FulltextSearch from "./FulltextSearch";
 import AvatarDropdown from "./ui/AvatarDropdown";
@@ -10,13 +6,6 @@ import { Separator } from "@/components/ui/separator";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { CommandComponent } from "@/components/CommandComponent";
 import SupportComponent from "@/components/support";
-<<<<<<< HEAD
-
-const Header = () => {
-  return (
-    <>
-      <div className="flex h-20 justify-between items-center p-5 space-x-5">
-=======
 //import { useRouter } from 'next/navigation';
 
 const Header = () => {
@@ -35,7 +24,6 @@ const Header = () => {
           Retour
         </button>
       </div> */}
->>>>>>> origin/yvana
         <div className="flex justify-center">
           <FulltextSearch />
         </div>

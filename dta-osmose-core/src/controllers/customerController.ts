@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 import { Request, Response } from "express";
 const { PrismaClient } = require("@prisma/client");
 import { v4 as uuidv4 } from 'uuid'
@@ -77,4 +75,3 @@ export const getSingleCustomer = async (
     res.status(500).json({ message: "Erreur serveur" });
   }
 };
->>>>>>> origin/yvana

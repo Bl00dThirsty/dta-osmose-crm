@@ -17,11 +17,8 @@ import { AddProductDialog } from "../../../components/AddProductDialog"
 import { useCreateProductMutation } from "@/state/api"
 import { quantityLevel, statuses } from "../data/data"
 
-<<<<<<< HEAD
-=======
 
 
->>>>>>> origin/yvana
 type ProductFormData = {
   quantity: number
   EANCode: string
@@ -48,11 +45,7 @@ export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>)
     try {
       await createProduct({ data: productData, institution }).unwrap()
     } catch (error: any) {
-<<<<<<< HEAD
-        console.error("Erreur lors de la création :", error?.data || error.message || error)
-=======
         console.log("Erreur lors de la création :", error?.data || error.message || error)
->>>>>>> origin/yvana
     }
   }
 
@@ -68,29 +61,12 @@ export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>)
       header: true,
       skipEmptyLines: true,
       complete: async ({ data }: Papa.ParseResult<any>) => {
-<<<<<<< HEAD
-=======
         console.log("CSV data :", data)
->>>>>>> origin/yvana
         for (const rawProduct of data) {
           try {
             await createProduct({
               institution,
               data: {
-<<<<<<< HEAD
-                quantity: Number(rawProduct.quantity) || 0,
-                brand: rawProduct.brand,
-                designation: rawProduct.designation,
-                restockingThreshold: Number(rawProduct.restockingThreshold) || 0,
-                sellingPriceTTC: Number(rawProduct.sellingPriceTTC) || 0,
-                purchase_price: Number(rawProduct.purchase_price) || 0,
-                warehouse: rawProduct.warehouse,
-                EANCode: rawProduct.EANCode || "",
-              },
-            }).unwrap()
-          } catch (error) {
-            console.error("Erreur lors de l'import d'un produit :", error)
-=======
                 EANCode: rawProduct.EANCode || "",
                 brand: rawProduct.brand,
                 designation: rawProduct.designation,
@@ -104,7 +80,6 @@ export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>)
             }).unwrap()
           } catch (error) {
             console.log("Erreur lors de l'import d'un produit :", error)
->>>>>>> origin/yvana
           }
         }
 
@@ -116,8 +91,6 @@ export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>)
     })
   }
 
-<<<<<<< HEAD
-=======
   const handleExport = () => {
     const rows = table.getFilteredRowModel().rows
   
@@ -152,7 +125,6 @@ export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>)
   }
   
 
->>>>>>> origin/yvana
   return (
     <div className="flex items-center justify-between flex-wrap gap-2">
       <div className="flex items-center space-x-2">
@@ -187,11 +159,7 @@ export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>)
       </div>
 
       <div className="flex items-center gap-2">
-<<<<<<< HEAD
-        <AddProductDialog onCreate={(productData) => handleCreateProduct(productData)} />
-=======
         <AddProductDialog onCreate={(productData) => handleCreateProduct(productData)} institution={institution}/>
->>>>>>> origin/yvana
 
 
         <Dialog>
@@ -211,20 +179,14 @@ export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>)
             </Button>
           </DialogContent>
         </Dialog>
-<<<<<<< HEAD
-=======
         <Button variant="outline" className="px-2 lg:px-3" onClick={handleExport}>
            Exporter CSV
         </Button>
 
->>>>>>> origin/yvana
 
         <DataTableViewOptions table={table} />
       </div>
     </div>
   )
 }
-<<<<<<< HEAD
-=======
 {/* <AddProductDialog onCreate={handleCreateProduct} institution={institution} /> */}
->>>>>>> origin/yvana

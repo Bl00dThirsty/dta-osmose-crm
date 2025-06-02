@@ -41,33 +41,21 @@ export const columns: ColumnDef<Product>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Product ID" />
     ),
-<<<<<<< HEAD
-    cell: ({ row }) => <div className="w-[80px]">{row.getValue("id")}</div>,
-=======
     cell: ({ row }) => <div className="w-[180px] truncate whitespace-nowrap overflow-hidden text-ellipsis">{row.getValue("id")}</div>,
->>>>>>> origin/yvana
   },
   {
     accessorKey: "EANCode",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Code EAN" />
     ),
-<<<<<<< HEAD
-    cell: ({ row }) => <div className="w-[140px]">{row.getValue("EANCode")}</div>,
-=======
     cell: ({ row }) => <div className="w-[80px]">{row.getValue("EANCode")}</div>,
->>>>>>> origin/yvana
   },
   {
     accessorKey: "brand",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Marque" />
     ),
-<<<<<<< HEAD
-    cell: ({ row }) => <div className="w-[80px]">{row.getValue("brand")}</div>,
-=======
     cell: ({ row }) => <div className="w-[80px] truncate whitespace-nowrap overflow-hidden text-ellipsis">{row.getValue("brand")}</div>,
->>>>>>> origin/yvana
   },
   {
     accessorKey: "designation",
@@ -83,22 +71,14 @@ export const columns: ColumnDef<Product>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Quantité" />
     ),
-<<<<<<< HEAD
-    cell: ({ row }) => <div className="w-[100px]">{row.getValue("quantity")} </div>,
-=======
     cell: ({ row }) => <div className="w-[80px]">{row.getValue("quantity")} </div>,
->>>>>>> origin/yvana
   },
   {
     accessorKey: "purchase_price",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Prix d'achat" />
     ),
-<<<<<<< HEAD
-    cell: ({ row }) => <div className="w-[100px]">{row.getValue("purchase_price")} €</div>,
-=======
     cell: ({ row }) => <div className="w-[80px]">{row.getValue("purchase_price")} €</div>,
->>>>>>> origin/yvana
   },
   {
     accessorKey: "sellingPriceTTC",
@@ -123,12 +103,9 @@ export const columns: ColumnDef<Product>[] = [
   },
   {
     id: "actions",
-<<<<<<< HEAD
-=======
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Action" />
     ),
->>>>>>> origin/yvana
     cell: ({ row }) => <DataTableRowActions row={row} />,
   },
 ]

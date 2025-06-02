@@ -14,8 +14,10 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    // Étape 1 : Chercher l'institution à partir du slug
+    const institution = await prisma.institution.findUnique({
+      where: { slug: institutionSlug },
     });
+
     if (!institution) {
       res.status(404).json({ message: "Institution introuvable." });
       return;
@@ -32,6 +34,7 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
         }),
       },
     });
+    
 
     res.json(products);
   } catch (error) {

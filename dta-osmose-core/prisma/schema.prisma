@@ -34,6 +34,8 @@ model Reporting {
   createdAt         DateTime @default(now())
 }
 
+
+
 model announcement {
   id          Int      @id @default(autoincrement())
   title       String
@@ -54,7 +56,9 @@ model appSetting {
   footer       String
 }
 
-model attendance {
+
+
+/*model attendance {
   id            Int       @id @default(autoincrement())
   userId        Int
   inTime        DateTime
@@ -107,10 +111,11 @@ model customer {
   region          String?
   role            String         @default("Particulier")
   status          Boolean?       @default(true)
-  type_customer   String         @default("Pharmacie")
+  type_customer   String?         @default("Pharmacie")
   website         String?
   created_at      DateTime      @default(now())
   updated_at      DateTime?      @updatedAt
+  saleInvoice     saleInvoice[]
   //saleInvoice     saleInvoice[]
 }
 
@@ -156,6 +161,7 @@ model institution {
   name      String
   slug      String    @unique
   products  product[]
+  saleInvoice  saleInvoice[]
 }
 
 model product {
@@ -179,6 +185,7 @@ model product {
   unit_type                    String?
   sku                          String?        @unique
   reorder_quantity             Int?
+  saleItem                     saleItem[]
 }
 
 model ProductCounter {
@@ -189,6 +196,42 @@ model ProductCounter {
   count  Int  @default(0)
 
   @@unique([institution, month, year])
+}
+
+//vente given_amount       Float?
+ // amount_refunded    Float?
+model saleInvoice {
+  id              String      @id @default(uuid())
+  invoiceNumber   String      @unique
+  customerId      Int
+  userId          Int
+  institutionId   String
+  totalAmount     Float
+  discount        Float
+  finalAmount     Float
+  profit          Float   @default(0)
+  paymentStatus   String      @default("PENDING") // PENDING, PAID, PARTIAL
+  paymentMethod   String?     // CASH, CARD, TRANSFER
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  delivred        Boolean              @default(false)
+  ready           Boolean              @default(false)
+  customer        customer    @relation(fields: [customerId], references: [id])
+  user            user        @relation(fields: [userId], references: [id])
+  institution     institution @relation(fields: [institutionId], references: [id])
+  items           saleItem[]
+}
+
+model saleItem {
+  id              String      @id @default(uuid())
+  invoiceId       String
+  productId       String
+  quantity        Int
+  unitPrice       Float
+  totalPrice      Float
+
+  invoice         saleInvoice @relation(fields: [invoiceId], references: [id])
+  product         product     @relation(fields: [productId], references: [id])
 }
 
 /*
@@ -210,14 +253,21 @@ model publicHoliday {
   updatedAt DateTime
 }
 
-model ProductCounter {
-  id          Int    @id @default(autoincrement())
-  institution String
-  month       Int
-  year        Int
-  count       Int    @default(0)
-
-  @@unique([institution, month, year])
+model purchaseInvoice {
+  id                     Int                      @id @default(autoincrement())
+  date                   DateTime
+  total_amount           Float
+  discount               Float
+  paid_amount            Float
+  due_amount             Float
+  supplier_id            Int
+  note                   String?
+  supplier_memo_no       String?
+  created_at             DateTime                 @default(now())
+  updated_at             DateTime
+  supplier               supplier                 @relation(fields: [supplier_id], references: [id], onDelete: Cascade)
+  purchaseInvoiceProduct purchaseInvoiceProduct[]
+  returnPurchaseInvoice  returnPurchaseInvoice[]
 }
 
 model purchaseInvoiceProduct {
@@ -441,7 +491,7 @@ model user {
   //awardHistory       awardHistory[]
   designation         designation?          @relation(fields: [designationId], references: [id])
   //salaryHistory      salaryHistory[]
-  //saleInvoice        saleInvoice[]
+  saleInvoice        saleInvoice[]
   //salePromise        salePromise[]
   department         department?          @relation(fields: [departmentId], references: [id])
    

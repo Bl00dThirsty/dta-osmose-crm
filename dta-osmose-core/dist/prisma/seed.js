@@ -19,12 +19,11 @@ const bcrypt = require("bcrypt");
 require("dotenv").config();
 const prisma = new PrismaClient();
 const saltRounds = 10;
-// Supprime les données existantes des modèles dans l'ordre inverse de dépendance
-function supprimerToutesLesDonnees(nomsDeFichiers) {
+function deleteAllData(orderedFileNames) {
     return __awaiter(this, void 0, void 0, function* () {
-        const nomsDeModeles = nomsDeFichiers.map((nomFichier) => {
-            const nomModele = path_1.default.basename(nomFichier, path_1.default.extname(nomFichier));
-            return nomModele.charAt(0) + nomModele.slice(1); // minuscule -> majuscule
+        const modelNames = orderedFileNames.map((fileName) => {
+            const modelName = path_1.default.basename(fileName, path_1.default.extname(fileName));
+            return modelName.charAt(0) + modelName.slice(1);
         });
         // await prisma.institution.deleteMany({})
         for (const modelName of modelNames) {
@@ -34,7 +33,7 @@ function supprimerToutesLesDonnees(nomsDeFichiers) {
                 console.log(`Cleared data from ${modelName}`);
             }
             else {
-                console.error(`Modèle ${nomModele} introuvable. Vérifiez le nom du fichier.`);
+                console.error(`Model ${modelName} not found. Please ensure the model name is correctly specified.`);
             }
         }
     });
@@ -46,6 +45,7 @@ const permissions = [
     "create-department",
     "readAll-department",
     "delete-department",
+    "update-sale"
 ];
 const roles = ["admin", "staff", "manager", "Particulier"];
 const adminPermissions = [...permissions];
@@ -221,22 +221,20 @@ function main() {
             const jsonData = JSON.parse(fs_1.default.readFileSync(filePath, "utf-8"));
             const modelName = path_1.default.basename(fileName, path_1.default.extname(fileName));
             const model = prisma[modelName];
-            if (!modele) {
-                console.error(`Aucun modèle Prisma trouvé pour le fichier : ${nomFichier}`);
+            if (!model) {
+                console.error(`No Prisma model matches the file name: ${fileName}`);
                 continue;
             }
-            for (const donnees of donneesJson) {
-                yield modele.create({
-                    data: donnees,
-                });
+            for (const data of jsonData) {
+                yield model.create({ data });
             }
-            console.log(`Modèle ${nomModele} alimenté avec les données du fichier : ${nomFichier}`);
+            console.log(`Seeded ${modelName} with data from ${fileName}`);
         }
     });
 }
 main()
-    .catch((erreur) => {
-    console.error("Erreur lors du seed :", erreur);
+    .catch((e) => {
+    console.error(e);
 })
     .finally(() => __awaiter(void 0, void 0, void 0, function* () {
     yield prisma.$disconnect();
