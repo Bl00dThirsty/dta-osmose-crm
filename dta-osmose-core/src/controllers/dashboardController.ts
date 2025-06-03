@@ -9,6 +9,10 @@ export const getDashboardMetrics = async (
   ): Promise<void> => {
     try {
       // Version optimisée dans dashboardController.ts
+      const institutionSlug = req.params.institution;
+      const institution = await prisma.institution.findUnique({
+        where: { slug: institutionSlug },
+      });
       const sales = await prisma.saleInvoice.findMany({
         where: {
           customer: {
@@ -43,7 +47,7 @@ export const getDashboardMetrics = async (
         ...data,
       }));
       
-  
+      
       const popularProducts = await prisma.product.findMany({
             take: 10,
             orderBy: {
@@ -57,7 +61,8 @@ export const getDashboardMetrics = async (
         },
         by: ["createdAt"],
         where: {
-          delivred: true
+          delivred: true,
+          institutionId: institution.id,
         },
         _sum: {
           totalAmount: true,
@@ -94,11 +99,14 @@ export const getDashboardMetrics = async (
       const saleProfitCount = formattedData1
       .concat(formattedData2)
       .concat(formattedData3);
+
+      const totalUsers = await prisma.user.count();
           
       res.json({
             popularProducts,
             salesByCity: chartData,
-            saleProfitCount
+            saleProfitCount,
+            totalUsers
       });
     } catch (error) {
       console.error('Dashboard error:', error);

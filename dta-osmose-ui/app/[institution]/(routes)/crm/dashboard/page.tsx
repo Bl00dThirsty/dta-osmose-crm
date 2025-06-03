@@ -6,12 +6,14 @@ import CRMKanban from "./_components/CRMKanban";
 import { Bar, BarChart, XAxis } from "recharts"
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart"
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useGetDashboardMetricsQuery } from "@/state/api";
 import { SalesByCityChart } from "./_components/SalesByCityChart";
 
+
 const CrmDashboardPage = () => {
   const router = useRouter();
+  const { institution } = useParams() as { institution: string }
   const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
 
   useEffect(() => {
@@ -43,7 +45,7 @@ const CrmDashboardPage = () => {
     },
   } satisfies ChartConfig
 
-  const { data: dashboardData, isLoading, error } = useGetDashboardMetricsQuery();
+  const { data: dashboardData, isLoading, error } = useGetDashboardMetricsQuery({ institution });
 
   if (isLoading) return <div>Chargement...</div>;
   if (error) return <div>Erreur lors du chargement des données</div>;

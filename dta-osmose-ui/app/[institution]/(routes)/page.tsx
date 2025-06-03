@@ -31,7 +31,7 @@ const DashboardPage = () => {
   }, [token]);
 
   
-  const {data: dashboardMetrics} = useGetDashboardMetricsQuery();
+  const {data: dashboardMetrics} = useGetDashboardMetricsQuery({ institution });
   const totalSales = dashboardMetrics?.saleProfitCount
   .filter(item => item.type === "Ventes")
   .reduce((sum, item) => sum + (item.amount || 0), 0);
@@ -125,11 +125,16 @@ const totalInvoices = dashboardMetrics?.saleProfitCount
         </DashboardCard>
         
         <DashboardCard
-          href="/user/all"
+          href="/${institution}/user/all"
           title="Employés"
         >
           {/* {dashboardMetrics?.popularUsers.map((user) => ( */}
-          <div className="text-2xl font-medium"></div>
+          <div className="px-7 mt-5">
+    <p className="text-xs text-gray-400">Total utilisateurs</p>
+    <span className="text-2xl font-extrabold text-blue-600">
+      {dashboardMetrics?.totalUsers.toLocaleString() ?? "0"} 
+    </span>
+  </div>
           {/* ))} */}
         </DashboardCard>
         

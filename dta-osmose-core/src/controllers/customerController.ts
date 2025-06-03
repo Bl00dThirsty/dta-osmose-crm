@@ -71,21 +71,39 @@ export const getCustomers = async (
     }
 };
 
+// src/controllers/customerController.ts
 export const getSingleCustomer = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   try {
+    const { startDate, endDate } = req.query; // Récupérer les dates de la requête
+    const customerId = Number(req.params.id);
 
-    const singlecustomer = await prisma.customer.findUnique({
-      where: { id: Number(req.params.id), },
+    // Vérification de l'existence du client
+    const singleCustomer = await prisma.customer.findUnique({
+      where: { id: customerId },
+      include: {
+        saleInvoice: {
+          where: {
+            createdAt: {
+              gte: startDate ? new Date(startDate as string) : undefined,
+              lte: endDate ? new Date(endDate as string) : undefined,
+            },
+          },
+          orderBy: {
+            createdAt: "desc", 
+          },
+        },
+      },
     });
 
-    if (!singlecustomer) {
-      res.status(404).json({ message: "client non trouvé" });
+    if (!singleCustomer) {
+      res.status(404).json({ message: "Client non trouvé" });
       return;
     }
-    res.json(singlecustomer);
+    console.log("Factures du client :", singleCustomer.saleInvoice);
+    res.json(singleCustomer);
   } catch (error) {
     console.error("Erreur lors de la récupération du client :", error);
     res.status(500).json({ message: "Erreur serveur" });

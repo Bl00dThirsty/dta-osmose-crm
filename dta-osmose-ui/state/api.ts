@@ -85,38 +85,6 @@ export interface NewRole {
 
 }
 
-export interface Customer { 
-  id:number;
-  customId: string;
-  name: string;
-  phone: string;
-  nameresponsable?: string;
-  email: string;
-  ville?: string;
-  website?: string;
-  status?: boolean;
-  type_customer?: string;
-  role: string;
-  quarter?: string;
-  region?: string; 
-}
-
-export interface NewCustomer {
-  customId: string;
-  name: string;
-  phone: string;
-  nameresponsable?: string;
-  email: string;
-  ville?: string;
-  website?: string;
-  status?: boolean;
-  type_customer?: string;
-  role: string;
-  quarter?: string;
-  region?: string; 
-
-}
-
 export interface SaleItemInput {
   id: string;
   productId: string;
@@ -132,7 +100,7 @@ export interface SaleItemInput {
 }
 
 export interface SaleInvoice{
-  id?: string;     
+  id: string;     
   invoiceNumber?:   string ;     
   customerId :     number;
   userId:          number;
@@ -195,6 +163,39 @@ export interface NewSaleInvoice{
    
 }
 
+export interface Customer { 
+  id:number;
+  customId: string;
+  name: string;
+  phone: string;
+  nameresponsable?: string;
+  email: string;
+  ville?: string;
+  website?: string;
+  status?: boolean;
+  type_customer?: string;
+  role: string;
+  quarter?: string;
+  region?: string; 
+  saleInvoice?: SaleInvoice[];
+}
+
+export interface NewCustomer {
+  customId: string;
+  name: string;
+  phone: string;
+  nameresponsable?: string;
+  email: string;
+  ville?: string;
+  website?: string;
+  status?: boolean;
+  type_customer?: string;
+  role: string;
+  quarter?: string;
+  region?: string; 
+  saleInvoice?: SaleInvoice[];
+}
+
 export interface DashboardMetrics {
     popularProducts: Product[];
     salesByCity: Array<{
@@ -207,6 +208,7 @@ export interface DashboardMetrics {
       date: string;
       amount: number;
     }>;
+    totalUsers: User[];
     
 }
 
@@ -223,8 +225,8 @@ export const api = createApi({
     reducerPath: "api",
     tagTypes: ["DashboardMetrics", "Products", "Users", "Designations", "Roles", "Customers", "Sales"],
     endpoints: (build) => ({
-        getDashboardMetrics: build.query<DashboardMetrics, void>({
-            query: () => "/dashboard",
+        getDashboardMetrics: build.query<DashboardMetrics, { institution: string }>({
+            query: ({ institution }) => `/dashboard/${institution}/`,
             providesTags: ["DashboardMetrics"]
         }),
         getProducts: build.query<Product[], { institution: string; search?: string }>({
@@ -378,10 +380,18 @@ export const api = createApi({
             }),
             invalidatesTags: ["Customers"],
            }),
-           getCustomerById: build.query<Customer, string>({
-            query: (id) => `/customer/${id}`, // Construire l'URL avec l'ID de l'utilisateur
-            providesTags: (result, error, id) => [{ type: "Customers", id }], // Associer un tag pour l'invalidation
+           
+           getCustomerById: build.query<Customer, { id: string; startDate?: string; endDate?: string }>({
+            query: ({ id, startDate, endDate }) => {
+              const params = new URLSearchParams();
+              if (startDate) params.append("startDate", startDate);
+              if (endDate) params.append("endDate", endDate);
+      
+              return `/customer/${id}?${params.toString()}`;
+            },
+            providesTags: (result, error, { id }) => [{ type: "Customers", id }],
           }),
+      
           deleteCustomer: build.mutation<void, string>({
             query: (id) => ({
               url: `/customer/${id}`,

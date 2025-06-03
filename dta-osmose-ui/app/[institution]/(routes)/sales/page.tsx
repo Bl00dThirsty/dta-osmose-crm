@@ -242,8 +242,8 @@ const CreateSalePage = () => {
                         className="w-16 p-1 border rounded"
                       />
                     </td>
-                    <td className="py-2">{item.unitPrice} FCFA</td>
-                    <td className="py-2">{item.totalPrice} FCFA</td>
+                    <td className="py-2">{item.unitPrice} </td>
+                    <td className="py-2">{item.totalPrice} </td>
                     <td className="py-2">
                       <button 
                         onClick={() => handleRemoveProduct(item.id)}
