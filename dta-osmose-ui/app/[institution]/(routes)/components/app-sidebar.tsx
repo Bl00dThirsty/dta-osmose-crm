@@ -121,7 +121,7 @@ const data = {
       icon: () => <Settings2 size={40} />,
       items: [
         { title: "Compte", path: "#" },
-        { title: "Facturation", path: "#" },
+        { title: "Facturation", path: "crm/setting" },
         { title: "Billing", path: "#" },
       ],
     },

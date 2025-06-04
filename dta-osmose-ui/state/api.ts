@@ -196,6 +196,26 @@ export interface NewCustomer {
   saleInvoice?: SaleInvoice[];
 }
 
+export interface AppSetting{
+  id: number;
+  company_name: string;
+  tag_line: string;
+  address: string
+  phone: string;
+  email : string;
+  website: string;
+  footer: string;
+}
+export interface NewAppSetting{
+  company_name: string;
+  tag_line: string;
+  address: string
+  phone: string;
+  email : string;
+  website: string;
+  footer: string;
+}
+
 export interface DashboardMetrics {
     popularProducts: Product[];
     salesByCity: Array<{
@@ -223,7 +243,7 @@ export const api = createApi({
         return headers;
       }, }),
     reducerPath: "api",
-    tagTypes: ["DashboardMetrics", "Products", "Users", "Designations", "Roles", "Customers", "Sales"],
+    tagTypes: ["DashboardMetrics", "Products", "Users", "Designations", "Roles", "Customers", "Sales", "AppSettings"],
     endpoints: (build) => ({
         getDashboardMetrics: build.query<DashboardMetrics, { institution: string }>({
             query: ({ institution }) => `/dashboard/${institution}/`,
@@ -289,12 +309,12 @@ export const api = createApi({
          institution: string;
        }>({
         query: ({ id, institution, ...status }) => ({
-    url: `/sale/${institution}/sale/${id}/status`,
-    method: 'PATCH',
-    body: status
-  }),
-  invalidatesTags: (result, error, { id }) => [{ type: 'Sales', id }]
-}),
+           url: `/sale/${institution}/sale/${id}/status`,
+           method: 'PATCH',
+           body: status
+        }),
+        invalidatesTags: (result, error, { id }) => [{ type: 'Sales', id }]
+       }),
 
           getDepartments: build.query<{ id: number; name: string }[], void>({
             query: () => "/department",
@@ -399,10 +419,22 @@ export const api = createApi({
             }),
             invalidatesTags: ["Customers"],
           }),
-
-
+          getSettings: build.query<AppSetting[], { institution: string }>({
+            query: ({ institution }) => ({
+                url: `/setting/${institution}`,
+            }),
+            providesTags: ["AppSettings"]
+          }),
+          updateSettings: build.mutation<AppSetting, { id: number; data: Partial<AppSetting> }>({
+            query: ({ id, data }) => ({
+              url: `/setting/${id}`,
+              method: "PUT",
+              body: data,
+            }),
+            invalidatesTags: ["AppSettings"],
+          }),
           
-          
+      
     }),
 });
 
@@ -410,4 +442,4 @@ export const { useGetDashboardMetricsQuery, useGetProductsQuery, useCreateProduc
     useGetSaleByIdQuery,useUpdateSaleStatusMutation, useGetDepartmentsQuery,
     useGetDesignationsQuery, useCreateDesignationsMutation, useDeleteDesignationMutation,useGetRolesQuery, useCreateRolesMutation, 
     useDeleteRoleMutation, useGetUsersQuery, useGetUserByIdQuery, useDeleteUserMutation,  useGetCustomersQuery, useCreateCustomersMutation,
-    useGetCustomerByIdQuery, useDeleteCustomerMutation} = api;
+    useGetCustomerByIdQuery, useDeleteCustomerMutation, useGetSettingsQuery, useUpdateSettingsMutation} = api;

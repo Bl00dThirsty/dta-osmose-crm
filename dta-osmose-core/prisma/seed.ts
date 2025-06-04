@@ -161,11 +161,13 @@ async function main() {
 
   // Ces fichiers seront traités séparément plus bas
   const orderedFileNames = [
-    "customer.json",
-    "institution.json",
-    "product.json", // on gère ce fichier à part
-    "department.json",
-    "designation.json",
+    
+     "customer.json",
+     "institution.json",
+     "appSetting.json",
+     "product.json", // on gère ce fichier à part
+     "department.json",
+     "designation.json",
   ];
 
   // Suppression des anciennes données

@@ -45,16 +45,7 @@ model announcement {
   updatedAt   DateTime
 }
 
-model appSetting {
-  id           Int    @id @default(autoincrement())
-  company_name String
-  tag_line     String
-  address      String
-  phone        String
-  email        String
-  website      String
-  footer       String
-}
+
 
 
 
@@ -162,6 +153,7 @@ model institution {
   slug      String    @unique
   products  product[]
   saleInvoice  saleInvoice[]
+  appSetting   appSetting[]
 }
 
 model product {
@@ -232,6 +224,19 @@ model saleItem {
 
   invoice         saleInvoice @relation(fields: [invoiceId], references: [id])
   product         product     @relation(fields: [productId], references: [id])
+}
+
+model appSetting {
+  id           Int    @id @default(autoincrement())
+  company_name String
+  tag_line     String
+  address      String
+  phone        String
+  email        String
+  website      String
+  footer       String
+  institutionId   String
+  institution     institution    @relation(fields: [institutionId], references: [id])
 }
 
 /*

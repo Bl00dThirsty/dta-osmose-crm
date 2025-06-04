@@ -17,7 +17,8 @@ import departmentRoutes from './routes/department.Routes';
 import designationRoute from './routes/designationRoutes';
 import userRoutes from './routes/userRoutes';
 import customerRoutes from './routes/customerRoutes';
-import saleRoutes from './routes/saleRoutes'
+import saleRoutes from './routes/saleRoutes';
+import settingRoutes from './routes/settingRoutes'
 
 export const prisma = new PrismaClient();
 
@@ -49,7 +50,8 @@ app.use("/role-permission", rolePermissionRoutes);
 app.use("/department", departmentRoutes);
 app.use("/designation", designationRoute);
 app.use("/user", userRoutes);
-app.use("/sale", saleRoutes)
+app.use("/sale", saleRoutes);
+app.use("/setting", settingRoutes)
 
 // Error handling middleware
 app.use(errorHandler);
