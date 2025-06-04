@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 const { PrismaClient } = require("@prisma/client");
+import { randomInt } from "crypto"; 
 //import { generateInvoiceNumber } from '../utils/invoiceGenerator';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -27,7 +28,8 @@ export const createSaleInvoice = async (req: Request, res: Response): Promise<vo
       paymentMethod: string;} = req.body;
    
     const institutionSlug = req.params.institution;
-    //const institutionId = req.institution.id;
+    const randomSuffix = randomInt(1000, 9999);
+    const invoiceNumber = `${institutionSlug}-fac-${customerId}-${randomSuffix}`;
     // if (!req.auth) {
     //     res.status(401).json({ error: 'Non autorisé' });
     //     return;
@@ -87,7 +89,7 @@ export const createSaleInvoice = async (req: Request, res: Response): Promise<vo
     const invoice = await prisma.saleInvoice.create({
       data: {
         //invoiceNumber: generateInvoiceNumber(),
-        invoiceNumber: uuidv4(),
+        invoiceNumber,
         customerId,
         userId,
         institutionId: institution.id,

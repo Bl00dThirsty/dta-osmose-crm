@@ -78,9 +78,11 @@ export const columns: ColumnDef<SaleInvoice>[] = [
       
       return (
         <Button
-          variant={isReady ? "default" : "destructive"}
-          size="sm"
+        className={`px-2 py-1 rounded text-white ${isReady ? 'bg-green-500' : 'bg-red-500'}`}
+        size="sm"
         >
+          
+        
           {isReady ? "Oui" : "Non"}
         </Button>
       );
@@ -98,7 +100,7 @@ export const columns: ColumnDef<SaleInvoice>[] = [
       
       return (
         <Button
-          variant={isDelivred ? "default" : "destructive"}
+        className={`px-2 py-1 rounded text-white ${isDelivred ? 'bg-green-500' : 'bg-red-500'}`}
           size="sm"
           disabled={!isReady}
         >

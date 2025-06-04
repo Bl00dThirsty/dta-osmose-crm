@@ -37,7 +37,8 @@ const permissions = [
   "create-department",
   "readAll-department",
   "delete-department",
-  "update-sale"
+  "update-sale",
+  "create-sale"
 ];
 
 const roles = ["admin", "staff", "manager", "Particulier"];
