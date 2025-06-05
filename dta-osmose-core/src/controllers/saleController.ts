@@ -248,3 +248,69 @@ export const updateSaleStatus = async (req: Request, res: Response): Promise<voi
     res.status(500).json({ error: "Erreur interne du serveur" });
   }
 };
+
+export const deleteSaleInvoice = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params; // Utiliser "id"
+
+    // Afficher l'ID pour vérifier sa réception
+    console.log("ID de la facture reçu : ", id);
+
+    if (!id) {
+      res.status(400).json({ error: "ID de facture invalide" });
+      return; 
+    }
+    
+
+    // Récupérer les produits associés à la facture
+    const items = await prisma.saleItem.findMany({
+      where: {
+        invoiceId: id, // Utiliser l'ID converti
+      },
+      include: {
+        product: true, // Inclure les détails des produits
+      }
+    });
+
+    // Restaurer les quantités en stock
+    for (const item of items) {
+      await prisma.product.update({
+        where: {
+          id: item.productId,
+        },
+        data: {
+          quantity:
+            item.product.quantity +
+            item.quantity,
+        },
+      });
+    }
+
+    // Supprimer d'abord les items 
+    await prisma.saleItem.deleteMany({
+      where: {
+        invoiceId: id,
+      },
+    });
+
+    // Supprimer la facture
+    await prisma.saleInvoice.delete({
+      where: {
+        id
+      },
+    });
+
+    console.log(
+      `La commande avec l'ID ${id} a été annulée et les produits ont été restaurés en stock.`
+    );
+      res.status(200).json({
+      message: "Facture mise à jour avec succès",
+      data: items
+    });
+  } catch (error) {
+    console.error("Erreur lors de l'annulation de la commande :", error);
+    res.status(500).json({ error: "Erreur lors de l'annulation de la commande." });
+  }
+};
+
+

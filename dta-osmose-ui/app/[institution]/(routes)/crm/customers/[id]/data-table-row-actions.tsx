@@ -2,7 +2,7 @@
 
 import { Row } from "@tanstack/react-table"
 import { MoreHorizontal } from "lucide-react"
-import { useDeleteRoleMutation } from "@/state/api"
+//import { useDeleteRoleMutation } from "@/state/api"
 import { Button } from "@/components/ui/button"
 import { useRouter } from 'next/navigation';
 import {
@@ -41,7 +41,6 @@ export function DataTableRowActions<TData>({
 }: DataTableRowActionsProps<TData>) {
   const router = useRouter();
   const saleId = (row.original as any).id;
-  const [deleteRole] = useDeleteRoleMutation()
   const [open, setOpen] = useState(false);
   const { institution } = useParams() as { institution: string }
 
