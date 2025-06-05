@@ -4,18 +4,23 @@
 import { useGetSaleByIdQuery } from '@/state/api';
 import { useRouter, useParams } from 'next/navigation';
 import { Row } from "@tanstack/react-table"
-
+import { useGetSettingsQuery } from '@/state/api';
 
 const InvoicePage = () => {
   const router = useRouter();
   const params = useParams();
   const id = params?.id as string;
+  const { institution } = useParams<{ institution: string }>();
+  //console.log('Institution from params:', institution);
+  const { data: settings = [] } = useGetSettingsQuery({ institution });
   //const { id } = (row.original as any);
+ 
   const { data: sale, isLoading } = useGetSaleByIdQuery(id);
 
   const handlePrint = () => {
     window.print();
   };
+  const setting = Array.isArray(settings) && settings.length > 0 ? settings[0] : null;
 
   if (isLoading) return <div>Chargement...</div>;
   if (!sale) return <div>Facture non trouvée</div>;
@@ -40,6 +45,14 @@ const InvoicePage = () => {
           <div>
             <h2 className="font-bold mb-2">Vendeur</h2>
             <p>{sale.user.firstName} {sale.user.lastName}</p>
+            {setting && (
+              <>
+                <p>{setting.company_name?.toUpperCase()}</p>
+                <p>{setting.phone}</p>
+                <p>{setting.email}</p>
+                <p>{setting.website}</p>
+              </>
+            )}
           </div>
           <div>
             <h2 className="font-bold mb-2">Client</h2>
