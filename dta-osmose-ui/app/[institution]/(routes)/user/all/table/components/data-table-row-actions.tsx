@@ -77,7 +77,7 @@ export function DataTableRowActions<TData>({
       
         <DropdownMenuItem>Modifier</DropdownMenuItem>
         
-            <DropdownMenuItem className="text-red-600">
+            <DropdownMenuItem onSelect={() => setOpen(true)} className="text-red-600">
               Supprimer
             </DropdownMenuItem>
           

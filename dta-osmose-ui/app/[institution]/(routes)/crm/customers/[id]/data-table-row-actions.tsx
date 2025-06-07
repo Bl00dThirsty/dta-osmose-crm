@@ -61,7 +61,7 @@ export function DataTableRowActions<TData>({
           Voir
         </DropdownMenuItem>
         
-        <DropdownMenuSeparator />
+        
       </DropdownMenuContent>
     </DropdownMenu>
 
