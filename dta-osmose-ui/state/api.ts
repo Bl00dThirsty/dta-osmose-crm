@@ -122,6 +122,7 @@ export interface SaleInvoice{
   } 
   customer:{
     id: number;
+    customId: string;
     name: string;
     phone: string;
     email: string;
@@ -154,6 +155,7 @@ export interface NewSaleInvoice{
   } 
   customer?:{
     id: number;
+    customId: string;
     name: string;
     phone: string;
     email: string;
@@ -301,7 +303,6 @@ export const api = createApi({
           providesTags: (result, error, id) => [{ type: 'Sales', id }]
         }),
 
-        // Dans api.ts
        updateSaleStatus: build.mutation<SaleInvoice, {
          id: string;
          ready?: boolean;

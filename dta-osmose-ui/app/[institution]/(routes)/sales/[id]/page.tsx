@@ -21,6 +21,7 @@ import {
   DialogAction,
 } from "@/components/ui/dialog"
 
+
 const InvoicePage = () => {
   const router = useRouter();
   const params = useParams();
@@ -31,6 +32,7 @@ const InvoicePage = () => {
   //console.log('Institution from params:', institution);
   //const { id } = (row.original as any);
   const [deleteSaleInvoice] = useDeleteSaleInvoiceMutation()
+  const [updateStatus] = useUpdateSaleStatusMutation(); 
   
   const { data: sale, isLoading } = useGetSaleByIdQuery(id);
 
@@ -48,6 +50,36 @@ const InvoicePage = () => {
       console.log("Erreur lors de la suppression :")
     }
   }
+  const handleMarkReady = async () => {
+    if (!sale) return;
+    try {
+      await updateStatus({
+        id,
+        institution,
+        ready: !sale.ready,
+      }).unwrap();
+      toast.success(`Commande marquée comme ${!sale.ready ? 'prête' : 'non prête'}`);
+    } catch (err) {
+      console.error(err);
+      toast.error("Erreur lors de la mise à jour du statut 'prêt'.");
+    }
+  };
+  
+  const handleMarkDelivered = async () => {
+    if (!sale) return;
+    try {
+      await updateStatus({
+        id,
+        institution,
+        delivred: !sale.delivred,
+      }).unwrap();
+      toast.success(`Commande ${!sale.delivred ? 'livrée' : 'non livrée'}`);
+    } catch (err) {
+      console.error(err);
+      toast.error("Erreur lors de la confirmation de livraison.");
+    }
+  };
+  
 
   const handlePrint = () => {
     window.print();
@@ -69,18 +101,25 @@ const InvoicePage = () => {
         
         <div className="grid grid-cols-5 gap-5 mb-8">
           <div className="ml-2">
-          <button 
-            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-500 print:hidden"
-          >
-            Marquer comme prête
-          </button>
+            <button 
+               onClick={handleMarkReady}
+               className={`px-4 py-2 rounded text-white print:hidden ${
+                 sale.ready ? 'bg-green-500 hover:bg-gray-400' : 'bg-green-600 hover:bg-green-500'
+               }`}
+            >
+               {sale.ready ? "Déjà prête" : "Marquer comme prête"}
+            </button>
           </div>
+
           <div>
-             <button 
-               className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-500 print:hidden"
-             >
-               Confirmer la livraison
-             </button>
+            <button 
+              onClick={handleMarkDelivered}
+              className={`px-4 py-2 rounded text-white print:hidden ${
+               sale.delivred ? 'bg-green-500 hover:bg-gray-400' : 'bg-green-600 hover:bg-green-500'
+              }`}
+            >
+              {sale.delivred ? "Déjà livrée" : "Confirmer la livraison"}
+            </button>
           </div>
           <div>
              <button 
@@ -93,7 +132,7 @@ const InvoicePage = () => {
           <div>
             <button
              onClick={() => setOpen(true)}
-             className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-500 disabled:bg-gray-400"
+             className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-500 disabled:bg-red-400"
              disabled={sale?.delivred}
             >
                {sale?.delivred ? "Déjà livrée" : "Annuler la commande"}
@@ -115,12 +154,12 @@ const InvoicePage = () => {
             <div className="grid grid-cols-2 gap-8 mb-8">
           <div>
             {/* <h2 className="font-bold mb-2">Informations sur la commande</h2> */}
-              <p className="mb-2">Date: <b>{new Date(sale.createdAt ).toLocaleDateString()}</b></p>
+              <p className="mb-2">Date de vente: <b>{new Date(sale.createdAt ).toLocaleDateString()}</b></p>
               <p className="mb-2">Client: <b>{sale.customer.name}</b></p>
               <p className="mb-2">Type de client: <b>{sale.customer.type_customer}</b></p>
               <p className="mb-2">Montant Total: <b>{sale.totalAmount} Fcfa</b></p>
               <p className="mb-2">Montant à payer: </p>
-              <p>Montant percu: </p>
+              <p>Montant perçu: </p>
           </div>
           <div>
             {/* <h2 className="font-bold mb-2">Client</h2> */}

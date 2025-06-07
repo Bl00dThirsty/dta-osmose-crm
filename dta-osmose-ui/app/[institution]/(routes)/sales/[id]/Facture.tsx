@@ -7,7 +7,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { Row } from "@tanstack/react-table"
 import { useGetSettingsQuery } from '@/state/api';
 
-const InvoicePage = () => {
+const PrintToPdf = () => {
   const router = useRouter();
   const params = useParams();
   const id = params?.id as string;
@@ -31,21 +31,15 @@ const InvoicePage = () => {
       <div className="bg-gray p-6 rounded-lg shadow text-white-500 print:shadow-none">
         <div className="flex justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold">Facture #{sale.invoiceNumber}</h1>
+            <h1 className="text-2xl font-bold">Facture No: {sale.invoiceNumber}</h1>
             <p className="text-gray-500">Date: {new Date(sale.createdAt ).toLocaleDateString()}</p>
           </div>
-          <button 
-            onClick={handlePrint}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 print:hidden"
-          >
-            Imprimer
-          </button>
         </div>
         
         <div className="grid grid-cols-2 gap-8 mb-8">
           <div>
-            <h2 className="font-bold mb-2">Vendeur</h2>
-            <p>{sale.user.firstName} {sale.user.lastName}</p>
+            {/* <h2 className="font-bold mb-2">Entreprise</h2> */}
+            {/* <p>{sale.user.firstName} {sale.user.lastName}</p> */}
             {setting && (
               <>
                 <p>{setting.company_name?.toUpperCase()}</p>
@@ -57,28 +51,29 @@ const InvoicePage = () => {
           </div>
           <div>
             <h2 className="font-bold mb-2">Client</h2>
+            <p>{sale.customer.customId}</p>
             <p>{sale.customer.name}</p>
             <p>{sale.customer.phone}</p>
-            {sale.customer.email && <p>{sale.customer.email}</p>}
+            
           </div>
         </div>
         
-        <table className="w-full mb-8">
+        <table className="w-full mb-8 border">
           <thead>
             <tr className="border-b">
-              <th className="text-left py-2">Produit</th>
-              <th className="text-right py-2">Qté</th>
-              <th className="text-right py-2">Prix unitaire</th>
-              <th className="text-right py-2">Total</th>
+              <th className="text-center py-2 border">Produit</th>
+              <th className="text-center py-2 border">Qté</th>
+              <th className="text-center py-2 border">Prix unitaire</th>
+              <th className="text-center py-2 border">Total</th>
             </tr>
           </thead>
           <tbody>
             {sale.items.map(item => (
               <tr key={item.id} className="border-b">
-                <td className="py-2">{item.product?.designation}</td>
-                <td className="py-2 text-right">{item.quantity}</td>
-                <td className="py-2 text-right">{item.unitPrice} FCFA</td>
-                <td className="py-2 text-right">{item.totalPrice} FCFA</td>
+                <td className="py-2 text-center border">{item.product?.designation}</td>
+                <td className="py-2 text-center border">{item.quantity}</td>
+                <td className="py-2 text-center border">{item.unitPrice} FCFA</td>
+                <td className="py-2 text-center border">{item.totalPrice} FCFA</td>
               </tr>
             ))}
           </tbody>
@@ -103,4 +98,4 @@ const InvoicePage = () => {
   );
 };
 
-export default InvoicePage;
+export default PrintToPdf;
