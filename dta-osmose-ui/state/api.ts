@@ -293,8 +293,14 @@ export const api = createApi({
           invalidatesTags: ['Sales', 'Products']
         }),
 
-        getSales: build.query<SaleInvoice[], { institution: string }>({
-          query: ({institution}) => `/sale/${institution}/sale`,
+        getSales: build.query<SaleInvoice[], { institution: string, startDate?: string; endDate?: string }>({
+          query: ({institution, startDate, endDate}) => {
+            const params = new URLSearchParams();
+            if (startDate) params.append("startDate", startDate);
+            if (endDate) params.append("endDate", endDate);
+        
+            return `/sale/${institution}/sale?${params.toString()}`;
+          },
           providesTags: ['Sales']
         }),
 
@@ -383,7 +389,7 @@ export const api = createApi({
             providesTags: ["Users"]
           }),
           getUserById: build.query<User, string>({
-            query: (id) => `/user/${id}`, // Construire l'URL avec l'ID de l'utilisateur
+            query: (id) => `/user/${id}`, 
             providesTags: (result, error, id) => [{ type: "Users", id }], // Associer un tag pour l'invalidation
           }),
           deleteUser: build.mutation<void, string>({
@@ -429,6 +435,8 @@ export const api = createApi({
             }),
             invalidatesTags: ["Customers"],
           }),
+
+          //setting
           getSettings: build.query<AppSetting[], { institution: string }>({
             query: ({ institution }) => ({
                 url: `/setting/${institution}`,

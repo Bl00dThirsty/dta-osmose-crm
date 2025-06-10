@@ -1,14 +1,17 @@
 "use client";
 
-import React from "react";
-import { useGetSaleByIdQuery } from '@/state/api';
+import React, { useRef } from "react";
+import { useGetSaleByIdQuery, useGetSettingsQuery } from '@/state/api';
 import { useRouter, useParams } from 'next/navigation';
 import { useState } from "react"
+import PrintUserSheet from "./Facture"
 import { Row } from "@tanstack/react-table"
 import { useDeleteSaleInvoiceMutation, useUpdateSaleStatusMutation } from '@/state/api';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import Container from "../../components/ui/Container";
 import { toast } from "react-toastify";
+import { useReactToPrint } from "react-to-print";
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogTrigger,
@@ -33,9 +36,9 @@ const InvoicePage = () => {
   //const { id } = (row.original as any);
   const [deleteSaleInvoice] = useDeleteSaleInvoiceMutation()
   const [updateStatus] = useUpdateSaleStatusMutation(); 
-  
+  const printRef = useRef<HTMLDivElement>(null);
   const { data: sale, isLoading } = useGetSaleByIdQuery(id);
-
+  const { data: settings = [] } = useGetSettingsQuery({ institution });
   const handleDelete = async () => {
     if (!id) {
       toast.error("ID de la commande introuvable.")
@@ -80,12 +83,14 @@ const InvoicePage = () => {
     }
   };
   
-
-  const handlePrint = () => {
-    window.print();
-  };
+  const componentRef = useRef<HTMLDivElement>(null);
+  console.log("Ref au moment de l'initialisation:",componentRef.current);
+  const handlePrint = useReactToPrint({
+    content: () => componentRef.current,
+  }as unknown as Parameters<typeof useReactToPrint>[0]);
+  
  
-
+  const setting = Array.isArray(settings) && settings.length > 0 ? settings[0] : null;
   if (isLoading) return <div>Chargement...</div>;
   if (!sale) return <div>Facture non trouvée</div>;
 
@@ -115,15 +120,14 @@ const InvoicePage = () => {
             <button 
               onClick={handleMarkDelivered}
               className={`px-4 py-2 rounded text-white print:hidden ${
-               sale.delivred ? 'bg-green-500 hover:bg-gray-400' : 'bg-green-600 hover:bg-green-500'
+               sale.delivred ? 'bg-green-500 hover:bg-gray-400' : 'bg-green-600 hover:bg-green-500 print:hidden'
               }`}
             >
               {sale.delivred ? "Déjà livrée" : "Confirmer la livraison"}
             </button>
           </div>
           <div>
-             <button 
-                
+             <button  
                 className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-500 print:hidden"
               >
                Paiement
@@ -138,19 +142,22 @@ const InvoicePage = () => {
                {sale?.delivred ? "Déjà livrée" : "Annuler la commande"}
             </button>
           </div>
+          
           <div>
-              <button 
+              {/* <button
                 onClick={handlePrint}
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-500 print:hidden"
+                // disabled={!sale || !settings}
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-500 "
                >
                Imprimer
-              </button>
+              </button> */}
+              <PrintUserSheet sale={sale} />
           </div>
         </div>
 
         <div className="container mx-auto p-4 max-w-4xl border">
            <div className="bg-gray p-6 rounded-lg shadow text-white-500 print:shadow-none">
-              <h2 className="font-bold mb-2 text-center">Informations sur la commande</h2>
+              <h2 className="font-bold mb-2 text-center text-2xl">Informations sur la commande</h2>
             <div className="grid grid-cols-2 gap-8 mb-8">
           <div>
             {/* <h2 className="font-bold mb-2">Informations sur la commande</h2> */}
@@ -158,11 +165,12 @@ const InvoicePage = () => {
               <p className="mb-2">Client: <b>{sale.customer.name}</b></p>
               <p className="mb-2">Type de client: <b>{sale.customer.type_customer}</b></p>
               <p className="mb-2">Montant Total: <b>{sale.totalAmount} Fcfa</b></p>
-              <p className="mb-2">Montant à payer: </p>
-              <p>Montant perçu: </p>
+              <p className="mb-2">Montant à payer: <b>{sale.finalAmount} Fcfa</b></p>
+              <p>Montant payé: </p>
           </div>
           <div>
             {/* <h2 className="font-bold mb-2">Client</h2> */}
+            <p className="mb-2">Remise: <b>{sale.discount} </b> </p>
             <p className="mb-2">Methode de paiement: <b>{sale.paymentMethod || 'CASH'}</b></p>
             <p className="mb-2">Statut de paiement: <b>{sale.paymentStatus}</b></p>
             <p className="mb-2">Prête: <button className={` px-2 py-1 rounded text-white ${sale.ready ? 'bg-green-500' : 'bg-red-500'}`}>{sale.ready ? "Oui" : "Non"}</button></p>
@@ -176,7 +184,7 @@ const InvoicePage = () => {
 
         <Card className="max-w-5xl mx-auto mt-5 shadow">
       <CardHeader>
-        <CardTitle className="text-2xl">Liste des produits commandés</CardTitle>
+        <CardTitle className="text">Liste des produits commandés</CardTitle>
       </CardHeader>
       <CardContent>
         <table className="w-full mb-8 border">

@@ -78,16 +78,16 @@ export const columns: ColumnDef<SaleInvoice>[] = [
     },
   },
 
-  {
-    accessorKey: "customer.type_customer",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Type Client" />
-    ),
-    cell: ({ row }) => {
-      const designation2 = row.original.customer?.type_customer ?? "aucun";
-      return <div className="w-[80px]">{designation2}</div>;
-    },
-  },
+  // {
+  //   accessorKey: "customer.type_customer",
+  //   header: ({ column }) => (
+  //     <DataTableColumnHeader column={column} title="Type Client" />
+  //   ),
+  //   cell: ({ row }) => {
+  //     const designation2 = row.original.customer?.type_customer ?? "aucun";
+  //     return <div className="w-[80px]">{designation2}</div>;
+  //   },
+  // },
   // Ajoutez ces colonnes à votre tableau
 {
   accessorKey: "ready",
@@ -150,9 +150,17 @@ export const columns: ColumnDef<SaleInvoice>[] = [
     },
   },
   {
-    accessorKey: "finalAmount",
+    accessorKey: "totalAmount",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Montant Total" />
+    ),
+    cell: ({ row }) => <div className="w-[80px]">{row.getValue("totalAmount")} FCFA</div>,
+  },
+  
+  {
+    accessorKey: "finalAmount",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Montant à payer" />
     ),
     cell: ({ row }) => <div className="w-[80px]">{row.getValue("finalAmount")} FCFA</div>,
   },

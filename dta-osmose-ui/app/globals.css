@@ -122,17 +122,10 @@
   }
 }
 
-@media print {
-  body * {
-    visibility: hidden;
+/* @media print {
+  body {
+    background: white;
+    color: black;
   }
-  #invoice, #invoice * {
-    visibility: visible;
-  }
-  #invoice {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-  }
-}
+
+} */

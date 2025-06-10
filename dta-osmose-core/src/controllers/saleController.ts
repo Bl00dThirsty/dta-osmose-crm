@@ -159,6 +159,7 @@ export const createSaleInvoice = async (req: Request, res: Response): Promise<vo
 
 export const getSaleInvoices = async (req: Request, res: Response): Promise<void> => {
   try {
+    const { startDate, endDate } = req.query;
     const institutionSlug = req.params.institution;
 
     if (!institutionSlug) {
@@ -175,7 +176,12 @@ export const getSaleInvoices = async (req: Request, res: Response): Promise<void
         return;
       }
     const invoices = await prisma.saleInvoice.findMany({
-      where: { institutionId: institution.id, },
+      where: { 
+        createdAt: {
+          gte: startDate ? new Date(startDate as string) : undefined,
+          lte: endDate ? new Date(endDate as string) : undefined,
+        },
+        institutionId: institution.id, },
       include: {
         customer: true,
         user: true,
