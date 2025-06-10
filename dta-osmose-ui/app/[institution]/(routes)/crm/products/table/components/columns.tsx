@@ -37,13 +37,6 @@ export const columns: ColumnDef<Product>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "id",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Product ID" />
-    ),
-    cell: ({ row }) => <div className="w-[180px] truncate whitespace-nowrap overflow-hidden text-ellipsis">{row.getValue("id")}</div>,
-  },
-  {
     accessorKey: "EANCode",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Code EAN" />

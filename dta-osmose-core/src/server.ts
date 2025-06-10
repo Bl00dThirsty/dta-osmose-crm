@@ -1,5 +1,8 @@
 import express from 'express';
 import cors from 'cors';
+//import multer from "multer";
+import * as XLSX from "xlsx";
+import fs from "fs";
 import bodyParser from 'body-parser';
 import dotenv from "dotenv";
 import helmet from "helmet";
@@ -22,6 +25,9 @@ export const prisma = new PrismaClient();
 
 dotenv.config();
 const app = express();
+//const upload = multer({ dest: "uploads/" });
+
+
 app.use(helmet());
 app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin"}));
 app.use(morgan("common"));
@@ -34,7 +40,8 @@ app.use(cors({
   credentials: true, // <-- permet l'envoi des cookies (token de session, etc.)
 }));
 
-app.use(express.json());
+//app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(cookieParser());
 
 /* ROUTES */

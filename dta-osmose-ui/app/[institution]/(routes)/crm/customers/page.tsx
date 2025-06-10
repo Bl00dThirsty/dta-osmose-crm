@@ -29,8 +29,8 @@ if (isError) return <p>Erreur lors du chargement.</p>
 
   return (
     <Container
-      title="Tableau des différents Clients"
-      description="Ce composant affiche une vue d'ensemble des clients."
+      title="Comptes Clients"
+      description="Catalogue des comptes clients de l'institution."
     >
     <div className="h-full w-full overflow-x-auto">
       <section className="overflow-hidden rounded-[0.5rem] border bg-background shadow-zinc-50">

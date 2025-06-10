@@ -96,3 +96,86 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
     res.status(500).json({ message: "Erreur lors de la création du produit." });
   }
 };
+
+export const importProducts = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const institutionSlug = req.params.institution;
+    const products: any[] = req.body;
+
+    if (!Array.isArray(products) || products.length === 0) {
+      res.status(400).json({ message: "Aucune donnée reçue." });
+      return;
+    }
+
+    const institution = await prisma.institution.findUnique({
+      where: { slug: institutionSlug },
+    });
+
+    if (!institution) {
+      res.status(404).json({ message: "Institution introuvable." });
+      return;
+    }
+
+    const createdProducts = [];
+
+    for (const row of products) {
+      if (!row.EANCode) continue;
+     
+      const existing = await prisma.product.findUnique({
+        where: { EANCode: row.EANCode },
+      });
+
+      if (existing) continue;
+
+      const product = await prisma.product.create({
+        data: {
+          id: uuidv4(),
+          EANCode: row.EANCode,
+          brand: row.brand,
+          designation: row.designation,
+          quantity: Number(row.quantity) || 0,
+          purchase_price: Number(row.purchase_price) || 0,
+          sellingPriceTTC: Number(row.sellingPriceTTC) || 0,
+          restockingThreshold: Number(row.restockingThreshold) || 0,
+          warehouse: row.warehouse,
+          institution: {
+            connect: { id: institution.id },
+          },
+        },
+      });
+
+      createdProducts.push(product);
+    }
+
+    res.status(201).json({ message: `${createdProducts.length} produits importés.` });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Erreur lors de l'import." });
+  }
+};
+
+export const getSingleProduct = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      res.status(400).json({ message: "ID du produit manquant." });
+      return;
+    }
+
+    const product = await prisma.product.findUnique({
+      where: { id },
+    });
+
+    if (!product) {
+      res.status(404).json({ message: "Produit non trouvé." });
+      return;
+    }
+
+    res.status(200).json(product);
+  } catch (error) {
+    console.error("Erreur lors de la récupération du produit :", error);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+};
+
