@@ -17,6 +17,7 @@ import { AddProductDialog } from "../../../components/AddProductDialog"
 
 import { useCreateProductMutation } from "@/state/api"
 import { quantityLevel, statuses } from "../data/data"
+import { toast } from "sonner"
 
 
 
@@ -55,45 +56,36 @@ export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>)
     setFile(selectedFile)
   }
   const handleUpload = async () => {
-      if (!file) return;
+  if (!file) return;
 
-      const reader = new FileReader();
-      reader.readAsArrayBuffer(file);
+  const reader = new FileReader();
+  reader.readAsArrayBuffer(file);
 
-      reader.onload = async (e) => {
-          const data = new Uint8Array(e.target?.result as ArrayBuffer);
-          const workbook = XLSX.read(data, { type: "array" });
+  reader.onload = async (e) => {
+    const data = new Uint8Array(e.target?.result as ArrayBuffer);
+    const workbook = XLSX.read(data, { type: "array" });
+    const sheetName = workbook.SheetNames[0];
+    const excelData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
-          const sheetName = workbook.SheetNames[0];
-          const excelData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+    console.log("Données Excel :", excelData);
 
-          console.log("Données Excel :", excelData);
+    try {
+      await fetch(`/api/institutions/${institution}/products/import`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(excelData),
+      });
 
-          for (const row of excelData) {
-              try {
-                  await createProduct({
-                      institution,
-                      data: {
-                          EANCode: row.EANCode || "",
-                          brand: row.brand,
-                          designation: row.designation,
-                          quantity: Number(row.quantity) || 0,
-                          purchase_price: Number(row.purchase_price) || 0,
-                          sellingPriceTTC: Number(row.sellingPriceTTC) || 0,
-                          restockingThreshold: Number(row.restockingThreshold) || 0,
-                          warehouse: row.warehouse,
-                      },
-                  }).unwrap();
-              } catch (error) {
-                  console.log("Erreur lors de l'import :", error);
-              }
-          }
-
-          toast.success("Produits importés avec succès.");
-      };
-
-      reader.onerror = (err) => console.error("Erreur de lecture du fichier :", err);
+      toast.success("Produits importés avec succès.");
+    } catch (error) {
+      console.error("Erreur lors de l'import :", error);
+      toast.error("Erreur d'importation.");
+    }
   };
+
+  reader.onerror = (err) => console.error("Erreur de lecture du fichier :", err);
+};
+
 
 
   const handleExport = () => {
