@@ -122,6 +122,7 @@ export const columns: ColumnDef<SaleInvoice>[] = [
     const [updateStatus] = useUpdateSaleStatusMutation();
     const sale = row.original;
     const id = (row.original as any).id;
+    const isReady = row.getValue("ready");
     const { institution } = useParams() as { institution: string }
     const handleClick = () => {
       updateStatus({ id, institution, delivred: !sale.delivred });
@@ -131,6 +132,7 @@ export const columns: ColumnDef<SaleInvoice>[] = [
       <button
         onClick={handleClick}
         className={`px-2 py-1 rounded text-white ${sale.delivred ? 'bg-green-500' : 'bg-red-500'}`}
+        disabled={!isReady}
       >
         {sale.delivred ? "Oui" : "Non"}
       </button>

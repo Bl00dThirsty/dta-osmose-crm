@@ -147,6 +147,7 @@ export function AppSidebar({
       <SidebarHeader>
         <AppSwitcher />
         <SidebarGroup className="py-0 group-data-[collapsible=icon]:hidden" />
+        <NavUser user={data.user} />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -197,7 +198,7 @@ export function AppSidebar({
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
