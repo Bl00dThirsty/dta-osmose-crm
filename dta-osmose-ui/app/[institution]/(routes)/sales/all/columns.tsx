@@ -156,13 +156,41 @@ export const columns: ColumnDef<SaleInvoice>[] = [
     ),
     cell: ({ row }) => <div className="w-[80px]">{row.getValue("totalAmount")} FCFA</div>,
   },
-  
+
   {
-    accessorKey: "finalAmount",
+    accessorKey: "dueAmount",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Montant à payer" />
     ),
-    cell: ({ row }) => <div className="w-[80px]">{row.getValue("finalAmount")} FCFA</div>,
+    cell: ({ row }) => <div className="w-[80px]">{row.getValue("dueAmount")} FCFA</div>,
+  },
+
+  {
+    accessorKey: "paidAmount",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Montant Perçu" />
+    ),
+    cell: ({ row }) => <div className="w-[80px]">{row.getValue("paidAmount")} FCFA</div>,
+  },
+
+  {
+    accessorKey: "paymentStatus",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Paiement" />
+    ),
+    cell: ({ row }) => {
+      const paymentStatus = row.getValue("paymentStatus");
+      
+      return (
+        <Button
+        className={`px-2 py-1 rounded text-white ${paymentStatus === 'PAID'  ? 'bg-green-500' : 'bg-red-500'}`}
+          size="sm"
+          
+        >
+          {paymentStatus === 'PAID' ? "Terminé" : "En cours"}
+        </Button>
+      );
+    },
   },
  
   {

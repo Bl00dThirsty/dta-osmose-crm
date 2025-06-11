@@ -1,6 +1,6 @@
 import express from 'express';
 
-import { createSaleInvoice, getSaleInvoices, getSaleInvoiceById,  updateSaleStatus, deleteSaleInvoice } from '../controllers/saleController';
+import { createSaleInvoice, getSaleInvoices, getSaleInvoiceById,  updateSaleStatus, updatePayment, deleteSaleInvoice } from '../controllers/saleController';
 import authorize from "../authorize";
 
 const router = express.Router();
@@ -13,6 +13,7 @@ router.patch('/:institution/sale/:id/status',
     authorize("create-product"), 
     updateSaleStatus
 );
+router.patch('/:id/payment', updatePayment);
 router.delete("/:id", deleteSaleInvoice);
 
 export default router;

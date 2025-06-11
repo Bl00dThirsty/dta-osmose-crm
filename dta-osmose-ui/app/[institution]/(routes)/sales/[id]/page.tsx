@@ -36,7 +36,7 @@ const InvoicePage = () => {
   //const { id } = (row.original as any);
   const [deleteSaleInvoice] = useDeleteSaleInvoiceMutation()
   const [updateStatus] = useUpdateSaleStatusMutation(); 
-  const printRef = useRef<HTMLDivElement>(null);
+
   const { data: sale, isLoading } = useGetSaleByIdQuery(id);
   const { data: settings = [] } = useGetSettingsQuery({ institution });
   const handleDelete = async () => {
@@ -83,14 +83,8 @@ const InvoicePage = () => {
     }
   };
   
-  const componentRef = useRef<HTMLDivElement>(null);
-  console.log("Ref au moment de l'initialisation:",componentRef.current);
-  const handlePrint = useReactToPrint({
-    content: () => componentRef.current,
-  }as unknown as Parameters<typeof useReactToPrint>[0]);
-  
+  const [rellvalue, setRellvalue] = useState(0);
  
-  const setting = Array.isArray(settings) && settings.length > 0 ? settings[0] : null;
   if (isLoading) return <div>Chargement...</div>;
   if (!sale) return <div>Facture non trouvée</div>;
 
@@ -128,7 +122,10 @@ const InvoicePage = () => {
           </div>
           <div>
              <button  
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-500 print:hidden"
+                onClick={() => router.push(`/${institution}/payment/${sale.id}`)}
+                className={`px-4 py-2 rounded ml-8 ${
+                  sale.paymentStatus === 'PAID' ? 'bg-green-600 hover:bg-green-500' : 'bg-red-600 hover:bg-red-500'
+                } text-white`}
               >
                Paiement
              </button>
@@ -165,14 +162,14 @@ const InvoicePage = () => {
               <p className="mb-2">Client: <b>{sale.customer.name}</b></p>
               <p className="mb-2">Type de client: <b>{sale.customer.type_customer}</b></p>
               <p className="mb-2">Montant Total: <b>{sale.totalAmount} Fcfa</b></p>
-              <p className="mb-2">Montant à payer: <b>{sale.finalAmount} Fcfa</b></p>
-              <p>Montant payé: </p>
+              <p className="mb-2">Montant à payer: <b>{sale.dueAmount} Fcfa</b></p>
+              <p>Montant payé: <b>{sale.paidAmount} Fcfa</b></p>
           </div>
           <div>
             {/* <h2 className="font-bold mb-2">Client</h2> */}
             <p className="mb-2">Remise: <b>{sale.discount} </b> </p>
             <p className="mb-2">Methode de paiement: <b>{sale.paymentMethod || 'CASH'}</b></p>
-            <p className="mb-2">Statut de paiement: <b>{sale.paymentStatus}</b></p>
+            <p className="mb-2">Statut de paiement: <b>{sale.paymentStatus === 'PAID' ? 'Terminé' : 'En cours'}</b></p>
             <p className="mb-2">Prête: <button className={` px-2 py-1 rounded text-white ${sale.ready ? 'bg-green-500' : 'bg-red-500'}`}>{sale.ready ? "Oui" : "Non"}</button></p>
             <p className="mb-2">Livrée: <button className={` px-2 py-1 rounded text-white ${sale.delivred ? 'bg-green-500' : 'bg-red-500'}`}>{sale.delivred ? "Oui" : "Non"}</button></p>
             <p>Vendeur: <b>{sale.user.firstName} {sale.user.lastName}</b></p>

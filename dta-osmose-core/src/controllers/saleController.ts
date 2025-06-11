@@ -255,6 +255,42 @@ export const updateSaleStatus = async (req: Request, res: Response): Promise<voi
   }
 };
 
+export const updatePayment = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { paymentMethod, paidAmount } = req.body;
+
+    const invoice = await prisma.saleInvoice.findUnique({ where: { id } });
+    if (!invoice) {
+      res.status(404).json({ error: 'Invoice not found' });
+      return;
+    }
+
+    const totalPaid = (invoice.paidAmount ?? 0) + paidAmount;
+    const remainingAmount = Math.max((invoice.finalAmount ?? 0) - totalPaid, 0); // toujours >= 0
+
+    let newStatus = invoice.paymentStatus;
+    if (remainingAmount === 0) newStatus = 'PAID';
+    else if (totalPaid > 0) newStatus = 'PARTIAL';
+
+    const updatedInvoice = await prisma.saleInvoice.update({
+      where: { id },
+      data: {
+        paymentMethod,
+        paymentStatus: newStatus,
+        paidAmount: totalPaid,
+        dueAmount: remainingAmount, // bien mis à jour ici
+      },
+    });
+
+    res.json(updatedInvoice);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
 export const deleteSaleInvoice = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params; // Utiliser "id"

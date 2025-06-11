@@ -108,6 +108,8 @@ export interface SaleInvoice{
   totalAmount :    number;
   discount:        number;
   finalAmount?:     number;
+  paidAmount?:  number;
+  dueAmount?:     number;
   paymentStatus?:   string ;     
   paymentMethod?:   string ;
   ready?: boolean;
@@ -141,6 +143,8 @@ export interface NewSaleInvoice{
   totalAmount :    number;
   discount:        number;
   finalAmount:     number;
+  paidAmount?:     number;
+  dueAmount?:     number;
   paymentStatus?:   string ;     
   paymentMethod?:   string ;
   ready?: boolean;
@@ -323,6 +327,16 @@ export const api = createApi({
         invalidatesTags: (result, error, { id }) => [{ type: 'Sales', id }]
        }),
 
+       updateSalePayment: build.mutation<SaleInvoice, { id: string; paymentMethod: string; paidAmount: number; dueAmount:number }>({
+        query: ({ id, paymentMethod, paidAmount, dueAmount }) => ({
+          url: `/sale/${id}/payment`,
+          method: 'PATCH',
+          body: { paymentMethod, paidAmount, dueAmount }
+        }),
+        invalidatesTags: (result, error, { id }) => [{ type: 'Sales', id }]
+      }),
+      
+
        deleteSaleInvoice: build.mutation<void, string>({
         query: (id) => ({
           url: `/sale/${id}`, 
@@ -457,7 +471,7 @@ export const api = createApi({
 });
 
 export const { useGetDashboardMetricsQuery, useGetProductsQuery, useCreateProductMutation, useGetProductByIdQuery, useCreateSaleMutation, useGetSalesQuery,
-    useGetSaleByIdQuery,useUpdateSaleStatusMutation, useDeleteSaleInvoiceMutation, useGetDepartmentsQuery,
+    useGetSaleByIdQuery,useUpdateSaleStatusMutation, useUpdateSalePaymentMutation, useDeleteSaleInvoiceMutation, useGetDepartmentsQuery,
     useGetDesignationsQuery, useCreateDesignationsMutation, useDeleteDesignationMutation,useGetRolesQuery, useCreateRolesMutation, 
     useDeleteRoleMutation, useGetUsersQuery, useGetUserByIdQuery, useDeleteUserMutation,  useGetCustomersQuery, useCreateCustomersMutation,
     useGetCustomerByIdQuery, useDeleteCustomerMutation, useGetSettingsQuery, useUpdateSettingsMutation} = api;

@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "saleInvoice" ADD COLUMN     "dueAmount" DOUBLE PRECISION NOT NULL DEFAULT 0;
