@@ -202,7 +202,7 @@ model saleInvoice {
   discount        Float
   finalAmount     Float
   paidAmount      Float   @default(0) // Montant déjà payé
-  dueAmount       Float   @default(0)
+  dueAmount       Float   
   profit          Float   @default(0)
   paymentStatus   String      @default("PENDING") // PENDING, PAID, PARTIAL
   paymentMethod   String?     // CASH, CARD, TRANSFER

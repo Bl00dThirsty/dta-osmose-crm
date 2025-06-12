@@ -19,6 +19,7 @@ const PaymentPage = () => {
   const [paymentMethod, setPaymentMethod] = useState('');
   const [paidAmount, setpaidAmount] = useState(0);
   const [dueAmount, setdueAmount] = useState(0);
+  const [discount, setDiscount] = useState(0);
 
   useEffect(() => {
     if (sale) {
@@ -27,6 +28,15 @@ const PaymentPage = () => {
       setPaymentMethod(sale.paymentMethod || '');
     }
   }, [sale]);
+
+  const handleDiscountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    
+    const newDiscount = Number(e.target.value) || 0;
+    setDiscount(newDiscount);
+    const originalDue = sale?.dueAmount ?? 0;
+    const newDue = originalDue - newDiscount;
+    setdueAmount(newDue > 0 ? newDue : 0);
+  };
 
   const handleMontantDonneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = Number(e.target.value);
@@ -42,6 +52,7 @@ const PaymentPage = () => {
       paymentMethod,
       paidAmount,
       dueAmount,
+      discount,
     }).unwrap();
     router.push(`/${institution}/sales/${id}`); // retour détail facture
   };
@@ -60,18 +71,29 @@ const PaymentPage = () => {
       
       <Label className='mb-3'>Montant total</Label>
       <Input disabled value={sale.finalAmount} className="w-full mb-2" />
+      <Label className='mb-3'>Remise additionnelle</Label>
+      <Input
+         type="number"
+         value={discount}
+         min={0}
+         max={sale.dueAmount ?? 0}
+         onChange={handleDiscountChange}
+         className="w-full mb-4"
+      />
+
 
       <Label className='mb-3'>Montant à payer</Label>
       <Input value={dueAmount} disabled className="w-full mb-2" />
 
       <Label className='mb-3'>Méthode de paiement</Label>
-      <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)} className="w-full border rounded-md p-2 mb-3">
-        <option value="">Sélectionnez</option>
-        <option value="mobile">Paiement mobile</option>
-        <option value="bancaire">Paiement bancaire</option>
-        <option value="espece">Espèces</option>
-        <option value="cheque">Par chèque</option>
-      </select>
+       <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)} className="w-full border rounded-md p-2 mb-3">
+          <option value="">Sélectionnez</option>
+          <option value="mobile">Paiement mobile</option>
+          <option value="bancaire">Paiement bancaire</option>
+          <option value="espece">Espèces</option>
+          <option value="cheque">Par chèque</option>
+          <option value="remise">Remise</option>
+       </select>
 
       <Label className='mb-3'>Montant donné</Label>
       <Input
@@ -85,7 +107,7 @@ const PaymentPage = () => {
 
       <button
         onClick={handleSubmit}
-        disabled={!paymentMethod || paidAmount <= 0}
+        //disabled={!paymentMethod || paidAmount <= 0}
         className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-500"
       >
         Valider paiement

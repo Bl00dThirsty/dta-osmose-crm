@@ -21,10 +21,11 @@ export const createSaleInvoice = async (req: Request, res: Response): Promise<vo
         
       }
       
-    const { customerId, items, discount, paymentMethod }: {
+    const { customerId, items, discount, paidAmount, paymentMethod }: {
       customerId: number;
       items: SaleItemInput[];
       discount?: number;
+      paidAmount: number;
       paymentMethod: string;} = req.body;
    
     const institutionSlug = req.params.institution;
@@ -97,6 +98,8 @@ export const createSaleInvoice = async (req: Request, res: Response): Promise<vo
         discount: discount || 0,
         finalAmount: 0,
         profit: 0,
+        paidAmount: 0,
+        dueAmount: 0,
         paymentMethod,
         items: {
           create: items.map((item) => ({
@@ -124,7 +127,8 @@ export const createSaleInvoice = async (req: Request, res: Response): Promise<vo
         where: { id: invoice.id },
         data: {
           finalAmount: invoice.totalAmount - (invoice.discount || 0),
-          profit: (invoice.totalAmount - (invoice.discount || 0)) - totalPurchasePrice
+          profit: (invoice.totalAmount - (invoice.discount || 0)) - totalPurchasePrice,
+          dueAmount: (invoice.totalAmount - (invoice.discount || 0)) - (paidAmount || 0)
         },
         include: {
           items: {
@@ -258,16 +262,17 @@ export const updateSaleStatus = async (req: Request, res: Response): Promise<voi
 export const updatePayment = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const { paymentMethod, paidAmount } = req.body;
+    const { paymentMethod, paidAmount, discount = 0 } = req.body;
 
     const invoice = await prisma.saleInvoice.findUnique({ where: { id } });
     if (!invoice) {
       res.status(404).json({ error: 'Invoice not found' });
       return;
     }
-
+    const totalDiscount = (invoice.discount ?? 0) + discount;
     const totalPaid = (invoice.paidAmount ?? 0) + paidAmount;
-    const remainingAmount = Math.max((invoice.finalAmount ?? 0) - totalPaid, 0); // toujours >= 0
+    const newFinalAmount = (invoice.totalAmount ?? 0) - totalDiscount;
+    const remainingAmount = Math.max(newFinalAmount - totalPaid, 0); // toujours >= 0
 
     let newStatus = invoice.paymentStatus;
     if (remainingAmount === 0) newStatus = 'PAID';
@@ -278,6 +283,8 @@ export const updatePayment = async (req: Request, res: Response): Promise<void> 
       data: {
         paymentMethod,
         paymentStatus: newStatus,
+        discount: totalDiscount,
+        finalAmount: newFinalAmount,
         paidAmount: totalPaid,
         dueAmount: remainingAmount, // bien mis à jour ici
       },

@@ -327,11 +327,11 @@ export const api = createApi({
         invalidatesTags: (result, error, { id }) => [{ type: 'Sales', id }]
        }),
 
-       updateSalePayment: build.mutation<SaleInvoice, { id: string; paymentMethod: string; paidAmount: number; dueAmount:number }>({
-        query: ({ id, paymentMethod, paidAmount, dueAmount }) => ({
+       updateSalePayment: build.mutation<SaleInvoice, { id: string; paymentMethod: string; paidAmount: number; dueAmount:number; discount?:number }>({
+        query: ({ id, paymentMethod, paidAmount, dueAmount, discount }) => ({
           url: `/sale/${id}/payment`,
           method: 'PATCH',
-          body: { paymentMethod, paidAmount, dueAmount }
+          body: { paymentMethod, paidAmount, dueAmount, discount }
         }),
         invalidatesTags: (result, error, { id }) => [{ type: 'Sales', id }]
       }),
