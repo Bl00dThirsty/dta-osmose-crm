@@ -14,24 +14,45 @@ const PrintToPdf = forwardRef<HTMLDivElement, PrintToPdfProps>(({ sale }, ref) =
   const { institution } = useParams<{ institution: string }>();
   const { data: settings = [] } = useGetSettingsQuery({ institution });
   const setting = Array.isArray(settings) && settings.length > 0 ? settings[0] : null;
-
+  
+   // Définir le logo en fonction de l'institution
+   const logoSrc =
+   institution === "iba"
+     ? "/logo/logo-iba.png"
+     : institution === "asermpharma"
+     ? "/logo/logo-asermpharma.png"
+     : "/logo/default-logo.png"; // Logo par défaut si aucune institution ne correspond
   return (
     <div ref={ref} className="container mx-auto p-4 max-w-4xl">
       <div className="p-6 rounded-lg shadow text-black print:shadow-none">
         {/* Header */}
         <div className="flex justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold">Facture N°: {sale.invoiceNumber}</h1>
-            <p className="text-gray-500">Date: {new Date(sale.createdAt).toLocaleDateString()}</p>
+            <img
+              src={logoSrc}
+              alt="Logo"
+              //className="w-10 h-auto object-contain" // Ajustez la taille du logo
+              style={{
+                maxWidth: "100px", // Limite la largeur à 100px
+                maxHeight: "100px", // Limite la hauteur à 100px
+                objectFit: "cover"
+              }}
+            />
           </div>
           {setting && (
             <div>
               <p className="uppercase font-bold">{setting.company_name}</p>
+              <p>{setting.address}</p>
               <p>{setting.phone}</p>
               <p>{setting.email}</p>
-              <p>{setting.website}</p>
+              
             </div>
           )}
+          <div>
+            <h1 className="text-2xl font-bold">Facture N°: {sale.invoiceNumber}</h1>
+            <p className="text-gray-500">Date de comande: {new Date(sale.createdAt).toLocaleDateString()}</p>
+            <p className="text-gray-500">Date de livraison: {new Date(sale.updatedAt).toLocaleDateString()}</p>
+          </div>
         </div>
 
         {/* Informations Client */}
@@ -40,6 +61,7 @@ const PrintToPdf = forwardRef<HTMLDivElement, PrintToPdfProps>(({ sale }, ref) =
             <h2 className="font-bold mb-2">Client</h2>
             <p>ID: {sale.customer.customId}</p>
             <p>Nom: {sale.customer.name}</p>
+            <p>Adresse: {sale.customer.quarter} - {sale.customer.ville}</p>
             <p>Téléphone: {sale.customer.phone}</p>
           </div>
         </div>

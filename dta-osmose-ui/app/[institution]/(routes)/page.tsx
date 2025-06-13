@@ -13,7 +13,7 @@ import NotionsBox from "../../[institution]/(routes)/components/dasboard/notions
 import LoadingBox from "../../[institution]/(routes)/components/dasboard/loading-box";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGetDashboardMetricsQuery } from "@/state/api";
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useParams } from "next/navigation"
 
@@ -22,6 +22,12 @@ const DashboardPage = () => {
   //const token = localStorage.getItem("accessToken");
   const { institution } = useParams() as { institution: string }
   const router = useRouter();
+  const now = new Date();
+  const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+  const [startDate, setStartDate] = useState<string>(firstDayOfMonth.toISOString().split("T")[0]);
+  const [endDate, setEndDate] = useState<string>(lastDayOfMonth.toISOString().split("T")[0]);
   const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
 
   useEffect(() => {
@@ -31,7 +37,7 @@ const DashboardPage = () => {
   }, [token]);
 
   
-  const {data: dashboardMetrics} = useGetDashboardMetricsQuery({ institution });
+  const {data: dashboardMetrics} = useGetDashboardMetricsQuery({ institution, startDate, endDate });
   const totalSales = dashboardMetrics?.saleProfitCount
   .filter(item => item.type === "Ventes")
   .reduce((sum, item) => sum + (item.amount || 0), 0);
@@ -50,9 +56,24 @@ const totalInvoices = dashboardMetrics?.saleProfitCount
       title="Dashboard"
       description="Bienvenu sur le dashboard ici vous avez une vue d'ensemble de l'entreprise"
     >
+      <div className="flex space-x-4">
+          <input
+            type="date"
+            value={startDate || ""}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="border-5 p-1 rounded"
+          />
+          <input
+            type="date"
+            value={endDate || ""}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="border-5 p-2 rounded"
+          />
+        </div>
   <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
 
         <Suspense fallback={<LoadingBox />}>
+        
         <DashboardCard title="Produits">
           <>
           <div className="overflow-auto h-full">

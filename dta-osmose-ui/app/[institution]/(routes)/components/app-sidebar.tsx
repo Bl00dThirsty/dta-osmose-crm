@@ -98,7 +98,7 @@ const data = {
       icon: () => <Crown size={40} />,
       items: [
         { title: "Liste des comptes clients", path: "crm/customers" },
-        { title: "Facturation", path: "#" },
+        { title: "Facturation", path: "sales/all" },
       ],
     },
     {

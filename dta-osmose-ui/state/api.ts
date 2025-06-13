@@ -130,6 +130,7 @@ export interface SaleInvoice{
     email: string;
     type_customer?: string;
     ville?: string;
+    quarter?: string;
 
   }
    
@@ -165,6 +166,7 @@ export interface NewSaleInvoice{
     email: string;
     type_customer?: string;
     ville?: string;
+    quarter?: string;
   }
    
 }
@@ -251,8 +253,14 @@ export const api = createApi({
     reducerPath: "api",
     tagTypes: ["DashboardMetrics", "Products", "Users", "Designations", "Roles", "Customers", "Sales", "AppSettings"],
     endpoints: (build) => ({
-        getDashboardMetrics: build.query<DashboardMetrics, { institution: string }>({
-            query: ({ institution }) => `/dashboard/${institution}/`,
+        getDashboardMetrics: build.query<DashboardMetrics, { institution: string, startDate?: string; endDate?: string  }>({
+            query: ({ institution, startDate, endDate }) => {
+              const params = new URLSearchParams();
+              if (startDate) params.append("startDate", startDate);
+              if (endDate) params.append("endDate", endDate);
+          
+              return `/dashboard/${institution}?${params.toString()}`;
+            },
             providesTags: ["DashboardMetrics"]
         }),
         getProducts: build.query<Product[], { institution: string; search?: string }>({

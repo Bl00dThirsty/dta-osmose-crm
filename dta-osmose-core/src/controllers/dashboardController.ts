@@ -8,6 +8,7 @@ export const getDashboardMetrics = async (
     res: Response
   ): Promise<void> => {
     try {
+      const { startDate, endDate } = req.query;
       // Version optimisée dans dashboardController.ts
       const institutionSlug = req.params.institution;
       const institution = await prisma.institution.findUnique({
@@ -63,6 +64,10 @@ export const getDashboardMetrics = async (
         where: {
           delivred: true,
           institutionId: institution.id,
+          createdAt: {
+            gte: startDate ? new Date(startDate as string) : undefined,
+            lte: endDate ? new Date(endDate as string) : undefined,
+          },
         },
         _sum: {
           totalAmount: true,
