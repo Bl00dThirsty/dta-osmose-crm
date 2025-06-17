@@ -204,6 +204,33 @@ export interface NewCustomer {
   saleInvoice?: SaleInvoice[];
 }
 
+export interface ClaimResponse{
+  id: string;
+  claimId: string;
+  status: string;
+  description?: string
+}
+
+export interface Claim { 
+  id:string;
+  invoiceId: string;
+  productId: string;
+  quantity: number;
+  unitPrice: number;
+  totalAmount: number;
+  reason: string;
+  description?: string;
+  response: ClaimResponse;
+  invoice:{
+    id: string;
+    invoiceId: string;
+    designation: string;
+  }
+  product:{
+    id: string
+  }
+}
+
 export interface AppSetting{
   id: number;
   company_name: string;
@@ -251,7 +278,7 @@ export const api = createApi({
         return headers;
       }, }),
     reducerPath: "api",
-    tagTypes: ["DashboardMetrics", "Products", "Users", "Designations", "Roles", "Customers", "Sales", "AppSettings"],
+    tagTypes: ["DashboardMetrics", "Products", "Users", "Designations", "Roles", "Customers", "Sales", "AppSettings", "Claims"],
     endpoints: (build) => ({
         getDashboardMetrics: build.query<DashboardMetrics, { institution: string, startDate?: string; endDate?: string  }>({
             query: ({ institution, startDate, endDate }) => {
@@ -353,7 +380,35 @@ export const api = createApi({
         invalidatesTags: (result, error, id ) => [{ type: "Sales", id }, "Products"],
       }),
       
+       //claims
+       createClaim: build.mutation<Claim, { institution: string; invoiceId: string; productId: string; quantity: number; unitPrice: number; reason: string; description?: string }>({
+        query: ({ institution, ...data }) => ({
+          url: `/claim/${institution}/claims`,
+          method: "POST",
+          body: data,
+        }),
+        invalidatesTags: ["Sales", "Claims"],
+      }),
 
+      respondToClaim: build.mutation<ClaimResponse, { institution: string; claimId: string; status: string; description?: string }>({
+        query: ({ institution, claimId, ...data }) => ({
+          url: `/claim/${institution}/claims/${claimId}/response`,
+          method: "POST",
+          body: data,
+        }),
+        invalidatesTags: ["Claims"],
+      }),
+
+      getClaim: build.query<Claim[], { institution: string, startDate?: string; endDate?: string }>({
+        query: ({institution, startDate, endDate}) => {
+          const params = new URLSearchParams();
+          if (startDate) params.append("startDate", startDate);
+          if (endDate) params.append("endDate", endDate);
+      
+          return `/claim/${institution}/claims?${params.toString()}`;
+        },
+        providesTags: ['Claims']
+      }),
           getDepartments: build.query<{ id: number; name: string }[], void>({
             query: () => "/department",
           }),
@@ -479,7 +534,7 @@ export const api = createApi({
 });
 
 export const { useGetDashboardMetricsQuery, useGetProductsQuery, useCreateProductMutation, useGetProductByIdQuery, useCreateSaleMutation, useGetSalesQuery,
-    useGetSaleByIdQuery,useUpdateSaleStatusMutation, useUpdateSalePaymentMutation, useDeleteSaleInvoiceMutation, useGetDepartmentsQuery,
+    useGetSaleByIdQuery,useUpdateSaleStatusMutation, useUpdateSalePaymentMutation, useDeleteSaleInvoiceMutation, useCreateClaimMutation, useGetDepartmentsQuery,
     useGetDesignationsQuery, useCreateDesignationsMutation, useDeleteDesignationMutation,useGetRolesQuery, useCreateRolesMutation, 
     useDeleteRoleMutation, useGetUsersQuery, useGetUserByIdQuery, useDeleteUserMutation,  useGetCustomersQuery, useCreateCustomersMutation,
     useGetCustomerByIdQuery, useDeleteCustomerMutation, useGetSettingsQuery, useUpdateSettingsMutation} = api;

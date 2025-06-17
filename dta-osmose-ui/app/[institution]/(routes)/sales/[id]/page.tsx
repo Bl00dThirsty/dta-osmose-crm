@@ -151,6 +151,21 @@ const InvoicePage = () => {
               <PrintUserSheet sale={sale} />
           </div>
         </div>
+        <div className="grid grid-cols-2 gap-5 mb-8">
+          <div className="ml-2">
+              <button  
+                onClick={() => router.push(`/${institution}/sales/${sale.id}/claim`)}
+                className="px-4 py-2 rounded ml-8 text-white bg-blue-500 hover:bg-blue-200"
+              >
+               Réclamation
+             </button>
+          </div>
+          <div>
+            <button className="px-4 py-2 rounded ml-8 text-white bg-yellow-500 hover:bg-yellow-200">
+                Liste des Réclamations
+            </button>
+          </div>
+        </div>
 
         <div className="container mx-auto p-4 max-w-4xl border">
            <div className="bg-gray p-6 rounded-lg shadow text-white-500 print:shadow-none">

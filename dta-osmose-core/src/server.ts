@@ -18,7 +18,8 @@ import designationRoute from './routes/designationRoutes';
 import userRoutes from './routes/userRoutes';
 import customerRoutes from './routes/customerRoutes';
 import saleRoutes from './routes/saleRoutes';
-import settingRoutes from './routes/settingRoutes'
+import settingRoutes from './routes/settingRoutes';
+import claimRoutes from './routes/claimRoute'
 
 export const prisma = new PrismaClient();
 
@@ -51,7 +52,8 @@ app.use("/department", departmentRoutes);
 app.use("/designation", designationRoute);
 app.use("/user", userRoutes);
 app.use("/sale", saleRoutes);
-app.use("/setting", settingRoutes)
+app.use("/setting", settingRoutes);
+app.use("/claim", claimRoutes)
 
 // Error handling middleware
 app.use(errorHandler);

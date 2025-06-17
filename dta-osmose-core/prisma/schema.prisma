@@ -97,25 +97,37 @@ model claim {
   quantity        Int
   unitPrice       Float
   totalAmount     Float
-  type            String      // "non livré", "retour avarié", etc.
+  reason          String
   description     String?
-  responseStatus  String      @default("NON") // "OUI" ou "NON"
+  response        claimResponse?
   createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  institutionId   String
+  institution     institution @relation(fields: [institutionId], references: [id])
   invoice         saleInvoice @relation(fields: [invoiceId], references: [id])
   product         product     @relation(fields: [productId], references: [id])
-  response        claimResponse?
 }
 
 model claimResponse {
-  id          String   @id @default(uuid())
-  claimId     String   @unique
-  status      String   // "ACCEPTÉ" ou "REFUSÉ"
-  reason      String
-  createdAt   DateTime @default(now())
-
-  claim       claim    @relation(fields: [claimId], references: [id])
+  id              String      @id @default(uuid())
+  claimId         String      @unique
+  status          String      @default("PENDING") // ACCEPTED, REJECTED, PENDING
+  description     String?
+  createdAt       DateTime    @default(now())
+  claim           claim       @relation(fields: [claimId], references: [id])
 }
+
+model credit {
+  id              String      @id @default(uuid())
+  customerId      Int
+  amount          Float
+  usedAmount      Float       @default(0)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  customer        customer    @relation(fields: [customerId], references: [id])
+
+}
+
 
 model customer {
   id              Int         @id @default(autoincrement())
@@ -134,7 +146,9 @@ model customer {
   created_at      DateTime      @default(now())
   updated_at      DateTime?      @updatedAt
   saleInvoice     saleInvoice[]
-  //saleInvoice     saleInvoice[]
+  credits         credit[]
+
+  
 }
 
 /*model CustomerCounter {
@@ -181,6 +195,7 @@ model institution {
   products  product[]
   saleInvoice  saleInvoice[]
   appSetting   appSetting[]
+  claims    claim[]
 }
 
 model product {
@@ -205,6 +220,7 @@ model product {
   sku                          String?        @unique
   reorder_quantity             Int?
   saleItem                     saleItem[]
+  claims                       claim[]
 }
 
 model ProductCounter {
@@ -241,6 +257,7 @@ model saleInvoice {
   user            user        @relation(fields: [userId], references: [id])
   institution     institution @relation(fields: [institutionId], references: [id])
   items           saleItem[]
+  claims    claim[]
 }
 
 model saleItem {
