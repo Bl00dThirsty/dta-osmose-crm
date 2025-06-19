@@ -100,9 +100,13 @@ model claim {
   reason          String
   description     String?
   response        claimResponse?
+  userCreatorId   Int? // ID de l'utilisateur créateur
+  customerCreatorId  Int? // ID du client créateur
   createdAt       DateTime    @default(now())
   institutionId   String
   institution     institution @relation(fields: [institutionId], references: [id])
+  customer        customer    @relation(fields: [customerCreatorId], references: [id])
+  user            user        @relation(fields: [userCreatorId], references: [id])
   invoice         saleInvoice @relation(fields: [invoiceId], references: [id])
   product         product     @relation(fields: [productId], references: [id])
 }
@@ -147,6 +151,7 @@ model customer {
   updated_at      DateTime?      @updatedAt
   saleInvoice     saleInvoice[]
   credits         credit[]
+  claims    claim[]
 
   
 }
@@ -545,7 +550,7 @@ model user {
   saleInvoice        saleInvoice[]
   //salePromise        salePromise[]
   department         department?          @relation(fields: [departmentId], references: [id])
-   
+  claims    claim[]
 }
 
 

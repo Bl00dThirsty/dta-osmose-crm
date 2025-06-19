@@ -16,6 +16,7 @@ import {
   ArrowBigDownDash,
   Crown,
   User,
+  BookAIcon,
   ShoppingBag
 } from "lucide-react";
 
@@ -80,6 +81,15 @@ const data = {
       items: [
         { title: "Ventes", path: "sales" },
         { title: "Liste des ventes", path: "sales/all" },
+        
+      ],
+    },
+    {
+      title: "Réclamations",
+      path: "#",
+      icon: () => <BookAIcon size={40} />,
+      items: [
+        { title: "Liste des Réclamations", path: "claims/all" },
         
       ],
     },

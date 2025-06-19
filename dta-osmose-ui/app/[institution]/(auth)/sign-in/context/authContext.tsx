@@ -149,6 +149,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('user', userData.userName);
       localStorage.setItem('id', userData.id);
+      localStorage.setItem('role', userData.role);
+
   
       // Mise à jour du contexte utilisateur
       setUser(userData);

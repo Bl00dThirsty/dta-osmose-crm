@@ -98,7 +98,7 @@ const InvoicePage = () => {
             {/* <p className="text-gray-500">Date: {new Date(sale.createdAt ).toLocaleDateString()}</p> */}
         </div>
         
-        <div className="grid grid-cols-5 gap-5 mb-8">
+        <div className="grid grid-cols-5 gap-5 mb-8 place-items-center">
           <div className="ml-2">
             <button 
                onClick={handleMarkReady}
@@ -151,7 +151,7 @@ const InvoicePage = () => {
               <PrintUserSheet sale={sale} />
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-5 mb-8">
+        <div className="grid grid-cols-2 gap-5 mb-8 place-items-center">
           <div className="ml-2">
               <button  
                 onClick={() => router.push(`/${institution}/sales/${sale.id}/claim`)}
@@ -161,7 +161,9 @@ const InvoicePage = () => {
              </button>
           </div>
           <div>
-            <button className="px-4 py-2 rounded ml-8 text-white bg-yellow-500 hover:bg-yellow-200">
+            <button 
+              onClick={() => router.push(`/claims/all`)}
+              className="px-4 py-2 rounded ml-8 text-white bg-yellow-500 hover:bg-yellow-200">
                 Liste des Réclamations
             </button>
           </div>

@@ -87,10 +87,10 @@ const total = unitPrice * form.quantity;
       <select value={form.reason} onChange={e => setForm({...form, reason: e.target.value})}
         className="w-full border rounded-md p-2 mb-5">
         <option value="">Sélectionnez ...</option>
-        <option value="NON_LIVRE">Non livré</option>
-        <option value="AVARIE">Avarié</option>
-        <option value="PERIME">Périmé</option>
-        <option value="DEFECTUEUX">Défectueux</option>
+        <option value="NON_LIVRÉ">Non livré</option>
+        <option value="AVARIÉ">Avarié</option>
+        <option value="PÉRIMÉ">Périmé</option>
+        <option value="DÉFECTUEUX">Défectueux</option>
         <option value="AUTRES">Autres ... description</option>
       </select>
 

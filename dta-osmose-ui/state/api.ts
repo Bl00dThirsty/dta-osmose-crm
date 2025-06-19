@@ -221,11 +221,21 @@ export interface Claim {
   reason: string;
   description?: string;
   response: ClaimResponse;
-  invoice:{
+  createdAt:  Date;
+  invoice?: {
     id: string;
-    invoiceId: string;
-    designation: string;
-  }
+    invoiceNumber: string;
+    createdAt:  Date;
+    customer?: {
+      id: number;
+      customId: string;
+      name: string;
+      phone: string;
+      ville?: string;
+      quarter?: string;
+    };
+    items?: SaleItemInput[]; // ou un type plus précis si nécessaire
+  };
   product:{
     id: string
   }
@@ -409,6 +419,11 @@ export const api = createApi({
         },
         providesTags: ['Claims']
       }),
+
+      getClaimById: build.query<Claim, string>({
+        query: (id) => `/claim/${id}`,
+        providesTags: (result, error, id) => [{ type: 'Claims', id }]
+      }),
           getDepartments: build.query<{ id: number; name: string }[], void>({
             query: () => "/department",
           }),
@@ -534,7 +549,8 @@ export const api = createApi({
 });
 
 export const { useGetDashboardMetricsQuery, useGetProductsQuery, useCreateProductMutation, useGetProductByIdQuery, useCreateSaleMutation, useGetSalesQuery,
-    useGetSaleByIdQuery,useUpdateSaleStatusMutation, useUpdateSalePaymentMutation, useDeleteSaleInvoiceMutation, useCreateClaimMutation, useGetDepartmentsQuery,
+    useGetSaleByIdQuery,useUpdateSaleStatusMutation, useUpdateSalePaymentMutation, useDeleteSaleInvoiceMutation, useCreateClaimMutation, 
+    useRespondToClaimMutation, useGetClaimQuery, useGetClaimByIdQuery, useGetDepartmentsQuery,
     useGetDesignationsQuery, useCreateDesignationsMutation, useDeleteDesignationMutation,useGetRolesQuery, useCreateRolesMutation, 
     useDeleteRoleMutation, useGetUsersQuery, useGetUserByIdQuery, useDeleteUserMutation,  useGetCustomersQuery, useCreateCustomersMutation,
     useGetCustomerByIdQuery, useDeleteCustomerMutation, useGetSettingsQuery, useUpdateSettingsMutation} = api;

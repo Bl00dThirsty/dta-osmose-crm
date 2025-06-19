@@ -10,7 +10,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { columns } from "./columns"
 import { DataTable } from "./data-table"
-import { useGetSalesQuery } from '@/state/api';
+import { useGetClaimQuery } from '@/state/api';
 
 const SalesPage = () => {
   const router = useRouter();
@@ -28,7 +28,7 @@ const SalesPage = () => {
   const [startDate, setStartDate] = useState<string>(firstDayOfMonth.toISOString().split("T")[0]);
   const [endDate, setEndDate] = useState<string>(lastDayOfMonth.toISOString().split("T")[0]);
 
-const { data: sales, isLoading, isError } = useGetSalesQuery({ institution, startDate, endDate })
+const { data: claims, isLoading, isError } = useGetClaimQuery({ institution, startDate, endDate })
 
 if (isLoading) return <p>Chargement...</p>
 if (isError) return <p>Erreur lors du chargement.</p>
@@ -36,8 +36,8 @@ if (isError) return <p>Erreur lors du chargement.</p>
 
   return (
     <Container
-      title="Tableau des Ventes"
-      description="Ce composant affiche une vue d'ensemble des ventes effectuées."
+      title="Tableau des Réclamations"
+      description="Ce composant affiche une vue d'ensemble des demandes de retour en stock."
     >
     <div className="h-full w-full overflow-x-auto">
       <section className="overflow-hidden rounded-[0.5rem] border bg-background shadow-zinc-50">
@@ -62,7 +62,7 @@ if (isError) return <p>Erreur lors du chargement.</p>
         
       </div>
     </div>
-    <DataTable data={sales || []} columns={columns} />
+    <DataTable data={claims || []} columns={columns} />
   </div>
         </section>
       </div>

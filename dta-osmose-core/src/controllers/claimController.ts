@@ -124,7 +124,8 @@ export const createClaims = async (
                 include: {
                   product: true,
                 }
-              }
+              },
+              customer: true,
             }
           }
         },
@@ -133,6 +134,34 @@ export const createClaims = async (
       res.json(claims);
     } catch (error) {
       res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  export const getClaimsById = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const invoice = await prisma.claim.findUnique({
+        where: { id: req.params.id },
+        include: {
+          invoice: {
+            include: {
+              items: {
+                include: {
+                  product: true,
+                }
+              },
+              customer: true,
+            }
+          }
+        },
+      });
+  
+      if (!invoice) {
+        res.status(404).json({ error: 'Claim not found' });
+      }
+  
+      res.json(invoice);
+    } catch (error) {
+      res.status(500).json({ error: 'Claim server error' });
     }
   };
   
