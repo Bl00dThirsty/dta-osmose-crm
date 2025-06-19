@@ -214,7 +214,8 @@ export const getSaleInvoiceById = async (req: Request, res: Response): Promise<v
           include: {
             product: true
           }
-        }
+        },
+        claims: true
       }
     });
 
@@ -337,6 +338,13 @@ export const deleteSaleInvoice = async (req: Request, res: Response): Promise<vo
 
     // Supprimer d'abord les items 
     await prisma.saleItem.deleteMany({
+      where: {
+        invoiceId: id,
+      },
+    });
+
+    // Supprimer les reclamation qui y sont reliers
+    await prisma.claim.delete({
       where: {
         invoiceId: id,
       },

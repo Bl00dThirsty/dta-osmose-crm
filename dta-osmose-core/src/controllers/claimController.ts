@@ -48,49 +48,71 @@ export const createClaims = async (
 
   export const respondToClaim = async (req: Request, res: Response): Promise<void> => {
     try {
-      const institutionSlug = req.params.institution;
-      const institution = await prisma.institution.findUnique({
-            where: { slug: institutionSlug },
-      });
-      
-          if (!institution) {
-            res.status(404).json({ message: "Institution introuvable." });
-            return;
-          }
-      const { claimId } = req.params;
+      const { institution: institutionSlug, claimId } = req.params;
       const { status, description } = req.body;
-      const claim = await prisma.claim.findUnique({ 
-        where: { 
-            id: claimId 
-        }, 
-        include: { invoice: true } 
-      });
-      if (!claim) 
-        res.status(404).json({ message: "Réclamation non trouvée" });
   
-      const response = await prisma.claimResponse.create({ 
-        data: { claimId, status, description } 
+      // Vérifier que l'institution existe
+      const institution = await prisma.institution.findUnique({
+        where: { slug: institutionSlug }
+      });
+      if (!institution) {
+        res.status(404).json({ message: "Institution introuvable." });
+        return;
+      }
+  
+      // Vérifier que la réclamation existe
+      const claim = await prisma.claim.findUnique({
+        where: { id: claimId },
+        include: {
+          invoice: {
+            include: {
+              items: {
+                include: { product: true }
+              },
+              customer: true // Pour avoir accès au client concerné via la facture
+            }
+          },
+          product: true,
+          response: true 
+        }
       });
   
+      if (!claim) {
+        res.status(404).json({ message: "Réclamation introuvable." });
+        return;
+      }
+  
+      // Créer la réponse à la réclamation
+      const response = await prisma.claimResponse.create({
+        data: {
+          claimId,
+          status,
+          description
+        }
+      });
+  
+      // Si ACCEPTED → créer un crédit pour le client lié à la facture
       if (status === "ACCEPTED") {
-        await prisma.credit.upsert({
-          where: { 
-            customerId: claim.invoice.customerId 
-          },
-          update: { 
-            amount: { increment: claim.totalAmount } 
-          },
-          create: { 
-            customerId: claim.invoice.customerId, amount: claim.totalAmount, usedAmount: 0 
-          },
+        const customerId = claim.invoice.customerId;
+  
+        await prisma.credit.create({
+          data: {
+            customerId: customerId,
+            amount: claim.totalAmount,
+            usedAmount: 0
+          }
         });
       }
-      res.json(response);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: "Erreur lors de la réponse à la réclamation" });
+  
+      res.status(201).json(response);
+  
+    } catch (err) {
+      console.error("Erreur lors de la réponse à une réclamation :", err);
+      res.status(500).json({ message: "Erreur lors de l'enregistrement de la réponse." });
     }
   };
+  
+  
 
   export const getClaims = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -127,7 +149,9 @@ export const createClaims = async (
               },
               customer: true,
             }
-          }
+          },
+          product: true,
+          response: true 
         },
         orderBy: { createdAt: 'desc' }
       });
@@ -151,7 +175,9 @@ export const createClaims = async (
               },
               customer: true,
             }
-          }
+          },
+          product: true,
+          response: true
         },
       });
   
@@ -164,4 +190,33 @@ export const createClaims = async (
       res.status(500).json({ error: 'Claim server error' });
     }
   };
+
+  export const deleteSingleClaim = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+        const { id } = req.params; // Récupération de l'ID depuis les paramètres de la requête
+  
+        const existingClaim = await prisma.claim.findUnique({
+          where: { 
+            id 
+          }
+        });
+        // Vérifier si le user existe
+        if (!existingClaim) {
+          res.status(404).json({ message: "Claim non trouvé" });
+          return;
+        }
+        await prisma.claim.delete({
+            where: {
+              id
+            },
+        });
+           res.status(200).json({ message: "Claim deleted successfully" }); 
+    } catch (error) {
+      res.status(500).json({ message: "Claim deleted error" });
+    }
+  
+  }
   

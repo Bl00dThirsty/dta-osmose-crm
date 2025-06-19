@@ -47,7 +47,7 @@ const total = unitPrice * form.quantity;
       title="Création d'une réclamation"
       description=""
     >
-    <div className="max-w-4xl mx-auto p-4 bg-blue-800 rounded border">
+    <div className="max-w-4xl mx-auto p-4 bg-white-800 rounded border">
       <h3 className="text-xl mb-4 text-center">Créer une réclamation</h3>
       <Label className='mb-2'>Désignation Produits</Label>
       <select value={form.productId} onChange={e => setForm({...form, productId: e.target.value})} className="w-full border rounded-md p-2 mb-5">

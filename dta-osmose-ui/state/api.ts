@@ -133,6 +133,7 @@ export interface SaleInvoice{
     quarter?: string;
 
   }
+  claims?: Claim[];
    
 }
 
@@ -168,6 +169,7 @@ export interface NewSaleInvoice{
     ville?: string;
     quarter?: string;
   }
+  claims?: Claim[];
    
 }
 
@@ -220,7 +222,7 @@ export interface Claim {
   totalAmount: number;
   reason: string;
   description?: string;
-  response: ClaimResponse;
+  response?: ClaimResponse;
   createdAt:  Date;
   invoice?: {
     id: string;
@@ -400,15 +402,20 @@ export const api = createApi({
         invalidatesTags: ["Sales", "Claims"],
       }),
 
-      respondToClaim: build.mutation<ClaimResponse, { institution: string; claimId: string; status: string; description?: string }>({
+      respondToClaim: build.mutation<ClaimResponse, {
+        institution: string;
+        claimId: string;
+        status: 'ACCEPTED' | 'REJECTED';
+        description?: string;
+      }>({
         query: ({ institution, claimId, ...data }) => ({
           url: `/claim/${institution}/claims/${claimId}/response`,
           method: "POST",
           body: data,
         }),
-        invalidatesTags: ["Claims"],
+        invalidatesTags: (result, error, { claimId }) => [{ type: 'Claims', id: claimId }],
       }),
-
+      
       getClaim: build.query<Claim[], { institution: string, startDate?: string; endDate?: string }>({
         query: ({institution, startDate, endDate}) => {
           const params = new URLSearchParams();
@@ -423,6 +430,14 @@ export const api = createApi({
       getClaimById: build.query<Claim, string>({
         query: (id) => `/claim/${id}`,
         providesTags: (result, error, id) => [{ type: 'Claims', id }]
+      }),
+
+      deleteClaim: build.mutation<void, string>({
+        query: (id) => ({
+          url: `/claim/${id}`, 
+          method: "DELETE",
+        }),
+        invalidatesTags: (result, error, id ) => [{ type: "Claims", id }],
       }),
           getDepartments: build.query<{ id: number; name: string }[], void>({
             query: () => "/department",
@@ -550,7 +565,7 @@ export const api = createApi({
 
 export const { useGetDashboardMetricsQuery, useGetProductsQuery, useCreateProductMutation, useGetProductByIdQuery, useCreateSaleMutation, useGetSalesQuery,
     useGetSaleByIdQuery,useUpdateSaleStatusMutation, useUpdateSalePaymentMutation, useDeleteSaleInvoiceMutation, useCreateClaimMutation, 
-    useRespondToClaimMutation, useGetClaimQuery, useGetClaimByIdQuery, useGetDepartmentsQuery,
+    useRespondToClaimMutation, useGetClaimQuery, useGetClaimByIdQuery, useDeleteClaimMutation, useGetDepartmentsQuery,
     useGetDesignationsQuery, useCreateDesignationsMutation, useDeleteDesignationMutation,useGetRolesQuery, useCreateRolesMutation, 
     useDeleteRoleMutation, useGetUsersQuery, useGetUserByIdQuery, useDeleteUserMutation,  useGetCustomersQuery, useCreateCustomersMutation,
     useGetCustomerByIdQuery, useDeleteCustomerMutation, useGetSettingsQuery, useUpdateSettingsMutation} = api;

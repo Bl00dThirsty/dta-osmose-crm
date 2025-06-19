@@ -23,6 +23,10 @@ import {
   DialogCancel,
   DialogAction,
 } from "@/components/ui/dialog"
+import {
+  ArrowLeft,
+  
+} from "lucide-react";
 
 
 const InvoicePage = () => {
@@ -82,6 +86,9 @@ const InvoicePage = () => {
       toast.error("Erreur lors de la confirmation de livraison.");
     }
   };
+  const handleGoBack = () => {
+    router.back();
+  };
   
   const [rellvalue, setRellvalue] = useState(0);
  
@@ -90,6 +97,15 @@ const InvoicePage = () => {
 
   return (
     <>
+    <div className="mb-3 ml-4 pt-4">
+        <button
+          onClick={handleGoBack}
+          className="flex items-center gap-2 text-white-600 hover:bg-blue-500 transition-colors bg-blue-800 px-2 py-1 rounded"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span>Retour</span>
+        </button>
+      </div>
     <div className="h-full w-full overflow-x-auto">
       <section className="overflow-hidden rounded-[0.5rem] border bg-background shadow-zinc-50">
         <div className="flex justify-center mb-8">
@@ -162,7 +178,7 @@ const InvoicePage = () => {
           </div>
           <div>
             <button 
-              onClick={() => router.push(`/claims/all`)}
+              onClick={() => router.push(`/${institution}/sales/${sale.id}/claim/all`)}
               className="px-4 py-2 rounded ml-8 text-white bg-yellow-500 hover:bg-yellow-200">
                 Liste des Réclamations
             </button>
