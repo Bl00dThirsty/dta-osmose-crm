@@ -72,7 +72,11 @@ const data = {
       title: "Stock de produits",
       path: "#",
       icon: () => <TrendingUp size={40} />,
-      items: [{ title: "Tableau de rotation", path: "#" }],
+      items: [
+        { title: "Tableau de rotation", path: "#" },
+        { title: "Tableau des Pertes", path: "/perte" }
+      ],
+      
     },
     {
       title: "Ventes",

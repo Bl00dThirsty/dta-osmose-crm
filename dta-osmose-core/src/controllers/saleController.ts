@@ -310,13 +310,32 @@ export const updateSaleStatus = async (req: Request, res: Response): Promise<voi
 export const updatePayment = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const { paymentMethod, paidAmount, discount = 0 } = req.body;
+    const { paymentMethod, items, paidAmount, discount = 0 } = req.body;
+    
 
     const invoice = await prisma.saleInvoice.findUnique({ where: { id } });
     if (!invoice) {
       res.status(404).json({ error: 'Invoice not found' });
       return;
     }
+
+    const allProduct = await Promise.all(
+      items.map(async (item:any) => {
+        const product1 = await prisma.product.findUnique({
+          where: {
+            id: invoice.item.productId
+          },
+        });
+        return product1;
+      })
+    );
+
+    // Calcul du total purchase price
+    let totalPurchasePrice = 0;
+    items.forEach((item:any, index:any) => {
+      totalPurchasePrice +=
+        allProduct[index].purchase_price * item.quantity;
+    });
     const totalDiscount = (invoice.discount ?? 0) + discount;
     const totalPaid = (invoice.paidAmount ?? 0) + paidAmount;
     const newFinalAmount = (invoice.totalAmount ?? 0) - totalDiscount;
@@ -325,6 +344,7 @@ export const updatePayment = async (req: Request, res: Response): Promise<void> 
     let newStatus = invoice.paymentStatus;
     if (remainingAmount === 0) newStatus = 'PAID';
     else if (totalPaid > 0) newStatus = 'PARTIAL';
+    const profit = totalPaid - totalPurchasePrice
 
     const updatedInvoice = await prisma.saleInvoice.update({
       where: { id },
@@ -334,7 +354,8 @@ export const updatePayment = async (req: Request, res: Response): Promise<void> 
         discount: totalDiscount,
         finalAmount: newFinalAmount,
         paidAmount: totalPaid,
-        dueAmount: remainingAmount, // bien mis à jour ici
+        dueAmount: remainingAmount,
+        profit: profit, // bien mis à jour ici
       },
     });
 

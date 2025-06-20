@@ -65,7 +65,7 @@ export const getDashboardMetrics = async (
         by: ["createdAt"],
         where: {
           delivred: true,
-          //paymentStatus: newStatus,
+          paymentStatus: newStatus,
           institutionId: institution.id,
           createdAt: {
             gte: startDate ? new Date(startDate as string) : undefined,
@@ -73,20 +73,17 @@ export const getDashboardMetrics = async (
           },
         },
         _sum: {
-          totalAmount: true,
+          paidAmount: true,
           finalAmount: true,
           profit: true
         },
-        _count: {
-          id: true
-        }
       });
 
       const formattedData1 = allSaleInvoice.map((item:any) => {
         return {
           type: "Ventes",
           date: item.createdAt.toISOString().split("T")[0],
-          amount: item._sum.finalAmount
+          amount: item._sum.paidAmount
         };
       });
       const formattedData2 = allSaleInvoice.map((item:any) => {
@@ -96,17 +93,44 @@ export const getDashboardMetrics = async (
           amount: item._sum.profit
         };
       });
-      const formattedData3 = allSaleInvoice.map((item:any) => {
+      // const formattedData3 = allSaleInvoice.map((item:any) => {
+      //   return {
+      //     type: "nombre de facture",
+      //     date: item.createdAt.toISOString().split("T")[0],
+      //     amount: item._count.id
+      //   };
+      // });
+
+      const saleProfitCount = formattedData1
+      .concat(formattedData2);
+
+      //Total des SaleInvoice
+      const TotalSaleInvoice = await prisma.saleInvoice.groupBy({
+        orderBy: {
+          createdAt: "asc"
+        },
+        by: ["createdAt"],
+        where: {
+          delivred: true,
+          //paymentStatus: newStatus,
+          institutionId: institution.id,
+          createdAt: {
+            gte: startDate ? new Date(startDate as string) : undefined,
+            lte: endDate ? new Date(endDate as string) : undefined,
+          },
+        },
+        _count: {
+          id: true
+        }
+      });
+
+      const formattedData3 = TotalSaleInvoice.map((item:any) => {
         return {
           type: "nombre de facture",
           date: item.createdAt.toISOString().split("T")[0],
           amount: item._count.id
         };
       });
-
-      const saleProfitCount = formattedData1
-      .concat(formattedData2)
-      .concat(formattedData3);
 
       //Total des utilisateurs enregistrers
       const totalUsers = await prisma.user.count();
@@ -135,6 +159,7 @@ export const getDashboardMetrics = async (
             popularProducts,
             salesByCity: chartData,
             saleProfitCount,
+            formattedData3,
             totalUsers,
             totalAvailableCredit
       });

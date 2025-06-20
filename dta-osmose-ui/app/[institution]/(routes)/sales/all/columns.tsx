@@ -68,7 +68,7 @@ export const columns: ColumnDef<SaleInvoice>[] = [
   
   //{new Date(sale.createdAt).toLocaleDateString()}
   {
-    accessorKey: "customer.name",
+    id: "customer.name",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Client" />
     ),

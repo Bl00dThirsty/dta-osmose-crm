@@ -3,7 +3,7 @@
 "use client"
 
 import React from "react";
-import Container from "../../components/ui/Container";
+import Container from "../components/ui/Container";
 import { useParams } from "next/navigation"
 import { redirect } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -12,7 +12,7 @@ import { columns } from "./columns"
 import { DataTable } from "./data-table"
 import { useGetClaimQuery } from '@/state/api';
 
-const ClaimsPage = () => {
+const LostsPage = () => {
   const router = useRouter();
   const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
   const { institution } = useParams() as { institution: string }
@@ -36,8 +36,8 @@ if (isError) return <p>Erreur lors du chargement.</p>
 
   return (
     <Container
-      title="Tableau des Réclamations"
-      description="Ce composant affiche une vue d'ensemble des demandes de retour en stock."
+      title="Tableau des Pertes Après les réclamations"
+      description=""
     >
     <div className="h-full w-full overflow-x-auto">
       <section className="overflow-hidden rounded-[0.5rem] border bg-background shadow-zinc-50">
@@ -70,4 +70,4 @@ if (isError) return <p>Erreur lors du chargement.</p>
   );
 };
 
-export default ClaimsPage;
+export default LostsPage;

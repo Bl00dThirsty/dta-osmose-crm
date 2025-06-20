@@ -46,7 +46,7 @@ const totalProfits = dashboardMetrics?.saleProfitCount
   .filter(item => item.type === "Profits")
   .reduce((sum, item) => sum + (item.amount || 0), 0);
 
-const totalInvoices = dashboardMetrics?.saleProfitCount
+const totalInvoices = dashboardMetrics?.formattedData3
   .filter(item => item.type === "nombre de facture")
   .reduce((sum, item) => sum + (item.amount || 0), 0);
   

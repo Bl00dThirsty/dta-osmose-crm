@@ -294,6 +294,11 @@ export interface DashboardMetrics {
       amount: number;
       usedAmount: number
     }>
+    formattedData3: Array<{
+      type: string; // "Ventes" | "Profits" | "nombre de facture"
+      date: string;
+      amount: number;
+    }>;
     
 }
 

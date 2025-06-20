@@ -2,14 +2,12 @@
 
 import { Row } from "@tanstack/react-table"
 import { MoreHorizontal } from "lucide-react"
-import { useDeleteRoleMutation, useDeleteSaleInvoiceMutation } from "@/state/api"
 import { Button } from "@/components/ui/button"
 import { useRouter } from 'next/navigation';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
@@ -26,8 +24,7 @@ export function DataTableRowActions<TData>({
   const router = useRouter();
   const claimId = (row.original as any).id;
   const delivred = (row.original as any).delivred === true
-  console.log("claimId :", claimId)
-
+  console.log("saleId :", claimId)
   const { institution } = useParams() as { institution: string }
   
 
