@@ -44,9 +44,9 @@ export default function DetailUserPage() {
     
     <Card className="max-w-4xl mx-auto mt-6 shadow-lg">
       <div className="mb-4 ml-4 pt-4">
-        <button
+      <button
           onClick={handleGoBack}
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
+          className="flex items-center gap-2 text-white-600 hover:bg-blue-500 transition-colors bg-blue-800 px-2 py-1 rounded"
         >
           <ArrowLeft className="w-5 h-5" />
           <span>Retour</span>
@@ -69,8 +69,8 @@ export default function DetailUserPage() {
             <div className="bg-gray-50 p-4 rounded-lg">
               <h3 className="text-lg font-medium text-gray-700 mb-3 pb-2 border-b">Informations personnelles</h3>
               <div className="space-y-3">
-                <InfoItem label="Email" value={user.email} />
-                <InfoItem label="Téléphone" value={user.phone} />
+                <InfoItem label="📩 Email" value={user.email} />
+                <InfoItem label="📞 Téléphone" value={user.phone} />
                 <InfoItem label="Sexe" value={user.gender} />
                 <InfoItem label="Date de naissance" value={user.birthday} />
               </div>
@@ -80,7 +80,7 @@ export default function DetailUserPage() {
               <h3 className="text-lg font-medium text-gray-700 mb-3 pb-2 border-b">Poste</h3>
               <div className="space-y-3">
                 <InfoItem label="Poste" value={user.designation?.name} />
-                <InfoItem label="Département" value={user.department?.name} />
+                <InfoItem label="📊 Département" value={user.department?.name} />
                 <InfoItem label="Matricule" value={user.employeeId} />
                 <InfoItem label="CNPS" value={user.CnpsId} />
               </div>
@@ -90,7 +90,7 @@ export default function DetailUserPage() {
           {/* Colonne de droite */}
           <div className="space-y-4">
             <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium text-gray-700 mb-3 pb-2 border-b">Adresse</h3>
+              <h3 className="text-lg font-medium text-gray-700 mb-3 pb-2 border-b">📫 Adresse</h3>
               <div className="space-y-3">
                 <InfoItem 
                   label="Adresse complète" 
@@ -100,7 +100,7 @@ export default function DetailUserPage() {
             </div>
             
             <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium text-gray-700 mb-3 pb-2 border-b">Contacts d'urgence</h3>
+              <h3 className="text-lg font-medium text-gray-700 mb-3 pb-2 border-b">☎ Contacts d'urgence</h3>
               <div className="space-y-3">
                 <InfoItem 
                   label={user.emergencyname1 || "Contact 1"} 

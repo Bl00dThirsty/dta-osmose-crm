@@ -80,7 +80,7 @@ export function DataTableRowActions<TData>({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[160px]">
         <DropdownMenuItem onClick={() => router.push(`/${institution}/sales/${saleId}`)}>
-          Voir✅
+          Voir👀
         </DropdownMenuItem>
         <DropdownMenuItem
             onSelect={(e) => {

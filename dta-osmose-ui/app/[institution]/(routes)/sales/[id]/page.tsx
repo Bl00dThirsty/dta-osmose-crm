@@ -89,8 +89,10 @@ const InvoicePage = () => {
   const handleGoBack = () => {
     router.back();
   };
-  
-  const [rellvalue, setRellvalue] = useState(0);
+  const totalAvailableCredit = sale?.customer?.credits?.reduce(
+    (sum, credits) => sum + (credits.amount - credits.usedAmount),
+    0
+  ) ?? 0;
  
   if (isLoading) return <div>Chargement...</div>;
   if (!sale) return <div>Facture non trouvée</div>;
@@ -113,6 +115,36 @@ const InvoicePage = () => {
             <h1 className="text-2xl">Commande N°: <b>{sale.invoiceNumber}</b></h1>
             {/* <p className="text-gray-500">Date: {new Date(sale.createdAt ).toLocaleDateString()}</p> */}
         </div>
+        {totalAvailableCredit > 0 && (
+  <div className="relative mb-8 mx-auto w-fit animate-fade-in">
+    {/* Bulle de dialogue */}
+    <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 shadow-lg relative max-w-md">
+      <div className="absolute -top-3 left-6 w-6 h-6 bg-blue-50 border-t-2 border-l-2 border-blue-200 transform rotate-45"></div>
+      
+      <div className="flex items-start">
+        <div className="flex-shrink-0 mr-3">
+          <div className="bg-blue-100 p-2 rounded-full">
+            <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+        </div>
+        <div>
+          <h3 className="font-bold text-blue-800">Avoir disponible</h3>
+          <p className="text-gray-700">
+            <span className="font-semibold">{sale.customer.name}</span> possède un avoir de 
+            <span className="font-bold text-blue-600"> {totalAvailableCredit} FCFA</span>.
+            <br />
+            Le montant sera automatiquement déduit de ses futures commandes.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    {/* Petite ombre portée pour le réalisme */}
+    <div className="absolute -bottom-1 left-1/4 w-1/2 h-2 bg-blue-100 blur-sm opacity-70"></div>
+  </div>
+)}
         
         <div className="grid grid-cols-5 gap-5 mb-8 place-items-center">
           <div className="ml-2">
@@ -121,6 +153,7 @@ const InvoicePage = () => {
                className={`px-4 py-2 rounded text-white print:hidden ${
                  sale.ready ? 'bg-green-500 hover:bg-gray-400' : 'bg-green-600 hover:bg-green-500'
                }`}
+               disabled={sale?.ready}
             >
                {sale.ready ? "Déjà prête" : "Marquer comme prête"}
             </button>
@@ -196,7 +229,8 @@ const InvoicePage = () => {
               <p className="mb-2">Type de client: <b>{sale.customer.type_customer}</b></p>
               <p className="mb-2">Montant Total: <b>{sale.totalAmount} Fcfa</b></p>
               <p className="mb-2">Montant à payer: <b>{sale.dueAmount} Fcfa</b></p>
-              <p>Montant payé: <b>{sale.paidAmount} Fcfa</b></p>
+              <p className="mb-2">Montant payé: <b>{sale.paidAmount} Fcfa</b></p>
+              <p>Paiement: <button className={` px-1 py-1 rounded text-white ${sale.paymentStatus === 'PAID' ? 'bg-green-500' : 'bg-red-500'}`}>{sale.paymentStatus === 'PAID' ? "PAYÉ" : "IMPAYÉ"}</button></p>
           </div>
           <div>
             {/* <h2 className="font-bold mb-2">Client</h2> */}

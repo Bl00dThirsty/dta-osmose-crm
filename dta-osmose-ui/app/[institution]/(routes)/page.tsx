@@ -123,7 +123,7 @@ const totalInvoices = dashboardMetrics?.saleProfitCount
           </DashboardCard>
         </Suspense>
 
-        <DashboardCard title="Nombre de ventes">
+        <DashboardCard href={`/${institution}/sales/all`} title="Nombre de ventes">
   <div className="px-7 mt-5">
     <p className="text-xs text-gray-400">Factures générées</p>
     <span className="text-2xl font-extrabold text-yellow-600">
@@ -132,7 +132,7 @@ const totalInvoices = dashboardMetrics?.saleProfitCount
   </div>
 </DashboardCard>
 
-<DashboardCard title="Total des ventes">
+<DashboardCard href={`/${institution}/sales/all`} title="Total des ventes">
   <div className="px-7 mt-5">
     <p className="text-xs text-gray-400">Montant total</p>
     <span className="text-2xl font-extrabold text-blue-600">
@@ -141,12 +141,17 @@ const totalInvoices = dashboardMetrics?.saleProfitCount
   </div>
 </DashboardCard>
 
-        <DashboardCard href="/admin/users" title="Utilisateurs actifs">
-        <div className="text-2xl font-medium"></div>
+        <DashboardCard href={`/${institution}/claims/all`} title="Les Avoirs">
+        <div className="px-7 mt-5">
+          <p className="text-xs text-gray-400">Total des avoirs</p>
+          <span className="text-2xl font-extrabold text-blue-600">
+            {dashboardMetrics?.totalAvailableCredit?.toLocaleString() ?? "0"} 
+          </span>
+        </div>
         </DashboardCard>
         
         <DashboardCard
-          href="/${institution}/user/all"
+          href={`/${institution}/user/all`}
           title="Employés"
         >
           {/* {dashboardMetrics?.popularUsers.map((user) => ( */}

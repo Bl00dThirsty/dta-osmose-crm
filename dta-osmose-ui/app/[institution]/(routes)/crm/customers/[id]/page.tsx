@@ -32,6 +32,10 @@ export default function DetailCustomerPage() {
   const handleGoBack = () => {
     router.back();
   };
+  const totalAvailableCredit = customer?.credits?.reduce(
+    (sum, credits) => sum + (credits.amount - credits.usedAmount),
+    0
+  );
 
   if (isLoading) return <p>Chargement...</p>;
   if (error || !customer) return <p>Utilisateur introuvable.</p>;
@@ -42,7 +46,7 @@ export default function DetailCustomerPage() {
       <div className="mb-4 ml-4">
         <button
           onClick={handleGoBack}
-          className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-800 transition"
         >
           ← Retour
         </button>
@@ -51,16 +55,23 @@ export default function DetailCustomerPage() {
         <CardTitle className="text-2xl text-center">{customer.name}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-5 mt-5">
-        <p><strong>ID client :</strong> {customer.customId}</p>
-        <p><strong>Email :</strong> {customer.email}</p>
-        <p><strong>Téléphone :</strong> {customer.phone}</p>
-        <p><strong>Nom du responsable :</strong> {customer.nameresponsable}</p>
-        <p><strong>Adresse :</strong> {customer.quarter}</p>
-        <p><strong>Role :</strong> {customer.role}</p>
-        <p><strong>Region :</strong> {customer.region}</p>
-        <p><strong>Ville :</strong> {customer.ville}</p>
-        <p><strong>Type de client :</strong> {customer.type_customer}</p>
+      <div className="grid grid-cols-2 gap-8 mb-8">
+        <div>
+        <p className="mb-2"><strong>ID client :</strong> {customer.customId}</p>
+        <p className="mb-2"><strong>Email :</strong> {customer.email}</p>
+        <p className="mb-2"><strong>Téléphone :</strong> {customer.phone}</p>
+        <p className="mb-2"><strong>Nom du responsable :</strong> {customer.nameresponsable}</p>
+        <p className="mb-2"><strong>Adresse :</strong> {customer.quarter}</p>
+        <p><strong>Vos avoirs :</strong> {totalAvailableCredit?.toFixed(2) || 0} FCFA</p>
+        </div>
+        <div>
+        <p className="mb-2"><strong>Role :</strong> {customer.role}</p>
+        <p className="mb-2"><strong>Région :</strong> {customer.region}</p>
+        <p className="mb-2"><strong>Ville :</strong> {customer.ville}</p>
+        <p className="mb-2"><strong>Type de client :</strong> {customer.type_customer}</p>
         <p><strong>Site web :</strong> {customer.website}</p>
+        </div>
+      </div>
       </CardContent>
     </Card>
       <Card className="max-w-6xl mx-auto shadow">

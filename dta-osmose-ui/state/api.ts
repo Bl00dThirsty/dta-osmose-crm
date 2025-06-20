@@ -131,6 +131,7 @@ export interface SaleInvoice{
     type_customer?: string;
     ville?: string;
     quarter?: string;
+    credits?: Credit[];
 
   }
   claims?: Claim[];
@@ -168,9 +169,19 @@ export interface NewSaleInvoice{
     type_customer?: string;
     ville?: string;
     quarter?: string;
+    credits?: Credit[];
   }
   claims?: Claim[];
    
+}
+
+export interface Credit{
+  id   : string;     
+  customerId: number;
+  amount: number; 
+  usedAmount:  number;           
+  createdAt :  Date;    
+
 }
 
 export interface Customer { 
@@ -188,6 +199,7 @@ export interface Customer {
   quarter?: string;
   region?: string; 
   saleInvoice?: SaleInvoice[];
+  credits?: Credit[];
 }
 
 export interface NewCustomer {
@@ -204,6 +216,7 @@ export interface NewCustomer {
   quarter?: string;
   region?: string; 
   saleInvoice?: SaleInvoice[];
+  credits?: Credit[];
 }
 
 export interface ClaimResponse{
@@ -239,7 +252,8 @@ export interface Claim {
     items?: SaleItemInput[]; // ou un type plus précis si nécessaire
   };
   product:{
-    id: string
+    id: string;
+    designation: string;
   }
 }
 
@@ -276,6 +290,10 @@ export interface DashboardMetrics {
       amount: number;
     }>;
     totalUsers: User[];
+    totalAvailableCredit: Array<{
+      amount: number;
+      usedAmount: number
+    }>
     
 }
 

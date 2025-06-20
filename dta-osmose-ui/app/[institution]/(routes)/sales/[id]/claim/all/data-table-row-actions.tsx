@@ -49,7 +49,7 @@ export function DataTableRowActions<TData>({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[160px]">
         <DropdownMenuItem onClick={() => router.push(`/${institution}/claims/${saleId}`)}>
-          Voir✅
+          Voir👀
         </DropdownMenuItem>
         
         {/* <DropdownMenuSeparator /> */}

@@ -51,6 +51,16 @@ export const createSaleInvoice = async (req: Request, res: Response): Promise<vo
         return;
       }
 
+      const credit = await prisma.credit.findFirst({
+        where: {
+          customerId,
+          amount: { gt: 0 },
+          usedAmount: { lt: prisma.credit.fields.amount },
+        },
+        orderBy: { createdAt: 'asc' }, // on utilise le crédit le plus ancien
+      });
+      
+
     // Calcul des totaux
     //const subtotal = items.reduce((sum:any, item:any) => sum + (item.quantity * item.unitPrice), 0);
     //const finalAmount = subtotal - (discount || 0);
@@ -121,25 +131,58 @@ export const createSaleInvoice = async (req: Request, res: Response): Promise<vo
       }
     });
 
+    const totalSansRemise = invoice.totalAmount;
+    const montantAvecRemise = totalSansRemise - (invoice.discount || 0);
+    let montantApresCredit = montantAvecRemise;
+    let creditUtilise = 0;
+
+    if (credit) {
+      const disponible = credit.amount - credit.usedAmount;
+      creditUtilise = Math.min(disponible, montantAvecRemise);
+      montantApresCredit = montantAvecRemise - creditUtilise;
+
+      await prisma.credit.update({
+        where: { id: credit.id },
+        data: {
+          usedAmount: {
+          increment: creditUtilise
+          }
+        }
+      });
+    }
+
 
     // Mise à jour finale
     const updatedInvoice = await prisma.saleInvoice.update({
-        where: { id: invoice.id },
-        data: {
-          finalAmount: invoice.totalAmount - (invoice.discount || 0),
-          profit: (invoice.totalAmount - (invoice.discount || 0)) - totalPurchasePrice,
-          dueAmount: (invoice.totalAmount - (invoice.discount || 0)) - (paidAmount || 0)
-        },
-        include: {
-          items: {
-            include: {
-              product: true
-            }
-          },
-          customer: true,
-          user: true
-        }
-      });
+      where: { id: invoice.id },
+      data: {
+        finalAmount: montantAvecRemise,
+        profit: montantAvecRemise - totalPurchasePrice,
+        dueAmount: montantApresCredit - (paidAmount || 0),
+        paidAmount,
+      },
+      include: {
+        items: { include: { product: true } },
+        customer: true,
+        user: true
+      }
+    });
+
+    // Vérifier si la commande est intégralement couverte (par crédit et/ou paiement)
+     let paymentStatus: 'PAID' | 'PENDING' | 'PARTIAL' = 'PENDING';
+
+     if (montantApresCredit - (paidAmount || 0) <= 0) {
+        paymentStatus = 'PAID';
+     } else if ((paidAmount || 0) > 0) {
+        paymentStatus = 'PARTIAL';
+     }
+
+    // Mise à jour du statut de paiement
+     await prisma.saleInvoice.update({
+       where: { id: invoice.id },
+       data: { paymentStatus }
+     });
+
 
     // Mise à jour des stocks
     await Promise.all(items.map((item) => 
@@ -208,7 +251,11 @@ export const getSaleInvoiceById = async (req: Request, res: Response): Promise<v
     const invoice = await prisma.saleInvoice.findUnique({
       where: { id: req.params.id },
       include: {
-        customer: true,
+        customer: {
+          include: {
+            credits: true
+          }
+        },
         user: true,
         items: {
           include: {

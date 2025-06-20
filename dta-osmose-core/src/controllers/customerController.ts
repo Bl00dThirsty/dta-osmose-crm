@@ -95,6 +95,7 @@ export const getSingleCustomer = async (
             createdAt: "desc", 
           },
         },
+        credits: true
       },
     });
 

@@ -14,6 +14,7 @@ export const getDashboardMetrics = async (
       const institution = await prisma.institution.findUnique({
         where: { slug: institutionSlug },
       });
+      //graphe vente par villes
       const sales = await prisma.saleInvoice.findMany({
         where: {
           customer: {
@@ -55,7 +56,8 @@ export const getDashboardMetrics = async (
               quantity: "desc",
             },
       });
-
+      //Total vente, montant total, total profit
+      let newStatus = 'PAID';
       const allSaleInvoice = await prisma.saleInvoice.groupBy({
         orderBy: {
           createdAt: "asc"
@@ -63,6 +65,7 @@ export const getDashboardMetrics = async (
         by: ["createdAt"],
         where: {
           delivred: true,
+          //paymentStatus: newStatus,
           institutionId: institution.id,
           createdAt: {
             gte: startDate ? new Date(startDate as string) : undefined,
@@ -105,13 +108,35 @@ export const getDashboardMetrics = async (
       .concat(formattedData2)
       .concat(formattedData3);
 
+      //Total des utilisateurs enregistrers
       const totalUsers = await prisma.user.count();
+
+      //total des credit
+      const totalCredits = await prisma.credit.aggregate({
+        where: {
+          customer: {
+            saleInvoice: {
+              some: {
+                institutionId: institution.id
+              }
+            }
+          }
+        },
+        _sum: {
+          amount: true,
+          usedAmount: true
+        }
+      });
+      
+      const totalAvailableCredit = (totalCredits._sum.amount || 0) - (totalCredits._sum.usedAmount || 0);
+      
           
       res.json({
             popularProducts,
             salesByCity: chartData,
             saleProfitCount,
-            totalUsers
+            totalUsers,
+            totalAvailableCredit
       });
     } catch (error) {
       console.error('Dashboard error:', error);

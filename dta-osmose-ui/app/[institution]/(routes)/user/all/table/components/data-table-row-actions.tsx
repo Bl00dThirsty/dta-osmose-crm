@@ -72,13 +72,13 @@ export function DataTableRowActions<TData>({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[160px]">
       <DropdownMenuItem onClick={() => router.push(`/${institution}/user/${userId}`)}>
-          Voir
+          Voir👀
         </DropdownMenuItem>
       
         <DropdownMenuItem>Modifier</DropdownMenuItem>
         
             <DropdownMenuItem onSelect={() => setOpen(true)} className="text-red-600">
-              Supprimer
+              Supprimer🗑
             </DropdownMenuItem>
           
         <DropdownMenuSeparator />

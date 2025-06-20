@@ -45,7 +45,7 @@ export const columns: ColumnDef<Claim>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="N°" />
     ),
-    cell: ({ row }) => <div className="w-[120px] truncate whitespace-nowrap overflow-hidden text-ellipsis">{row.getValue("id")}</div>,
+    cell: ({ row }) => <div className="w-[180px]">{row.getValue("id")}</div>,
   },
   {
     accessorKey: "createdAt",
