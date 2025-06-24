@@ -71,8 +71,8 @@ export const columns: ColumnDef<Claim>[] = [
     ),
     cell: ({ row }) => <div className="w-[80px]">{row.getValue("totalAmount")} FCFA</div>,
   },
-
  
+
   {
     id: "actions",
     header: ({ column }) => (

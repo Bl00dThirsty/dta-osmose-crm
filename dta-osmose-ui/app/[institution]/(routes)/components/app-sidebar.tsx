@@ -74,7 +74,7 @@ const data = {
       icon: () => <TrendingUp size={40} />,
       items: [
         { title: "Tableau de rotation", path: "#" },
-        { title: "Tableau des Pertes", path: "/perte" }
+        { title: "Tableau des Pertes", path: "perte" }
       ],
       
     },

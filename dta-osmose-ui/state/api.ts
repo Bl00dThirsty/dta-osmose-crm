@@ -406,7 +406,6 @@ export const api = createApi({
         invalidatesTags: (result, error, { id }) => [{ type: 'Sales', id }]
       }),
       
-
        deleteSaleInvoice: build.mutation<void, string>({
         query: (id) => ({
           url: `/sale/${id}`, 
@@ -437,6 +436,19 @@ export const api = createApi({
           body: data,
         }),
         invalidatesTags: (result, error, { claimId }) => [{ type: 'Claims', id: claimId }],
+      }),
+
+      updateClaimResponse: build.mutation<ClaimResponse, {
+        responseId: string;
+        status: 'ACCEPTED' | 'REJECTED';
+        description?: string;
+      }>({
+        query: ({ responseId, ...data }) => ({
+          url: `/claim/response/${responseId}`,
+          method: "PUT",
+          body: data,
+        }),
+        invalidatesTags: (result, error, { responseId }) => [{ type: 'Claims' }], // tu peux affiner ici selon le contexte
       }),
       
       getClaim: build.query<Claim[], { institution: string, startDate?: string; endDate?: string }>({
@@ -588,7 +600,7 @@ export const api = createApi({
 
 export const { useGetDashboardMetricsQuery, useGetProductsQuery, useCreateProductMutation, useGetProductByIdQuery, useCreateSaleMutation, useGetSalesQuery,
     useGetSaleByIdQuery,useUpdateSaleStatusMutation, useUpdateSalePaymentMutation, useDeleteSaleInvoiceMutation, useCreateClaimMutation, 
-    useRespondToClaimMutation, useGetClaimQuery, useGetClaimByIdQuery, useDeleteClaimMutation, useGetDepartmentsQuery,
+    useRespondToClaimMutation, useUpdateClaimResponseMutation, useGetClaimQuery, useGetClaimByIdQuery, useDeleteClaimMutation, useGetDepartmentsQuery,
     useGetDesignationsQuery, useCreateDesignationsMutation, useDeleteDesignationMutation,useGetRolesQuery, useCreateRolesMutation, 
     useDeleteRoleMutation, useGetUsersQuery, useGetUserByIdQuery, useDeleteUserMutation,  useGetCustomersQuery, useCreateCustomersMutation,
     useGetCustomerByIdQuery, useDeleteCustomerMutation, useGetSettingsQuery, useUpdateSettingsMutation} = api;

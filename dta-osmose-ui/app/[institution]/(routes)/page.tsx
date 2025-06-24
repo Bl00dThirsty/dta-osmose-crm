@@ -136,7 +136,7 @@ const totalInvoices = dashboardMetrics?.formattedData3
   <div className="px-7 mt-5">
     <p className="text-xs text-gray-400">Montant total</p>
     <span className="text-2xl font-extrabold text-blue-600">
-      {totalSales?.toLocaleString() ?? "0"} FCFA
+      {totalSales?.toLocaleString() ?? "0"} F CFA
     </span>
   </div>
 </DashboardCard>
@@ -145,7 +145,7 @@ const totalInvoices = dashboardMetrics?.formattedData3
         <div className="px-7 mt-5">
           <p className="text-xs text-gray-400">Total des avoirs</p>
           <span className="text-2xl font-extrabold text-blue-600">
-            {dashboardMetrics?.totalAvailableCredit?.toLocaleString() ?? "0"} 
+            {dashboardMetrics?.totalAvailableCredit?.toLocaleString() ?? "0"} F CFA
           </span>
         </div>
         </DashboardCard>
