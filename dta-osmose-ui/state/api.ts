@@ -188,9 +188,11 @@ export interface Customer {
   id:number;
   customId: string;
   name: string;
+  userName: string;
   phone: string;
   nameresponsable?: string;
   email: string;
+  password: string;
   ville?: string;
   website?: string;
   status?: boolean;
@@ -205,9 +207,11 @@ export interface Customer {
 export interface NewCustomer {
   customId: string;
   name: string;
+  userName: string;
   phone: string;
   nameresponsable?: string;
   email: string;
+  password: string;
   ville?: string;
   website?: string;
   status?: boolean;
@@ -366,6 +370,10 @@ export const api = createApi({
           }),
           invalidatesTags: ['Sales', 'Products']
         }),
+
+        getCustomerDebtStatus: build.query<{ hasDebt: boolean }, number>({
+          query: (customerId) => `/sale/${customerId}/debt-status`,
+        }),        
 
         getSales: build.query<SaleInvoice[], { institution: string, startDate?: string; endDate?: string }>({
           query: ({institution, startDate, endDate}) => {
@@ -598,7 +606,7 @@ export const api = createApi({
     }),
 });
 
-export const { useGetDashboardMetricsQuery, useGetProductsQuery, useCreateProductMutation, useGetProductByIdQuery, useCreateSaleMutation, useGetSalesQuery,
+export const { useGetDashboardMetricsQuery, useGetProductsQuery, useCreateProductMutation, useGetProductByIdQuery, useCreateSaleMutation, useGetCustomerDebtStatusQuery, useGetSalesQuery,
     useGetSaleByIdQuery,useUpdateSaleStatusMutation, useUpdateSalePaymentMutation, useDeleteSaleInvoiceMutation, useCreateClaimMutation, 
     useRespondToClaimMutation, useUpdateClaimResponseMutation, useGetClaimQuery, useGetClaimByIdQuery, useDeleteClaimMutation, useGetDepartmentsQuery,
     useGetDesignationsQuery, useCreateDesignationsMutation, useDeleteDesignationMutation,useGetRolesQuery, useCreateRolesMutation, 

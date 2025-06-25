@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useGetProductsQuery, useCreateSaleMutation } from '@/state/api';
+import { useGetProductsQuery, useCreateSaleMutation, useGetCustomerDebtStatusQuery } from '@/state/api';
 import { useGetCustomersQuery } from '@/state/api';
 import { useGetUsersQuery } from '@/state/api';
 import { useRouter, useParams } from 'next/navigation';
@@ -137,6 +137,11 @@ const CreateSalePage = () => {
     }
   };
 
+  const { data: debtStatus, refetch: refetchDebtStatus } = useGetCustomerDebtStatusQuery(customerId!, {
+    skip: !customerId, // Ne pas appeler tant que pas de client sélectionné
+  });
+  
+
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6">Nouvelle Vente</h1>
@@ -207,7 +212,11 @@ const CreateSalePage = () => {
             <select 
               className="w-full p-2 border rounded"
               value={customerId || ''}
-              onChange={(e) => setCustomerId(Number(e.target.value))}
+              onChange={(e) => {
+                const selectedId = Number(e.target.value);
+                setCustomerId(selectedId);
+                refetchDebtStatus(); // Vérifie la dette après sélection
+              }}
             >
               <option value="">Sélectionner un client</option>
               {customers.map(customer => (
@@ -279,10 +288,37 @@ const CreateSalePage = () => {
               <span>Montant final:</span>
               <span>{finalAmount} FCFA</span>
             </div>
+
+            {debtStatus?.hasDebt && (
+  <div className="relative mb-8 mx-auto w-fit animate-fade-in">
+    <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 shadow-lg relative max-w-md">
+      <div className="absolute -top-3 left-6 w-6 h-6 bg-red-50 border-t-2 border-l-2 border-red-200 transform rotate-45"></div>
+      
+      <div className="flex items-start">
+        <div className="flex-shrink-0 mr-3">
+          <div className="bg-red-100 p-2 rounded-full">
+            <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+        </div>
+        <div>
+          <h3 className="font-bold text-red-800">Commande bloquée</h3>
+          <p className="text-gray-700">
+            Ce client a une ou plusieurs factures impayées datant de plus d’un mois.
+            <br />
+            Il ne peut pas passer de nouvelle commande tant que ces factures ne sont pas réglées.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div className="absolute -bottom-1 left-1/4 w-1/2 h-2 bg-red-100 blur-sm opacity-70"></div>
+  </div>
+)}
             
             <button
               onClick={handleCreateSale}
-              disabled={!customerId || selectedProducts.length === 0}
+              disabled={!customerId || selectedProducts.length === 0 || debtStatus?.hasDebt}
               className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
             >
               Vendre

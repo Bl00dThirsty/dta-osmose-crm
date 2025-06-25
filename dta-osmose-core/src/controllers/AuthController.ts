@@ -23,28 +23,29 @@ export const login = async (
         where: { email }
       });
   
-      //let userType = "user";
+      let userType = "user";
   
       // Si pas trouvé, cherche dans les clients
-    //   if (!user) {
-    //     user = await prisma.customer.findUnique({
-    //       where: { email }
-    //     });
-    //     userType = "customer";
-    //   }
-  
       if (!user) {
-        res.status(400).json({ message: "Email or password is incorrect" });
-        return;
+        user = await prisma.customer.findUnique({
+          where: { email }
+        });
+        userType = "customer";
       }
+  
+      // if (!user) {
+      //   res.status(400).json({ message: "Email or password is incorrect" });
+      //   return;
+      // }
   
       // Vérification du mot de passe
-      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (user && bcrypt.compareSync(password, user.password)){
+      // const isPasswordValid = await bcrypt.compare(password, user.password);
   
-      if (!isPasswordValid) {
-        res.status(400).json({ message: "Email or password is incorrect" });
-        return;
-      }
+      // if (!isPasswordValid) {
+      //   res.status(400).json({ message: "Email or password is incorrect" });
+      //   return;
+      // }
       
       let permissions = [];
       if (user.role) {
@@ -69,8 +70,8 @@ export const login = async (
           sub: user.id,
           email: user.email,
           permissions,
-          role: user.role
-          //userType
+          role: user.role,
+          userType: userType
         },
         secret,
         { expiresIn: "24h" }
@@ -83,7 +84,11 @@ export const login = async (
         ...userWithoutPassword,
         accessToken
       });
-    
+    }else{
+      res
+        .status(400)
+        .json({ message: "Email or password is incorrect" });
+    }
   
     } catch (error) {
       console.error("Login error:", error);

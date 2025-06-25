@@ -137,8 +137,10 @@ model customer {
   id              Int         @id @default(autoincrement())
   customId        String          @unique
   name            String
+  userName        String?               @unique
   phone           String        @unique
   email           String        @unique
+  password        String?    
   ville           String?
   nameresponsable String?
   quarter         String?
@@ -151,7 +153,7 @@ model customer {
   updated_at      DateTime?      @updatedAt
   saleInvoice     saleInvoice[]
   credits         credit[]
-  claims    claim[]
+  //claims    claim[]
 
   
 }
@@ -550,7 +552,7 @@ model user {
   saleInvoice        saleInvoice[]
   //salePromise        salePromise[]
   department         department?          @relation(fields: [departmentId], references: [id])
-  claims    claim[]
+  //claims    claim[]
 }
 
 

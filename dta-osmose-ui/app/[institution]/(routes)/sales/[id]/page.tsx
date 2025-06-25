@@ -204,7 +204,8 @@ const InvoicePage = () => {
           <div className="ml-2">
               <button  
                 onClick={() => router.push(`/${institution}/sales/${sale.id}/claim`)}
-                className="px-4 py-2 rounded ml-8 text-white bg-blue-500 hover:bg-blue-200"
+                className="px-4 py-2 rounded ml-8 text-white bg-blue-500 hover:bg-blue-200 disabled:bg-blue-400"
+                disabled={!sale?.delivred}
               >
                Réclamation
              </button>
@@ -212,7 +213,7 @@ const InvoicePage = () => {
           <div>
             <button 
               onClick={() => router.push(`/${institution}/sales/${sale.id}/claim/all`)}
-              className="px-4 py-2 rounded ml-8 text-white bg-yellow-500 hover:bg-yellow-200">
+              className="px-4 py-2 rounded ml-8 text-white bg-yellow-500 hover:bg-yellow-200 ">
                 Liste des Réclamations
             </button>
           </div>
@@ -229,14 +230,15 @@ const InvoicePage = () => {
               <p className="mb-2">Type de client: <b>{sale.customer.type_customer}</b></p>
               <p className="mb-2">Montant Total: <b>{sale.totalAmount} Fcfa</b></p>
               <p className="mb-2">Montant à payer: <b>{sale.dueAmount} Fcfa</b></p>
-              <p className="mb-2">Montant payé: <b>{sale.paidAmount} Fcfa</b></p>
-              <p>Paiement: <button className={` px-1 py-1 rounded text-white ${sale.paymentStatus === 'PAID' ? 'bg-green-500' : 'bg-red-500'}`}>{sale.paymentStatus === 'PAID' ? "PAYÉ" : "IMPAYÉ"}</button></p>
+              <p className="">Montant payé: <b>{sale.paidAmount} Fcfa</b></p>
+              
           </div>
           <div>
             {/* <h2 className="font-bold mb-2">Client</h2> */}
             <p className="mb-2">Remise: <b>{sale.discount} </b> </p>
             <p className="mb-2">Methode de paiement: <b>{sale.paymentMethod || 'CASH'}</b></p>
-            <p className="mb-2">Statut de paiement: <b>{sale.paymentStatus === 'PAID' ? 'Terminé' : 'En cours'}</b></p>
+            {/* <p className="mb-2"> <b>{sale.paymentStatus === 'PAID' ? 'Terminé' : 'En cours'}</b></p> */}
+            <p>Statut de paiement: <button className={` px-1 py-1 rounded text-white ${sale.paymentStatus === 'PAID' ? 'bg-green-500' : 'bg-red-500'}`}>{sale.paymentStatus === 'PAID' ? "PAYÉ" : "IMPAYÉ"}</button></p>
             <p className="mb-2">Prête: <button className={` px-2 py-1 rounded text-white ${sale.ready ? 'bg-green-500' : 'bg-red-500'}`}>{sale.ready ? "Oui" : "Non"}</button></p>
             <p className="mb-2">Livrée: <button className={` px-2 py-1 rounded text-white ${sale.delivred ? 'bg-green-500' : 'bg-red-500'}`}>{sale.delivred ? "Oui" : "Non"}</button></p>
             <p>Vendeur: <b>{sale.user.firstName} {sale.user.lastName}</b></p>
