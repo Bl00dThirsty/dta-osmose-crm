@@ -36,7 +36,7 @@ const DashboardPage = () => {
     }
   }, [token]);
 
-  
+  const userType = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
   const {data: dashboardMetrics} = useGetDashboardMetricsQuery({ institution, startDate, endDate });
   const totalSales = dashboardMetrics?.saleProfitCount
   .filter(item => item.type === "Ventes")
@@ -49,12 +49,25 @@ const totalProfits = dashboardMetrics?.saleProfitCount
 const totalInvoices = dashboardMetrics?.formattedData3
   .filter(item => item.type === "nombre de facture")
   .reduce((sum, item) => sum + (item.amount || 0), 0);
+
+  const renderDashboardByRole = () => {
+    switch (userType) {
+      case "admin":
+        return <AdminDashboard dashboardMetrics={dashboardMetrics} totalSales={totalSales} totalProfits={totalProfits} totalInvoices={totalInvoices} />;
+      case "staff":
+        return <StaffDashboard dashboardMetrics={dashboardMetrics} totalSales={totalSales} totalInvoices={totalInvoices} />;
+      case "Particulier":
+        return <ClientDashboard dashboardMetrics={dashboardMetrics} totalSales={totalSales} totalProfits={totalProfits} totalInvoices={totalInvoices}  />;
+      default:
+        return <p>Rôle non reconnu. Veuillez contacter l'administrateur.</p>;
+    }
+  };
   
 
   return (
     <Container
       title="Dashboard"
-      description="Bienvenu sur le dashboard ici vous avez une vue d'ensemble de l'entreprise"
+      description="Bienvenue sur le tableau de bord"
     >
       <div className="flex space-x-4">
           <input
@@ -70,6 +83,15 @@ const totalInvoices = dashboardMetrics?.formattedData3
             className="border-5 p-2 rounded"
           />
         </div>
+        {renderDashboardByRole()}
+        
+    </Container>
+  );
+};
+
+export default DashboardPage;
+//const { institution } = useParams() as { institution: string }
+const AdminDashboard = ({ dashboardMetrics, totalSales, totalProfits, totalInvoices }: any) => (
   <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
 
         <Suspense fallback={<LoadingBox />}>
@@ -77,7 +99,7 @@ const totalInvoices = dashboardMetrics?.formattedData3
         <DashboardCard title="Produits">
           <>
           <div className="overflow-auto h-full">
-            {dashboardMetrics?.popularProducts.map((product) => (
+            {dashboardMetrics?.popularProducts?.map((product:any) => (
               <div key={product.id} className="flex intems-center justify-between gap-3 px-5 py7 border-b">
                 <div className="flex items-center gap-3">
                 <div className="flex flex-col justify-between gap-1">
@@ -122,8 +144,8 @@ const totalInvoices = dashboardMetrics?.formattedData3
             </div>
           </DashboardCard>
         </Suspense>
-
-        <DashboardCard href={`/${institution}/sales/all`} title="Nombre de ventes">
+        {/* //href={`/${institution}/sales/all`}  */}
+        <DashboardCard title="Nombre de ventes">
   <div className="px-7 mt-5">
     <p className="text-xs text-gray-400">Factures générées</p>
     <span className="text-2xl font-extrabold text-yellow-600">
@@ -132,7 +154,7 @@ const totalInvoices = dashboardMetrics?.formattedData3
   </div>
 </DashboardCard>
 
-<DashboardCard href={`/${institution}/sales/all`} title="Total des ventes">
+<DashboardCard title="Total des ventes">
   <div className="px-7 mt-5">
     <p className="text-xs text-gray-400">Montant total</p>
     <span className="text-2xl font-extrabold text-blue-600">
@@ -141,7 +163,7 @@ const totalInvoices = dashboardMetrics?.formattedData3
   </div>
 </DashboardCard>
 
-        <DashboardCard href={`/${institution}/claims/all`} title="Les Avoirs">
+        <DashboardCard title="Les Avoirs">
         <div className="px-7 mt-5">
           <p className="text-xs text-gray-400">Total des avoirs</p>
           <span className="text-2xl font-extrabold text-blue-600">
@@ -151,7 +173,7 @@ const totalInvoices = dashboardMetrics?.formattedData3
         </DashboardCard>
         
         <DashboardCard
-          href={`/${institution}/user/all`}
+          
           title="Employés"
         >
           {/* {dashboardMetrics?.popularUsers.map((user) => ( */}
@@ -163,26 +185,72 @@ const totalInvoices = dashboardMetrics?.formattedData3
   </div>
           {/* ))} */}
         </DashboardCard>
-        
-        {/* <DashboardCard
-          href="/crm/accounts"
-          title="Comptes"
-        >
-          <div className="text-2xl font-medium"></div>
-        </DashboardCard>
-        <DashboardCard
-          href="/crm/opportunities"
-          title="Opportunités"
-        >
-          <div className="text-2xl font-medium"></div>
-        </DashboardCard> */}
+
         
       </div>
-    </Container>
-  );
-};
+        );
 
-export default DashboardPage;
+        const StaffDashboard = ({ dashboardMetrics, totalSales, totalInvoices }: any) => (
+          <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+            <DashboardCard title="Total des ventes">
+              <div className="text-2xl font-medium">
+                <p className="text-xs text-gray-400">Montant total</p>
+                <span className="text-2xl font-extrabold text-blue-600">
+                  {totalSales?.toLocaleString() ?? "0"} FCFA
+                </span>
+              </div>
+            </DashboardCard>
+        
+            <DashboardCard title="Nombre de factures">
+              <div className="text-2xl font-medium">
+                <p className="text-xs text-gray-400">Factures générées</p>
+                <span className="text-2xl font-extrabold text-yellow-600">
+                  {totalInvoices?.toLocaleString() ?? "0"}
+                </span>
+              </div>
+            </DashboardCard>
+          </div>
+        );
+
+        const ClientDashboard = ({ dashboardMetrics, totalSales, totalProfits, totalInvoices }: any) => (
+          
+            
+          <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+           
+            <DashboardCard title="Mes Avoirs disponibles">
+              <div className="px-7 mt-5">
+                <p className="text-xs text-gray-400">Total des crédits disponibles</p>
+                <span className="text-2xl font-extrabold text-green-500">
+                  {dashboardMetrics?.customerStats?.avoirDisponible?.toLocaleString() ?? "0"} FCFA
+                </span>
+              </div>
+            </DashboardCard>
+            <DashboardCard title="Total des Achats">
+              <div className="px-7 mt-5">
+                <p className="text-xs text-gray-400">Montant total des Achats</p>
+                  <span className="text-2xl font-extrabold text-blue-600">
+                  {dashboardMetrics?.customerStats?.totalAchats?.toLocaleString() ?? "0"} FCFA
+                  </span>
+              </div>
+            </DashboardCard>
+            <DashboardCard title="Nombre de Commandes">
+              <div className="px-7 mt-5">
+                <p className="text-xs text-gray-400">Nombre de commandes</p>
+                  <span className="text-2xl font-extrabold text-yellow-600">
+                  {dashboardMetrics?.customerStats?.nombreCommandes?.toLocaleString() ?? "0"}
+                  </span>
+              </div>
+            </DashboardCard>
+            <DashboardCard title="Nombre de Commandes Impayées">
+              <div className="px-7 mt-5">
+                <p className="text-xs text-gray-400">Nombre de commandes Impayées</p>
+                  <span className="text-2xl font-extrabold text-yellow-600">
+                  {dashboardMetrics?.customerStats?.nombreCommandesImpaye?.toLocaleString() ?? "0"}
+                  </span>
+              </div>
+            </DashboardCard>
+          </div>
+        );
 
 const DashboardCard = ({
   href,

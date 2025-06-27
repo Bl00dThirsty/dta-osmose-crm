@@ -35,7 +35,8 @@ const InvoicePage = () => {
   const id = params?.id as string;
   const { institution } = useParams<{ institution: string }>();
   const [open, setOpen] = useState(false);
-  
+  const userRole = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
+  const isParticulier = userRole === "Particulier";
   //console.log('Institution from params:', institution);
   //const { id } = (row.original as any);
   const [deleteSaleInvoice] = useDeleteSaleInvoiceMutation()
@@ -147,6 +148,7 @@ const InvoicePage = () => {
 )}
         
         <div className="grid grid-cols-5 gap-5 mb-8 place-items-center">
+        {!isParticulier && (
           <div className="ml-2">
             <button 
                onClick={handleMarkReady}
@@ -158,7 +160,8 @@ const InvoicePage = () => {
                {sale.ready ? "Déjà prête" : "Marquer comme prête"}
             </button>
           </div>
-
+        )}
+        {!isParticulier && (
           <div>
             <button 
               onClick={handleMarkDelivered}
@@ -169,6 +172,7 @@ const InvoicePage = () => {
               {sale.delivred ? "Déjà livrée" : "Confirmer la livraison"}
             </button>
           </div>
+          )}
           <div>
              <button  
                 onClick={() => router.push(`/${institution}/payment/${sale.id}`)}

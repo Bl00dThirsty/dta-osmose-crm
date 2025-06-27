@@ -303,6 +303,13 @@ export interface DashboardMetrics {
       date: string;
       amount: number;
     }>;
+    customerStats?: {
+      totalAchats: number;
+      nombreCommandes: number;
+      avoirDisponible: number;
+      nombreCommandesImpaye: number;
+    };
+    
     
 }
 

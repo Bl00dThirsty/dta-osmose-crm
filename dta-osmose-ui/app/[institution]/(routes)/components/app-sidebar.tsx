@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-
+//import { useAuth } from "@/app/[institution]/(auth)/sign-in/context/authContext";
 import { NavUser } from "@/app/[institution]/(routes)/components/nav-user";
 import {
   AudioWaveform,
@@ -41,6 +41,10 @@ import {
   SidebarMenuSubItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
+//const { user } = useAuth();
+//const userType = user?.userType ?? "user";
+const userType = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
+const id = typeof window !== 'undefined' ? localStorage.getItem('id') : null;
 
 const data = {
   user: {
@@ -48,7 +52,8 @@ const data = {
     email: "Mega Admin",
     avatar: "/avatars/shadcn.jpg",
   },
-  navMain: [
+};
+ const  navUser = [
     {
       title: "Dashoard",
       path: "#",
@@ -149,9 +154,31 @@ const data = {
         { title: "Retour / Feedback", path: "#" },
       ],
     },
-  ],
-};
-
+  ];
+  const  navCustomer = [
+    {
+      title: "Dashoard",
+      path: "#",
+      icon: () => <LayoutDashboard className="w-20 h-20" />,
+      isActive: true,
+      items: [
+        { title: "Mon dashboard", path: "" },
+        //{ title: "Dashbord Ventes", path: "crm/dashboard" },       
+      ],
+    },
+    {
+      title: "Achats",
+      path: "sales",
+      icon: () => <ShoppingBag size={40} />,
+      isActive: true,
+      items: [
+        { title: "Boutiques", path: "sales" },
+        { title: "Liste des Achats", path: `crm/customers/${id}` },
+      ],
+    },
+  ];
+//};
+const menuItems = userType === "Particulier" ? navCustomer : navUser;
 export function AppSidebar({
   institution,
   ...props
@@ -167,40 +194,35 @@ export function AppSidebar({
         <SidebarGroup>
           <SidebarGroupLabel>Menu</SidebarGroupLabel>
           <SidebarMenu>
-            {data.navMain.map((item) => (
-              <Collapsible
-                key={item.title}
-                asChild
-                defaultOpen={item.isActive}
-                className="group/collapsible"
-              >
-                <SidebarMenuItem>
-                  <CollapsibleTrigger asChild>
-                    <div className="space-y-2">
-                      <SidebarMenuButton tooltip={item.title}>
-                        <div className="w-6 h-6 flex items-center justify-center">
-                          {item.icon && item.icon()}
-                        </div>
-                        <span>{item.title}</span>
-                        <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                      </SidebarMenuButton>
-                    </div>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <SidebarMenuSub>
-                      {item.items?.map((subItem) => (
-                        <SidebarMenuSubItem key={subItem.title}>
-                          <SidebarMenuSubButton asChild>
-                            <a
-                              href={
-                                subItem.path.startsWith("#")
-                                  ? "#"
-                                  : `/${institution}/${subItem.path}`
-                              }
-                            >
-                              <span>{subItem.title}</span>
-                            </a>
-                          </SidebarMenuSubButton>
+          {menuItems.map((item) => (
+  <Collapsible key={item.title} asChild defaultOpen={item.isActive} className="group/collapsible">
+    <SidebarMenuItem>
+      <CollapsibleTrigger asChild>
+        <div className="space-y-2">
+          <SidebarMenuButton tooltip={item.title}>
+            <div className="w-6 h-6 flex items-center justify-center">
+              {item.icon && item.icon()}
+            </div>
+            <span>{item.title}</span>
+            <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+          </SidebarMenuButton>
+        </div>
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <SidebarMenuSub>
+          {item.items?.map((subItem) => (
+            <SidebarMenuSubItem key={subItem.title}>
+              <SidebarMenuSubButton asChild>
+                <a
+                  href={
+                    subItem.path.startsWith("#")
+                      ? "#"
+                      : `/${institution}/${subItem.path}`
+                  }
+                >
+                  <span>{subItem.title}</span>
+                </a>
+              </SidebarMenuSubButton>
                         </SidebarMenuSubItem>
                       ))}
                     </SidebarMenuSub>
