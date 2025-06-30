@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { useParams } from "next/navigation"
 
+
 export function LoginComponent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -99,9 +100,9 @@ export function LoginComponent() {
 
         <CardFooter className="flex flex-col space-y-5">
           <p className="text-sm text-gray-500">
-            Un problème avec votre compte? Contactez un administrateur{" "}
-            <Link href="/sign-up" className="text-blue-500">
-              ici
+          Un problème, Vous avez déjà un compte ? {" "}
+            <Link href={`/${institution}/sign-up`} className="text-blue-500">
+            Inscrivez-vous ici
             </Link>
           </p>
           <p className="text-sm text-gray-500">
