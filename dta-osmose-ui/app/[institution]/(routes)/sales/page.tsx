@@ -129,47 +129,30 @@ const CreateSalePage = () => {
   const handleCreateSale = async () => {
     if (!customerId || selectedProducts.length === 0) return;
   
+  // Vérification explicite des IDs
+    const creatorId = currentUserId || customerId;
+    if (!creatorId) return; // Au moins un des deux doit exister
+
+  
     try {
-      const baseSaleData = {
+      const result = await createSale({
         customerId,
-        discount,
-        paymentMethod: "ESPECES",
-        institution: institution,
-        totalAmount,
-        finalAmount,
+        userId: currentUserId ?? 0, // Fournit une valeur par défaut si null
+        customerCreatorId: isParticulier ? customerId : undefined, // Peut être null si userId est défini
         items: selectedProducts.map(p => ({
           productId: p.id,
           quantity: p.quantity,
           unitPrice: p.unitPrice,
-          totalPrice: p.totalPrice
         })),
-      };
-  
-      let saleData: Partial<NewSaleInvoice> = {};
-  
-      if (userRole === "Particulier" && customerId) {
-        // Le client effectue lui-même la vente
-        saleData = {
-          ...baseSaleData,
-          customerCreatorId: customerId, // ✅ OK ici
-        };
-      } else if (currentUserId) {
-        // Un employé effectue la vente
-        saleData = {
-          ...baseSaleData,
-          userId: currentUserId, // ✅ OK ici
-        };
-      } else {
-        toast.error("Utilisateur non authentifié");
-        return;
-      }
-  
-      const result = await createSale(saleData as NewSaleInvoice).unwrap();
+        discount,
+        paymentMethod: "ESPECES",
+        institution: institution, // L'institution actuelle
+      }).unwrap();
   
       toast.success("Vente enregistrée avec succès");
       router.push(`/${institution}/sales/${result.id}`);
     } catch (error) {
-      console.log('Erreur création vente:', error);
+      console.error("Erreur création vente:", error);
       toast.error("Échec de l'enregistrement");
     }
   };
