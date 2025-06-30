@@ -22,7 +22,8 @@ export interface SaleItemCreateInput {
 }
 export interface NewSaleInvoice {
   customerId: number;
-  userId: number;
+  userId?: number;
+  customerCreatorId?: number;
   institutionId: string;
   totalAmount: number;
   discount: number;
@@ -53,6 +54,9 @@ const CreateSalePage = () => {
   const { data: users= [] } = useGetUsersQuery();
   const user = users[0];
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const userRole = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
+  const isParticulier = userRole === "Particulier";
+  const userId = typeof window !== 'undefined' ? localStorage.getItem('id') : null;
 
   useEffect(() => {
     // Accéder à localStorage uniquement côté client
@@ -66,7 +70,17 @@ const CreateSalePage = () => {
   const filteredProducts = products.filter(product =>
     product.designation.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
+  const currentCustomer = customers.find(c => c.id === Number(userId));
+  useEffect(() => {
+    const idFromStorage = localStorage.getItem("id");
+    const numericId = idFromStorage ? parseInt(idFromStorage) : null;
+    setCurrentUserId(numericId);
+  
+    if (userRole === "Particulier" && numericId) {
+      setCustomerId(numericId); // ✅ C’est ici que le customerId est défini automatiquement
+    }
+  }, []);
+  
   const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
   const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
 
@@ -113,22 +127,45 @@ const CreateSalePage = () => {
   };
 
   const handleCreateSale = async () => {
-    if (!customerId || !currentUserId || selectedProducts.length === 0) return;
-    
+    if (!customerId || selectedProducts.length === 0) return;
+  
     try {
-      const result = await createSale({
+      const baseSaleData = {
         customerId,
-        userId: currentUserId,
+        discount,
+        paymentMethod: "ESPECES",
+        institution: institution,
+        totalAmount,
+        finalAmount,
         items: selectedProducts.map(p => ({
           productId: p.id,
           quantity: p.quantity,
-          unitPrice: p.unitPrice
+          unitPrice: p.unitPrice,
+          totalPrice: p.totalPrice
         })),
-        discount,
-        paymentMethod: "ESPECES",
-        institution: institution // À adapter
-      }).unwrap();
-      
+      };
+  
+      let saleData: Partial<NewSaleInvoice> = {};
+  
+      if (userRole === "Particulier" && customerId) {
+        // Le client effectue lui-même la vente
+        saleData = {
+          ...baseSaleData,
+          customerCreatorId: customerId, // ✅ OK ici
+        };
+      } else if (currentUserId) {
+        // Un employé effectue la vente
+        saleData = {
+          ...baseSaleData,
+          userId: currentUserId, // ✅ OK ici
+        };
+      } else {
+        toast.error("Utilisateur non authentifié");
+        return;
+      }
+  
+      const result = await createSale(saleData as NewSaleInvoice).unwrap();
+  
       toast.success("Vente enregistrée avec succès");
       router.push(`/${institution}/sales/${result.id}`);
     } catch (error) {
@@ -136,6 +173,7 @@ const CreateSalePage = () => {
       toast.error("Échec de l'enregistrement");
     }
   };
+  
 
   const { data: debtStatus, refetch: refetchDebtStatus } = useGetCustomerDebtStatusQuery(customerId!, {
     skip: !customerId, // Ne pas appeler tant que pas de client sélectionné
@@ -207,7 +245,7 @@ const CreateSalePage = () => {
         <div className="bg-gray p-4 rounded-lg shadow">
           <h2 className="text-xl font-semibold mb-4">Récapitulatif</h2>
           
-          <div className="mb-4">
+          {/* <div className="mb-4">
             <label className="block mb-2">Client</label>
             <select 
               className="w-full p-2 border rounded"
@@ -225,7 +263,36 @@ const CreateSalePage = () => {
                 </option>
               ))}
             </select>
-          </div>
+          </div> */}
+          <div className="mb-4">
+            <label className="block mb-2">Client</label>
+  
+            {isParticulier && currentCustomer ? (
+                 // Si c'est un client connecté
+                <div className="p-2 border rounded bg-white-100">
+                   <p>{currentCustomer.name} - {currentCustomer.phone}</p>
+                </div>
+            ) : (
+                // Sinon, sélection classique
+            <select 
+                className="w-full p-2 border rounded"
+                value={customerId || ''}
+                onChange={(e) => {
+                const selectedId = Number(e.target.value);
+                  setCustomerId(selectedId);
+                  refetchDebtStatus();
+                }}
+            >
+           <option value="">Sélectionner un client</option>
+            {customers.map(customer => (
+          <option key={customer.id} value={customer.id}>
+            {customer.name} - {customer.phone}
+          </option>
+          ))}
+         </select>
+         )}
+        </div>
+
           
           <div className="mb-4">
             <table className="w-full">
@@ -272,7 +339,7 @@ const CreateSalePage = () => {
               <span className="font-medium">Total:</span>
               <span>{totalAmount} FCFA</span>
             </div>
-            
+            {!isParticulier && (
             <div className="flex justify-between">
               <label className="font-medium">Remise:</label>
               <Input
@@ -283,7 +350,7 @@ const CreateSalePage = () => {
                 className="w-24 p-1 border rounded text-right"
               />
             </div>
-            
+            )}
             <div className="flex justify-between font-bold text-lg">
               <span>Montant final:</span>
               <span>{finalAmount} FCFA</span>

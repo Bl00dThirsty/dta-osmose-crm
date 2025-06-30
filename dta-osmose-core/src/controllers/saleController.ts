@@ -42,9 +42,29 @@ export const createSaleInvoice = async (req: Request, res: Response): Promise<vo
       return;
     }
     const userId = payload.sub;
+    const creatorType = req.auth.userType; // Type de créateur ("user" ou "customer")
+    const creatorId = req.auth.sub;
+    let user = null;
+    if (creatorType === "user") {
+      user = await prisma.user.findUnique({
+        where: { id: Number(creatorId) }
+      });
+      if (!user) {
+        res.status(400).json({ error: "Utilisateur non trouvé" });
+      }
+    } else if (creatorType === "customer") {
+      const creatorCustomer = await prisma.customer.findUnique({
+        where: { id: Number(creatorId) }
+      });
+      if (!creatorCustomer) {
+        res.status(400).json({ error: "Client créateur non trouvé" });
+      }
+    } else {
+        res.status(400).json({ error: "Type de créateur non valide" });
+    }
     const institution = await prisma.institution.findUnique({
         where: { slug: institutionSlug },
-      });
+    });
   
       if (!institution) {
         res.status(404).json({ message: "Institution introuvable." });
@@ -103,7 +123,8 @@ export const createSaleInvoice = async (req: Request, res: Response): Promise<vo
         //invoiceNumber: generateInvoiceNumber(),
         invoiceNumber,
         customerId,
-        userId,
+        userId: creatorType === "user" ? Number(creatorId) : undefined,
+        customerCreatorId: creatorType === "customer" ? Number(creatorId) : undefined,
         institutionId: institution.id,
         totalAmount: items.reduce((sum:any, item) => sum + (item.quantity * item.unitPrice), 0),
         discount: discount || 0,

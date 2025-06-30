@@ -103,8 +103,9 @@ export interface SaleInvoice{
   id: string;     
   invoiceNumber?:   string ;     
   customerId :     number;
-  userId:          number;
-  institutionId?:   String;
+  userId?:          number;
+  customerCreatorId?: number;
+  institutionId?:   string;
   totalAmount :    number;
   discount:        number;
   finalAmount?:     number;
@@ -141,8 +142,9 @@ export interface SaleInvoice{
 export interface NewSaleInvoice{      
   invoiceNumber?:   string ;     
   customerId? :     number;
-  userId:          number;
-  institutionId?:   String;
+  userId?:          number;
+  customerCreatorId?: number;
+  institutionId?:   string;
   totalAmount :    number;
   discount:        number;
   finalAmount:     number;
@@ -360,7 +362,8 @@ export const api = createApi({
         
         createSale: build.mutation<SaleInvoice, { 
           customerId: number;
-          userId: number;
+          userId?: number;
+          customerCreatorId?: number;
           items: Array<{
           productId: string;
           quantity: number;

@@ -6,7 +6,7 @@ import authorize from "../authorize";
 
 const router = express.Router();
 
-router.post("/:institution/sale", authorize("create-product"), createSaleInvoice);
+router.post("/:institution/sale", authorize("view-product"), createSaleInvoice);
 router.get('/:institution/sale', getSaleInvoices);
 router.get('/:id', getSaleInvoiceById);
 router.get('/:customerId/debt-status', checkCustomerDebtStatus)

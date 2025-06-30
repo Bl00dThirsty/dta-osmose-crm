@@ -245,7 +245,13 @@ const InvoicePage = () => {
             <p>Statut de paiement: <button className={` px-1 py-1 rounded text-white ${sale.paymentStatus === 'PAID' ? 'bg-green-500' : 'bg-red-500'}`}>{sale.paymentStatus === 'PAID' ? "PAYÉ" : "IMPAYÉ"}</button></p>
             <p className="mb-2">Prête: <button className={` px-2 py-1 rounded text-white ${sale.ready ? 'bg-green-500' : 'bg-red-500'}`}>{sale.ready ? "Oui" : "Non"}</button></p>
             <p className="mb-2">Livrée: <button className={` px-2 py-1 rounded text-white ${sale.delivred ? 'bg-green-500' : 'bg-red-500'}`}>{sale.delivred ? "Oui" : "Non"}</button></p>
-            <p>Vendeur: <b>{sale.user.firstName} {sale.user.lastName}</b></p>
+            <p>
+               Initiateur: <b>
+               {sale.user 
+                 ? `${sale.user.firstName} ${sale.user.lastName}` 
+               : sale.customer?.name || 'Inconnu'}
+              </b>
+            </p>
             
           </div>
         </div>

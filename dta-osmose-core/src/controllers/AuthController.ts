@@ -185,4 +185,48 @@ export const register = async (
     }
   };
 
+  export const refreshToken = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const token = req.headers.authorization?.split(" ")[1];
+  
+      if (!token) {
+         res.status(401).json({ message: "Token manquant" });
+      }
+  
+      // Vérifie que l'ancien token est encore valide (grâce à `ignoreExpiration: true`)
+      const decoded: any = jwt.verify(token, secret, { ignoreExpiration: true });
+  
+      // Tu peux aussi vérifier dans ta DB si l'utilisateur existe toujours
+      let user = await prisma.user.findUnique({ where: { id: decoded.sub } });
+  
+      let userType = "user";
+  
+      if (!user) {
+        user = await prisma.customer.findUnique({ where: { id: decoded.sub } });
+        userType = "customer";
+      }
+  
+      if (!user) {
+         res.status(401).json({ message: "Utilisateur introuvable" });
+      }
+  
+      const newToken = jwt.sign(
+        {
+          sub: user.id,
+          email: user.email,
+          role: user.role,
+          permissions: decoded.permissions || [],
+          userType,
+        },
+        secret,
+        { expiresIn: "24h" }
+      );
+  
+      res.json({ accessToken: newToken });
+    } catch (err) {
+      console.error("Erreur refresh token :", err);
+      res.status(401).json({ message: "Token invalide ou expiré" });
+    }
+  };
+
   
