@@ -16,6 +16,8 @@ import {
   ArrowBigDownDash,
   Crown,
   User,
+  BookAIcon,
+  ShoppingBag
 } from "lucide-react";
 
 import { AppSwitcher } from "./app-switcher";
@@ -49,12 +51,12 @@ const data = {
   navMain: [
     {
       title: "Dashoard",
-      path: "dashboard",
+      path: "#",
       icon: () => <LayoutDashboard className="w-20 h-20" />,
       isActive: true,
       items: [
-        { title: "Dashbord Ventes", path: "dashboard" },
-        { title: "Mon dashboard", path: "#" },
+        { title: "Mon dashboard", path: "" },
+        { title: "Dashbord Ventes", path: "crm/dashboard" },       
       ],
     },
     {
@@ -70,7 +72,30 @@ const data = {
       title: "Stock de produits",
       path: "#",
       icon: () => <TrendingUp size={40} />,
-      items: [{ title: "Tableau de rotation", path: "#" }],
+      items: [
+        { title: "Tableau de rotation", path: "#" },
+        { title: "Tableau des Pertes", path: "/perte" }
+      ],
+      
+    },
+    {
+      title: "Ventes",
+      path: "sales",
+      icon: () => <ShoppingBag size={40} />,
+      items: [
+        { title: "Ventes", path: "sales" },
+        { title: "Liste des ventes", path: "sales/all" },
+        
+      ],
+    },
+    {
+      title: "Réclamations",
+      path: "#",
+      icon: () => <BookAIcon size={40} />,
+      items: [
+        { title: "Liste des Réclamations", path: "claims/all" },
+        
+      ],
     },
     {
       title: "Fournisseurs",
@@ -87,7 +112,7 @@ const data = {
       icon: () => <Crown size={40} />,
       items: [
         { title: "Liste des comptes clients", path: "crm/customers" },
-        { title: "Facturation", path: "#" },
+        { title: "Facturation", path: "sales/all" },
       ],
     },
     {
@@ -110,7 +135,7 @@ const data = {
       icon: () => <Settings2 size={40} />,
       items: [
         { title: "Compte", path: "#" },
-        { title: "Facturation", path: "#" },
+        { title: "Facturation", path: "crm/setting" },
         { title: "Billing", path: "#" },
       ],
     },
@@ -136,6 +161,7 @@ export function AppSidebar({
       <SidebarHeader>
         <AppSwitcher />
         <SidebarGroup className="py-0 group-data-[collapsible=icon]:hidden" />
+        <NavUser user={data.user} />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -186,7 +212,7 @@ export function AppSidebar({
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

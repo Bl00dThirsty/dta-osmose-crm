@@ -13,7 +13,7 @@ import NotionsBox from "../../[institution]/(routes)/components/dasboard/notions
 import LoadingBox from "../../[institution]/(routes)/components/dasboard/loading-box";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGetDashboardMetricsQuery } from "@/state/api";
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useParams } from "next/navigation"
 
@@ -22,6 +22,12 @@ const DashboardPage = () => {
   //const token = localStorage.getItem("accessToken");
   const { institution } = useParams() as { institution: string }
   const router = useRouter();
+  const now = new Date();
+  const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+  const [startDate, setStartDate] = useState<string>(firstDayOfMonth.toISOString().split("T")[0]);
+  const [endDate, setEndDate] = useState<string>(lastDayOfMonth.toISOString().split("T")[0]);
   const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
 
   useEffect(() => {
@@ -31,7 +37,18 @@ const DashboardPage = () => {
   }, [token]);
 
   
-  const {data: dashboardMetrics} = useGetDashboardMetricsQuery();
+  const {data: dashboardMetrics} = useGetDashboardMetricsQuery({ institution, startDate, endDate });
+  const totalSales = dashboardMetrics?.saleProfitCount
+  .filter(item => item.type === "Ventes")
+  .reduce((sum, item) => sum + (item.amount || 0), 0);
+
+const totalProfits = dashboardMetrics?.saleProfitCount
+  .filter(item => item.type === "Profits")
+  .reduce((sum, item) => sum + (item.amount || 0), 0);
+
+const totalInvoices = dashboardMetrics?.formattedData3
+  .filter(item => item.type === "nombre de facture")
+  .reduce((sum, item) => sum + (item.amount || 0), 0);
   
 
   return (
@@ -39,9 +56,24 @@ const DashboardPage = () => {
       title="Dashboard"
       description="Bienvenu sur le dashboard ici vous avez une vue d'ensemble de l'entreprise"
     >
+      <div className="flex space-x-4">
+          <input
+            type="date"
+            value={startDate || ""}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="border-5 p-1 rounded"
+          />
+          <input
+            type="date"
+            value={endDate || ""}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="border-5 p-2 rounded"
+          />
+        </div>
   <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
 
         <Suspense fallback={<LoadingBox />}>
+        
         <DashboardCard title="Produits">
           <>
           <div className="overflow-auto h-full">
@@ -70,14 +102,14 @@ const DashboardPage = () => {
         </DashboardCard>
         </Suspense>
         <Suspense fallback={<LoadingBox />}>
-          <DashboardCard title="Revenu Attendu">
+          <DashboardCard title="Bénéfices">
           <div className="text-2xl font-medium">
           <div>
             {/* BODY HEADER */}
             <div className="flex justify-between items-center mb-6 px-7 mt-5">
               <div className="text-lg font-medium">
                 <p className="text-xs text-gray-400">Valeur</p>
-                <span className="text-2xl font-extrabold">€ 100K</span>
+                <span className="text-2xl font-extrabold">{totalProfits?.toLocaleString() ?? "0"} FCFA</span>
                 <span className="text-green-500 text-sm ml-2">
                   <TrendingUp className="inline w-4 h-4 mr-1" />
                   5.78%
@@ -91,20 +123,48 @@ const DashboardPage = () => {
           </DashboardCard>
         </Suspense>
 
-        <DashboardCard href="/admin/users" title="Utilisateurs actifs">
-        <div className="text-2xl font-medium"></div>
+        <DashboardCard href={`/${institution}/sales/all`} title="Nombre de ventes">
+  <div className="px-7 mt-5">
+    <p className="text-xs text-gray-400">Factures générées</p>
+    <span className="text-2xl font-extrabold text-yellow-600">
+      {totalInvoices?.toLocaleString() ?? "0"}
+    </span>
+  </div>
+</DashboardCard>
+
+<DashboardCard href={`/${institution}/sales/all`} title="Total des ventes">
+  <div className="px-7 mt-5">
+    <p className="text-xs text-gray-400">Montant total</p>
+    <span className="text-2xl font-extrabold text-blue-600">
+      {totalSales?.toLocaleString() ?? "0"} FCFA
+    </span>
+  </div>
+</DashboardCard>
+
+        <DashboardCard href={`/${institution}/claims/all`} title="Les Avoirs">
+        <div className="px-7 mt-5">
+          <p className="text-xs text-gray-400">Total des avoirs</p>
+          <span className="text-2xl font-extrabold text-blue-600">
+            {dashboardMetrics?.totalAvailableCredit?.toLocaleString() ?? "0"} 
+          </span>
+        </div>
         </DashboardCard>
         
         <DashboardCard
-          href="/user/all"
+          href={`/${institution}/user/all`}
           title="Employés"
         >
           {/* {dashboardMetrics?.popularUsers.map((user) => ( */}
-          <div className="text-2xl font-medium"></div>
+          <div className="px-7 mt-5">
+    <p className="text-xs text-gray-400">Total utilisateurs</p>
+    <span className="text-2xl font-extrabold text-blue-600">
+      {dashboardMetrics?.totalUsers.toLocaleString() ?? "0"} 
+    </span>
+  </div>
           {/* ))} */}
         </DashboardCard>
         
-        <DashboardCard
+        {/* <DashboardCard
           href="/crm/accounts"
           title="Comptes"
         >
@@ -115,7 +175,7 @@ const DashboardPage = () => {
           title="Opportunités"
         >
           <div className="text-2xl font-medium"></div>
-        </DashboardCard>
+        </DashboardCard> */}
         
       </div>
     </Container>

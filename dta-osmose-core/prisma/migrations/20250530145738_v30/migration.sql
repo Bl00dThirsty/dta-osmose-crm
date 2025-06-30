@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "saleInvoice" ADD COLUMN     "delivred" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "profit" DOUBLE PRECISION NOT NULL DEFAULT 0,
+ADD COLUMN     "ready" BOOLEAN NOT NULL DEFAULT false;

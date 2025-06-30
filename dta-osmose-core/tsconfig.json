@@ -109,6 +109,11 @@
 
     /* Completeness */
     // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
-    "skipLibCheck": true                                 /* Skip type checking all .d.ts files. */
-  }
+    "skipLibCheck": true,  
+    "typeRoots": ["./src/types", "./node_modules/@types", "react-day-picker"]                               /* Skip type checking all .d.ts files. */
+  },
+  "include": [
+    "src",
+    "types"
+  ]
 }

@@ -2,7 +2,8 @@
 
 import { Row } from "@tanstack/react-table"
 import { MoreHorizontal } from "lucide-react"
-
+import { useParams } from "next/navigation"
+import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -27,7 +28,10 @@ interface DataTableRowActionsProps<TData> {
 export function DataTableRowActions<TData>({
   row,
 }: DataTableRowActionsProps<TData>) {
-
+  const router = useRouter();
+  const { institution } = useParams() as { institution: string }
+  
+  const productId = (row.original as any).id;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -40,22 +44,10 @@ export function DataTableRowActions<TData>({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[160px]">
-        <DropdownMenuItem>Modifier</DropdownMenuItem>
+      <DropdownMenuItem onClick={() => router.push(`/${institution}/crm/products/${productId}`)}>
+          Voir
+        </DropdownMenuItem>
         <DropdownMenuItem>Supprimer</DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>Labels</DropdownMenuSubTrigger>
-          <DropdownMenuSubContent>
-            <DropdownMenuRadioGroup>
-              {labels.map((label) => (
-                <DropdownMenuRadioItem key={label.value} value={label.value}>
-                  {label.label}
-                </DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
-          </DropdownMenuSubContent>
-        </DropdownMenuSub>
-        <DropdownMenuSeparator />
         <DropdownMenuItem>
           Delete
           <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>

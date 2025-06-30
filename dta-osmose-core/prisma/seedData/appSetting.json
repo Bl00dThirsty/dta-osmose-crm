@@ -1,0 +1,24 @@
+[
+    {
+      
+      "company_name": "IBA Cameroun",
+      "address": "Bastos – Yaounde, Cameroon",
+      "phone": "693972665",
+      "email": "contact@ibacameroon.com",
+      "website": "ibabeauty.com/fr/",
+      "footer": "©2025 IBA Cameroun",
+      "tag_line": "Marques de beauté de luxe en Afrique",
+      "institutionId": "institution-iba"
+    },
+    {
+      
+      "company_name": "ASERMPHARMA",
+      "address": "Derrière usine bastos, yaoundé",
+      "phone": "653 70 13 00",
+      "email": "secretariat@asermpharma.com",
+      "website": "www.asermpharma.com",
+      "footer": "©2025 ASSEM PHARMA",
+      "tag_line": "Le bien-être est notre prédilection",
+      "institutionId": "institution-asermpharma"
+    }
+  ]

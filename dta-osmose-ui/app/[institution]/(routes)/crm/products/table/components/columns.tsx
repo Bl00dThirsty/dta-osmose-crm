@@ -36,6 +36,13 @@ export const columns: ColumnDef<Product>[] = [
     enableSorting: false,
     enableHiding: false,
   },
+  // {
+  //   accessorKey: "id",
+  //   header: ({ column }) => (
+  //     <DataTableColumnHeader column={column} title="Product ID" />
+  //   ),
+  //   cell: ({ row }) => <div className="w-[180px] truncate whitespace-nowrap overflow-hidden text-ellipsis">{row.getValue("id")}</div>,
+  // },
   {
     accessorKey: "EANCode",
     header: ({ column }) => (
@@ -48,7 +55,7 @@ export const columns: ColumnDef<Product>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Marque" />
     ),
-    cell: ({ row }) => <div className="w-[80px] truncate whitespace-nowrap overflow-hidden text-ellipsis">{row.getValue("brand")}</div>,
+    cell: ({ row }) => <div className="w-[180px] truncate whitespace-nowrap overflow-hidden text-ellipsis">{row.getValue("brand")}</div>,
   },
   {
     accessorKey: "designation",

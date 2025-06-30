@@ -59,10 +59,10 @@ export function DataTableToolbar<TData>({
           }
           className="h-8 w-[150px] lg:w-[250px]"
         />
-        {table.getColumn("email") && (
+        {table.getColumn("type_customer") && (
           <DataTableFacetedFilter
-            column={table.getColumn("email")}
-            title="email"
+            column={table.getColumn("type_customer")}
+            title="type du client"
             options={statuses}
           />
         )}

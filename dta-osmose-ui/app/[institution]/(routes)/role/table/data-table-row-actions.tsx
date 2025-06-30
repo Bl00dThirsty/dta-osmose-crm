@@ -48,7 +48,7 @@ export function DataTableRowActions<TData>({
     try {
       await deleteRole(roleId).unwrap()
       console.log("Designation supprimé avec succès")
-      router.push(`/role`);
+      router.push(`/${institution}/role`);
     } catch (error) {
       console.log("Erreur lors de la suppression :")
     }

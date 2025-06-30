@@ -50,14 +50,14 @@ export const columns: ColumnDef<Customer>[] = [
   {
     accessorKey: "name",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Designation" />
+      <DataTableColumnHeader column={column} title="Désignation" />
     ),
     cell: ({ row }) => <div className="w-[80px]">{row.getValue("name")}</div>,
   },
   {
     accessorKey: "phone",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Telephone" />
+      <DataTableColumnHeader column={column} title="Téléphone" />
     ),
     cell: ({ row }) => (
       <Badge>{row.getValue("phone")}</Badge>
@@ -71,11 +71,11 @@ export const columns: ColumnDef<Customer>[] = [
     cell: ({ row }) => <div className="w-[100px]">{row.getValue("nameresponsable")}</div>,
   },
   {
-    accessorKey: "email",
+    accessorKey: "type_customer",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="email" />
+      <DataTableColumnHeader column={column} title="type" />
     ),
-    cell: ({ row }) => <div className="w-[100px]">{row.getValue("email")}</div>,
+    cell: ({ row }) => <div className="w-[100px]">{row.getValue("type_customer")}</div>,
   },
   {
     accessorKey: "quarter",

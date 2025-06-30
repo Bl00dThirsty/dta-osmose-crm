@@ -148,6 +148,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // Stockage du token et du nom d'utilisateur
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('user', userData.userName);
+      localStorage.setItem('id', userData.id);
+      localStorage.setItem('role', userData.role);
+
   
       // Mise à jour du contexte utilisateur
       setUser(userData);
@@ -167,7 +170,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       setLoading(true);
       setError(null);
-      //{ ...values,}
+                                                    //{ ...values,}
       const { data } = await api.post('/auth/register', values);
       
       setUser(data.user);

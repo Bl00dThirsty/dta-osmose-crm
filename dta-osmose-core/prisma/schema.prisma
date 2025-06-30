@@ -45,16 +45,7 @@ model announcement {
   updatedAt   DateTime
 }
 
-model appSetting {
-  id           Int    @id @default(autoincrement())
-  company_name String
-  tag_line     String
-  address      String
-  phone        String
-  email        String
-  website      String
-  footer       String
-}
+
 
 
 
@@ -99,6 +90,49 @@ model appSetting {
   user        user     @relation(fields: [userId], references: [id])
 }*/
 
+model claim {
+  id              String      @id @default(uuid())
+  invoiceId       String
+  productId       String
+  quantity        Int
+  unitPrice       Float
+  totalAmount     Float
+  reason          String
+  description     String?
+  response        claimResponse?
+  //userCreatorId   Int? // ID de l'utilisateur créateur
+  //customerCreatorId  Int? // ID du client créateur
+  createdAt       DateTime    @default(now())
+  institutionId   String
+  institution     institution @relation(fields: [institutionId], references: [id])
+  //customer        customer    @relation(fields: [customerCreatorId], references: [id])
+  //user            user        @relation(fields: [userCreatorId], references: [id])
+  invoice         saleInvoice @relation(fields: [invoiceId], references: [id])
+  product         product     @relation(fields: [productId], references: [id])
+}
+
+model claimResponse {
+  id              String      @id @default(uuid())
+  claimId         String      @unique
+  status          String      @default("PENDING") // ACCEPTED, REJECTED, PENDING
+  description     String?
+  createdAt       DateTime    @default(now())
+  claim           claim       @relation(fields: [claimId], references: [id])
+}
+
+model credit {
+  id              String      @id @default(uuid())
+  customerId      Int
+  amount          Float
+  usedAmount      Float       @default(0)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  customer        customer    @relation(fields: [customerId], references: [id])
+
+}
+
+
 model customer {
   id              Int         @id @default(autoincrement())
   customId        String          @unique
@@ -116,7 +150,10 @@ model customer {
   created_at      DateTime      @default(now())
   updated_at      DateTime?      @updatedAt
   saleInvoice     saleInvoice[]
-  //saleInvoice     saleInvoice[]
+  credits         credit[]
+  claims    claim[]
+
+  
 }
 
 /*model CustomerCounter {
@@ -162,6 +199,8 @@ model institution {
   slug      String    @unique
   products  product[]
   saleInvoice  saleInvoice[]
+  appSetting   appSetting[]
+  claims    claim[]
 }
 
 model product {
@@ -186,6 +225,7 @@ model product {
   sku                          String?        @unique
   reorder_quantity             Int?
   saleItem                     saleItem[]
+  claims                       claim[]
 }
 
 model ProductCounter {
@@ -209,6 +249,8 @@ model saleInvoice {
   totalAmount     Float
   discount        Float
   finalAmount     Float
+  paidAmount      Float   @default(0) // Montant déjà payé
+  dueAmount       Float   
   profit          Float   @default(0)
   paymentStatus   String      @default("PENDING") // PENDING, PAID, PARTIAL
   paymentMethod   String?     // CASH, CARD, TRANSFER
@@ -220,6 +262,7 @@ model saleInvoice {
   user            user        @relation(fields: [userId], references: [id])
   institution     institution @relation(fields: [institutionId], references: [id])
   items           saleItem[]
+  claims          claim[]
 }
 
 model saleItem {
@@ -232,6 +275,19 @@ model saleItem {
 
   invoice         saleInvoice @relation(fields: [invoiceId], references: [id])
   product         product     @relation(fields: [productId], references: [id])
+}
+
+model appSetting {
+  id           Int    @id @default(autoincrement())
+  company_name String
+  tag_line     String
+  address      String
+  phone        String
+  email        String
+  website      String
+  footer       String
+  institutionId   String
+  institution     institution    @relation(fields: [institutionId], references: [id])
 }
 
 /*
@@ -494,7 +550,7 @@ model user {
   saleInvoice        saleInvoice[]
   //salePromise        salePromise[]
   department         department?          @relation(fields: [departmentId], references: [id])
-   
+  claims    claim[]
 }
 
 

@@ -37,7 +37,8 @@ const permissions = [
   "create-department",
   "readAll-department",
   "delete-department",
-  "update-sale"
+  "update-sale",
+  "create-sale"
 ];
 
 const roles = ["admin", "staff", "manager", "Particulier"];
@@ -160,11 +161,13 @@ async function main() {
 
   // Ces fichiers seront traités séparément plus bas
   const orderedFileNames = [
-    "customer.json",
-    "institution.json",
-    "product.json", // on gère ce fichier à part
-    "department.json",
-    "designation.json",
+    
+     "customer.json",
+     "institution.json",
+     "appSetting.json",
+     "product.json", // on gère ce fichier à part
+     "department.json",
+     "designation.json",
   ];
 
   // Suppression des anciennes données

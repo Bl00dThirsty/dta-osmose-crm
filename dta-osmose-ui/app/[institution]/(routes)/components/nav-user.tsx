@@ -29,6 +29,10 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import {
+  User,
+  
+} from "lucide-react";
 
 import { useAuth } from "@/app/[institution]/(auth)/sign-in/context/authContext"; // Import du contexte Auth
 
@@ -42,8 +46,9 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar();
+  const userName = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
   const { logout } = useAuth(); // Appel de la fonction logout depuis le contexte
-
+ 
   const handleLogout = async () => {
     try {
       await logout(); // Appel de la fonction logout
@@ -66,7 +71,7 @@ export function NavUser({
                 <AvatarFallback className="rounded-lg">JD</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
+                <span className="truncate font-medium">{userName}</span>
                 <span className="truncate text-xs">{user.email}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />

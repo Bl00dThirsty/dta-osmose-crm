@@ -115,8 +115,8 @@ export default function RegisterComponent() {
               { label: "Nom", name: "lastName" },
               { label: "Nom d'utilisateur", name: "userName" },
               { label: "Mot de passe", name: "password", type: "password" },
-              { label: "Email", name: "email", type: "email" },
-              { label: "Téléphone", name: "phone" },
+              { label: "Email 📩", name: "email", type: "email" },
+              { label: "Téléphone 📞", name: "phone" },
               { label: "Adresse", name: "street" },
               { label: "Ville", name: "city" },
               { label: "Code postal", name: "zipCode" },
@@ -126,7 +126,7 @@ export default function RegisterComponent() {
               { label: "Matricule CNPS", name: "CnpsId" }, 
             //   { label: "Groupe sanguin", name: "bloodGroup" },
               //{ label: "Lien vers l'image", name: "image" },
-              { label: "Salaire", name: "salary", type: "number" },
+              { label: "Salaire 💰", name: "salary", type: "number" },
             //   { label: "ID Poste", name: "designationId", type: "number" }, 
               { label: "Numero à contacter en cas d'urgence", name: "emergencyPhone1" },
               { label: "Nom de la personne", name: "emergencyname1"},
@@ -139,6 +139,7 @@ export default function RegisterComponent() {
                   type={type}
                   value={formValues[name as keyof typeof formValues] || ""}
                   onChange={handleChange}
+                  className="mt-2"
                 />
               </div>
             ))}
@@ -148,7 +149,7 @@ export default function RegisterComponent() {
               <Label htmlFor="gender">Sexe</Label>
               <select
                 name="gender"
-                className="w-full border rounded-md p-2"
+                className="w-full border rounded-md p-2 mt-2"
                 value={formValues.gender}
                 onChange={handleChange}
               >
@@ -176,7 +177,7 @@ export default function RegisterComponent() {
                <Label htmlFor="role">Rôle</Label>
                <select
                    name="role"
-                   className="w-full border rounded-md p-2"
+                   className="w-full border rounded-md p-2 mt-2"
                    value={formValues.role}
                    onChange={handleChange}
                 >
@@ -192,7 +193,7 @@ export default function RegisterComponent() {
                <Label htmlFor="departmentId">Département</Label>
                  <select
                     name="departmentId"
-                    className="w-full border rounded-md p-2"
+                    className="w-full border rounded-md p-2 mt-2"
                     value={formValues.departmentId}
                     onChange={handleChange}
                 >
@@ -207,7 +208,7 @@ export default function RegisterComponent() {
                 <Label htmlFor="designationId">Poste</Label>
                <select
                 name="designationId"
-                className="w-full border rounded-md p-2"
+                className="w-full border rounded-md p-2 mt-2"
                 value={formValues.designationId}
                 onChange={handleChange}
                >
@@ -219,10 +220,10 @@ export default function RegisterComponent() {
            </div>
 
             <div>
-              <Label htmlFor="bloodGroup">Groupe Sanguin</Label>
+              <Label htmlFor="bloodGroup">Groupe Sanguin🩸</Label>
               <select
                 name="bloodGroup"
-                className="w-full border rounded-md p-2"
+                className="w-full border rounded-md p-2 mt-2"
                 value={formValues.bloodGroup}
                 onChange={handleChange}
               >
@@ -238,8 +239,8 @@ export default function RegisterComponent() {
               </select>
             </div>
           </CardContent>
-          <CardFooter className="flex justify-end">
-            <Button type="submit" disabled={isSubmitting}>
+          <CardFooter className="flex justify-center mt-5 mb-2 ">
+            <Button type="submit" disabled={isSubmitting} className="bg-blue-500 text-white p-5">
               {isSubmitting ? "Création en cours..." : "Créer le compte"}
             </Button>
           </CardFooter>
