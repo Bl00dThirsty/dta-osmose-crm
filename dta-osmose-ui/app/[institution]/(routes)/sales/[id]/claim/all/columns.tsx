@@ -45,7 +45,7 @@ export const columns: ColumnDef<Claim>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="N°" />
     ),
-    cell: ({ row }) => <div className="w-[180px]">{row.getValue("id")}</div>,
+    cell: ({ row }) => <div className="w-[120px] truncate whitespace-nowrap overflow-hidden text-ellipsis">{row.getValue("id")}</div>,
   },
   {
     accessorKey: "createdAt",
@@ -96,6 +96,43 @@ export const columns: ColumnDef<Claim>[] = [
       <DataTableColumnHeader column={column} title="Nature de la Réclamation" />
     ),
     cell: ({ row }) => <div className="w-[80px]">{row.getValue("reason")}</div>,
+  },
+
+  {
+    accessorKey: "response",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Réponse" />
+    ),
+    cell: ({ row }) => {
+      const response = row.original.response?.status as 
+        | 'ACCEPTED' 
+        | 'REJECTED' 
+        | 'PENDING' 
+        | undefined;
+      
+      const getStatusConfig = (status: typeof response) => {
+        switch (status) {
+          case 'ACCEPTED':
+            return { className: 'bg-green-500', label: 'ACCEPTÉ' };
+          case 'REJECTED':
+            return { className: 'bg-red-500', label: 'REJETÉ' };
+          default:
+            return { className: 'bg-yellow-500', label: 'EN ATTENTE' };
+        }
+      };
+      
+      const { className, label } = getStatusConfig(response);
+  
+      return (
+        <Button
+          className={`px-2 py-1 rounded text-white ${className}`}
+          size="sm"
+          variant="outline"
+        >
+          {label}
+        </Button>
+      );
+    },
   },
  
   {

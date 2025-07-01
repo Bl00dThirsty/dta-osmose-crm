@@ -23,28 +23,29 @@ export const login = async (
         where: { email }
       });
   
-      //let userType = "user";
+      let userType = "user";
   
       // Si pas trouvé, cherche dans les clients
-    //   if (!user) {
-    //     user = await prisma.customer.findUnique({
-    //       where: { email }
-    //     });
-    //     userType = "customer";
-    //   }
-  
       if (!user) {
-        res.status(400).json({ message: "Email or password is incorrect" });
-        return;
+        user = await prisma.customer.findUnique({
+          where: { email }
+        });
+        userType = "customer";
       }
+  
+      // if (!user) {
+      //   res.status(400).json({ message: "Email or password is incorrect" });
+      //   return;
+      // }
   
       // Vérification du mot de passe
-      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (user && bcrypt.compareSync(password, user.password)){
+      // const isPasswordValid = await bcrypt.compare(password, user.password);
   
-      if (!isPasswordValid) {
-        res.status(400).json({ message: "Email or password is incorrect" });
-        return;
-      }
+      // if (!isPasswordValid) {
+      //   res.status(400).json({ message: "Email or password is incorrect" });
+      //   return;
+      // }
       
       let permissions = [];
       if (user.role) {
@@ -69,8 +70,8 @@ export const login = async (
           sub: user.id,
           email: user.email,
           permissions,
-          role: user.role
-          //userType
+          role: user.role,
+          userType: userType
         },
         secret,
         { expiresIn: "24h" }
@@ -83,7 +84,11 @@ export const login = async (
         ...userWithoutPassword,
         accessToken
       });
-    
+    }else{
+      res
+        .status(400)
+        .json({ message: "Email or password is incorrect" });
+    }
   
     } catch (error) {
       console.error("Login error:", error);
@@ -177,6 +182,50 @@ export const register = async (
     } catch (error) {
       console.error("Erreur de déconnexion :", error);
       res.status(500).json({ message: "Erreur lors de la déconnexion." });
+    }
+  };
+
+  export const refreshToken = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const token = req.headers.authorization?.split(" ")[1];
+  
+      if (!token) {
+         res.status(401).json({ message: "Token manquant" });
+      }
+  
+      // Vérifie que l'ancien token est encore valide (grâce à `ignoreExpiration: true`)
+      const decoded: any = jwt.verify(token, secret, { ignoreExpiration: true });
+  
+      // Tu peux aussi vérifier dans ta DB si l'utilisateur existe toujours
+      let user = await prisma.user.findUnique({ where: { id: decoded.sub } });
+  
+      let userType = "user";
+  
+      if (!user) {
+        user = await prisma.customer.findUnique({ where: { id: decoded.sub } });
+        userType = "customer";
+      }
+  
+      if (!user) {
+         res.status(401).json({ message: "Utilisateur introuvable" });
+      }
+  
+      const newToken = jwt.sign(
+        {
+          sub: user.id,
+          email: user.email,
+          role: user.role,
+          permissions: decoded.permissions || [],
+          userType,
+        },
+        secret,
+        { expiresIn: "24h" }
+      );
+  
+      res.json({ accessToken: newToken });
+    } catch (err) {
+      console.error("Erreur refresh token :", err);
+      res.status(401).json({ message: "Token invalide ou expiré" });
     }
   };
 

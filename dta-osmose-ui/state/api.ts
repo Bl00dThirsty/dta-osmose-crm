@@ -103,8 +103,9 @@ export interface SaleInvoice{
   id: string;     
   invoiceNumber?:   string ;     
   customerId :     number;
-  userId:          number;
-  institutionId?:   String;
+  userId?:          number;
+  customerCreatorId?: number;
+  institutionId?:   string;
   totalAmount :    number;
   discount:        number;
   finalAmount?:     number;
@@ -141,8 +142,9 @@ export interface SaleInvoice{
 export interface NewSaleInvoice{      
   invoiceNumber?:   string ;     
   customerId? :     number;
-  userId:          number;
-  institutionId?:   String;
+  userId?:          number;
+  customerCreatorId?: number;
+  institutionId?:   string;
   totalAmount :    number;
   discount:        number;
   finalAmount:     number;
@@ -188,9 +190,11 @@ export interface Customer {
   id:number;
   customId: string;
   name: string;
+  userName: string;
   phone: string;
   nameresponsable?: string;
   email: string;
+  password: string;
   ville?: string;
   website?: string;
   status?: boolean;
@@ -205,9 +209,11 @@ export interface Customer {
 export interface NewCustomer {
   customId: string;
   name: string;
+  userName: string;
   phone: string;
   nameresponsable?: string;
   email: string;
+  password: string;
   ville?: string;
   website?: string;
   status?: boolean;
@@ -299,6 +305,13 @@ export interface DashboardMetrics {
       date: string;
       amount: number;
     }>;
+    customerStats?: {
+      totalAchats: number;
+      nombreCommandes: number;
+      avoirDisponible: number;
+      nombreCommandesImpaye: number;
+    };
+    
     
 }
 
@@ -349,7 +362,8 @@ export const api = createApi({
         
         createSale: build.mutation<SaleInvoice, { 
           customerId: number;
-          userId: number;
+          userId?: number;
+          customerCreatorId?: number;
           items: Array<{
           productId: string;
           quantity: number;
@@ -366,6 +380,10 @@ export const api = createApi({
           }),
           invalidatesTags: ['Sales', 'Products']
         }),
+
+        getCustomerDebtStatus: build.query<{ hasDebt: boolean }, number>({
+          query: (customerId) => `/sale/${customerId}/debt-status`,
+        }),        
 
         getSales: build.query<SaleInvoice[], { institution: string, startDate?: string; endDate?: string }>({
           query: ({institution, startDate, endDate}) => {
@@ -406,7 +424,6 @@ export const api = createApi({
         invalidatesTags: (result, error, { id }) => [{ type: 'Sales', id }]
       }),
       
-
        deleteSaleInvoice: build.mutation<void, string>({
         query: (id) => ({
           url: `/sale/${id}`, 
@@ -437,6 +454,19 @@ export const api = createApi({
           body: data,
         }),
         invalidatesTags: (result, error, { claimId }) => [{ type: 'Claims', id: claimId }],
+      }),
+
+      updateClaimResponse: build.mutation<ClaimResponse, {
+        responseId: string;
+        status: 'ACCEPTED' | 'REJECTED';
+        description?: string;
+      }>({
+        query: ({ responseId, ...data }) => ({
+          url: `/claim/response/${responseId}`,
+          method: "PUT",
+          body: data,
+        }),
+        invalidatesTags: (result, error, { responseId }) => [{ type: 'Claims' }], // tu peux affiner ici selon le contexte
       }),
       
       getClaim: build.query<Claim[], { institution: string, startDate?: string; endDate?: string }>({
@@ -586,9 +616,9 @@ export const api = createApi({
     }),
 });
 
-export const { useGetDashboardMetricsQuery, useGetProductsQuery, useCreateProductMutation, useGetProductByIdQuery, useCreateSaleMutation, useGetSalesQuery,
+export const { useGetDashboardMetricsQuery, useGetProductsQuery, useCreateProductMutation, useGetProductByIdQuery, useCreateSaleMutation, useGetCustomerDebtStatusQuery, useGetSalesQuery,
     useGetSaleByIdQuery,useUpdateSaleStatusMutation, useUpdateSalePaymentMutation, useDeleteSaleInvoiceMutation, useCreateClaimMutation, 
-    useRespondToClaimMutation, useGetClaimQuery, useGetClaimByIdQuery, useDeleteClaimMutation, useGetDepartmentsQuery,
+    useRespondToClaimMutation, useUpdateClaimResponseMutation, useGetClaimQuery, useGetClaimByIdQuery, useDeleteClaimMutation, useGetDepartmentsQuery,
     useGetDesignationsQuery, useCreateDesignationsMutation, useDeleteDesignationMutation,useGetRolesQuery, useCreateRolesMutation, 
     useDeleteRoleMutation, useGetUsersQuery, useGetUserByIdQuery, useDeleteUserMutation,  useGetCustomersQuery, useCreateCustomersMutation,
     useGetCustomerByIdQuery, useDeleteCustomerMutation, useGetSettingsQuery, useUpdateSettingsMutation} = api;

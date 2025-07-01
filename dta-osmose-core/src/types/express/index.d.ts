@@ -4,6 +4,7 @@ interface JwtUserPayload extends JwtPayload {
   sub: number;
     role: string;
     permissions: string[];
+    userType: "user" | "customer";
     email?: string;
   }
   

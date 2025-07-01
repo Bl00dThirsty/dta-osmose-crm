@@ -6,7 +6,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useState } from "react"
 import PrintUserSheet from "./Facture"
 import { Row } from "@tanstack/react-table"
-import { useRespondToClaimMutation, useDeleteClaimMutation } from '@/state/api';
+import { useRespondToClaimMutation, useDeleteClaimMutation, useUpdateClaimResponseMutation } from '@/state/api';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import Container from "../../components/ui/Container";
 import { toast } from "react-toastify";
@@ -34,11 +34,12 @@ const InvoicePage = () => {
   const { institution } = useParams<{ institution: string }>();
   const [openDelete, setOpenDelete] = useState(false);
   const [openResponse, setOpenResponse] = useState(false);
+  const [openResponseUpdate, setOpenResponseUpdate] = useState(false);
   //console.log('Institution from params:', institution);
   //const { id } = (row.original as any);
   const [responseDesc, setResponseDesc] = useState("");
   const [respondToClaim] = useRespondToClaimMutation();
-
+  const [updateClaimResponse] = useUpdateClaimResponseMutation();
   const [deleteClaim] = useDeleteClaimMutation()
   
   const { data: claim, isLoading, refetch } = useGetClaimByIdQuery(id);
@@ -76,6 +77,22 @@ const InvoicePage = () => {
   const handleGoBack = () => {
     router.back();
   };
+
+  const handleUpdate = async (status: 'ACCEPTED' | 'REJECTED') => {
+    try {
+      await updateClaimResponse({
+        responseId: claim!.response!.id,
+        status,
+        description: responseDesc
+      }).unwrap();
+  
+      toast.success("Réponse mise à jour !");
+      setOpenResponseUpdate(false);
+      await refetch();
+    } catch (err) {
+      toast.error("Erreur lors de la mise à jour");
+    }
+  };
   
  
   if (isLoading) return <div>Chargement...</div>;
@@ -106,7 +123,8 @@ const InvoicePage = () => {
              <button  
                 onClick={() => {
                     if (claim.response?.status === 'ACCEPTED' || claim.response?.status === 'REJECTED') {
-                      alert("Cette réclamation a déjà eu une réponse (statut: " + claim.response?.status + "), il n'est plus possible de Repondre.");
+                        setResponseDesc(claim.response?.description || "");
+                        setOpenResponseUpdate(true)
                     } else {setOpenResponse(true)}
                 }}
                 className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-500 disabled:bg-green-400"
@@ -215,6 +233,38 @@ const InvoicePage = () => {
         <button
           className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-200"
           onClick={() => handleRespond('ACCEPTED')}
+        >
+          Accepter
+        </button>
+      </div>
+    </div>
+  </DialogContent>
+</Dialog>
+
+<Dialog open={openResponseUpdate} onOpenChange={setOpenResponseUpdate}>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Modifier la Réponse à la réclamation</DialogTitle>
+      <DialogDescription>Modifier le statut et la description</DialogDescription>
+    </DialogHeader>
+
+    <div className="flex flex-col gap-4">
+      <textarea
+        className="border rounded p-2"
+        placeholder="Description..."
+        value={responseDesc}
+        onChange={(e) => setResponseDesc(e.target.value)}
+      />
+      <div className="flex justify-end gap-3">
+        <button
+          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-200"
+          onClick={() => handleUpdate('REJECTED')}
+        >
+          Refuser
+        </button>
+        <button
+          className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-200"
+          onClick={() => handleUpdate('ACCEPTED')}
         >
           Accepter
         </button>
