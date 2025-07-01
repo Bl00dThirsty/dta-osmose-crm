@@ -1,7 +1,9 @@
 import { Request, Response } from "express";
 const { PrismaClient } = require("@prisma/client");
 import { v4 as uuidv4 } from 'uuid';
-
+const bcrypt = require("bcrypt");
+const saltRounds = 10;
+const jwt = require("jsonwebtoken");
 const prisma = new PrismaClient();
 
 export const getCustomers = async (
@@ -26,49 +28,42 @@ export const getCustomers = async (
   export const createCustomer = async (req: Request, res: Response): Promise<void> => {
     // 1. Log du payload reçu
     console.log("Received payload:", req.body);
-
-    // 2. Nettoyage des données
-    const payload = {
-        ...req.body,
-        id: undefined, // Force l'utilisation de l'UUID auto-généré
-        created_at: undefined,
-        updated_at: undefined
-    };
-
     try {
+    // 2. Nettoyage des données
+    
+    const hash = await bcrypt.hash(req.body.password, saltRounds);
+    const payload = {
+      ...req.body,
+      //id: uuidv4(),
+      password: hash, // Force l'utilisation de l'UUID auto-généré
+      created_at: undefined,
+      updated_at: undefined
+    };
         // 3. Création avec gestion explicite des erreurs Prisma
         const customer = await prisma.customer.create({
-            data: {
-                id: uuidv4(), // Génération UUID
-                ...payload
-            }
+          data: payload
         });
 
-        res.status(201).json(customer);
-    } catch (error) {
+        const { password: _pw, ...customerWithoutPassword } = customer;
+        res.status(201).json(customerWithoutPassword);
+      } catch (error: any) {
         console.error("Full error stack:", error);
-        
-        // Gestion spécifique des erreurs Prisma
+      
         if (error instanceof prisma.PrismaClientKnownRequestError) {
-            if (error === 'P2002') {
-                res.status(400).json({
-                    error: "Violation de contrainte unique",
-                    field: error
-                });
-            }
-            if (error === 'P2023') {
-                res.status(400).json({
-                    error: "Format de données invalide",
-                    details: error
-                });
-            }
+          if (error.code === 'P2002') {
+            res.status(400).json({
+              error: "Violation de contrainte unique",
+              field: error.meta?.target
+            });
+            return;
+          }
         }
-
+      
         res.status(500).json({
-            error: "Erreur serveur",
-            details: process.env.NODE_ENV !== 'production' ? error : undefined
+          error: "Erreur serveur",
+          details: process.env.NODE_ENV !== 'production' ? error.message : undefined
         });
-    }
+      }
 };
 
 // src/controllers/customerController.ts

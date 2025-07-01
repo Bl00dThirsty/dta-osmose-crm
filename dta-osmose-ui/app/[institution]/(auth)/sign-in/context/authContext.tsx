@@ -13,6 +13,7 @@ interface User {
   id: string;
   email: string;
   role: string;
+  userType: "user" | "customer";
 }
 
 interface RegisterValues {
@@ -90,12 +91,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const originalRequest = error.config;
       
       // Si l'erreur est 401 et que ce n'est pas une requête de refresh token
-      if (error.response?.status === 401 && !originalRequest._retry && 
-          originalRequest.url !== '/auth/refresh-token') {
+      if (error.response?.status === 401 && !originalRequest._retry && originalRequest.url !== '/auth/refresh-token') {
         originalRequest._retry = true;
         
         try {
           // Tenter de rafraîchir le token
+          //
           const { data } = await api.post('/auth/refresh-token');
           localStorage.setItem('accessToken', data.accessToken);
           
@@ -106,7 +107,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           // Si le refresh échoue, déconnecter l'utilisateur
           setUser(null);
           localStorage.removeItem('accessToken');
-          router.push('/login');
+          router.push('/');
           return Promise.reject(refreshError);
         }
       }
@@ -150,6 +151,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       localStorage.setItem('user', userData.userName);
       localStorage.setItem('id', userData.id);
       localStorage.setItem('role', userData.role);
+      localStorage.setItem('userType', userData.userType);
 
   
       // Mise à jour du contexte utilisateur

@@ -19,9 +19,11 @@ import { useParams } from "next/navigation"
 type CustomerFormData = {
     customId: string;
     name: string;
+    userName: string;
     phone: string;
     nameresponsable?: string;
     email: string;
+    password: string;
     ville?: string;
     website: string;
     status?: boolean;
@@ -41,9 +43,11 @@ export const AddCustomerDialog = ({ onCreate }: AddCustomerDialogProps) => {
     const [formData, setFormData] = useState({
       customId: "",
       name: "",
+      userName: "",
       phone: "",
       nameresponsable: "",
       email: "",
+      password: "",
       ville: "",
       website: "",
       type_customer: "",
@@ -56,9 +60,11 @@ export const AddCustomerDialog = ({ onCreate }: AddCustomerDialogProps) => {
       setFormData({
           customId: "",
           name: "",
+          userName: "",
           phone: "",
           nameresponsable: "",
           email: "",
+          password: "",
           ville: "",
           website: "",
           type_customer: "",
@@ -133,9 +139,11 @@ export const AddCustomerDialog = ({ onCreate }: AddCustomerDialogProps) => {
             {/* Autres champs */}
             {[
               { label: "Désignation", name: "name" },
-              { label: "Téléphone", name: "phone" },
-              { label: "Nom du responsable", name: "nameresponsable" },
               { label: "Email", name: "email" },
+              { label: "Téléphone", name: "phone" },
+              { label: "Mot de passe", name: "password", type: "password" },
+              { label: "Nom d'utilisateur", name: "userName" },
+              { label: "Nom du responsable", name: "nameresponsable" },              
               { label: "Ville", name: "ville" },
               { label: "Site web", name: "website" },
               { label: "Quartier", name: "quarter" },
@@ -159,7 +167,7 @@ export const AddCustomerDialog = ({ onCreate }: AddCustomerDialogProps) => {
               <Label htmlFor="type_customer">Type de client</Label>
               <select
                 name="type_customer"
-                className="w-full border rounded-md p-2"
+                className="w-full border rounded-md p-2 mt-2"
                 value={formData.type_customer}
                 onChange={handleChange}
               >
@@ -175,7 +183,7 @@ export const AddCustomerDialog = ({ onCreate }: AddCustomerDialogProps) => {
               <Label htmlFor="role">Rôle</Label>
               <select
                 name="role"
-                className="w-full border rounded-md p-2"
+                className="w-full border rounded-md p-2 mt-2"
                 value={formData.role}
                 onChange={handleChange}
               >
