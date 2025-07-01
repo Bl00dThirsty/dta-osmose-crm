@@ -9,7 +9,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import cookieParser from 'cookie-parser';
 const { PrismaClient } = require("@prisma/client");
-import { errorHandler } from '../src/error/errorHandler';
+import { errorHandler } from './error/errorHandler';
 import dashboardRoutes from './routes/dashboardRoutes';
 import productRoutes from './routes/productRoutes';
 import AuthRoutes from './routes/AuthRoutes';
