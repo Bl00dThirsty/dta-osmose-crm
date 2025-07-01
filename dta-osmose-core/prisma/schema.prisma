@@ -162,6 +162,8 @@ model customer {
   //claims    claim[]
 
   
+
+  claim claim[]
 }
 
 /*model CustomerCounter {
@@ -561,6 +563,8 @@ model user {
   //salePromise        salePromise[]
   department         department?          @relation(fields: [departmentId], references: [id])
   //claims    claim[]
+
+  claim claim[]
 }
 
 
