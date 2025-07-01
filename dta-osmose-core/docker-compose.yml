@@ -1,13 +1,28 @@
+version: '3.9'
+
 services:
   postgres:
     image: postgres:10.3
     restart: always
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=admin
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
     volumes:
-      - postgres:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     ports:
       - '5432:5432'
+
+  backend:
+    build:
+      context: ./dta-osmose-core
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - '5003:5003'
+    environment:
+      DATABASE_URL: "postgresql://postgres:admin@postgres:5432/ibacameroon?schema=public"
+    depends_on:
+      - postgres
+
 volumes:
-  postgres:
+  postgres_data:

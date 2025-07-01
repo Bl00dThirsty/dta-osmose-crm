@@ -1,20 +1,23 @@
-# Ici on va utiliser un moteur d'exécution officiel de node.js en tant que image parent
+# Utilisation de l'image officielle Node.js Alpine
 FROM node:22-alpine
 
-# Initialiser le répertoire de travail dans le conteneurrrr..........
+# Création du dossier de travail
 WORKDIR /app
 
-# Copier package.json et package-lock.json dans le conteneur
-COPY package*.json .
+# Copie des fichiers de dépendances
+COPY package*.json ./
 
-# Installation des dépendances (le but principal de notre utilisation de docker dans ce projet)...
+# Installation des dépendances
 RUN npm install
 
-# Copie du reste de l'application
+# Copie du reste de l'application dans le conteneur
 COPY . .
 
-# Port surlequel tourne notre app
+# Compilation TypeScript en JavaScript
+RUN npm run build
+
+# Exposition du port de l’application
 EXPOSE 5003
 
-# Commande pour démarrer l'appli...
-CMD ["node", "./src/server.js"]
+# Démarrage de l'application (version compilée dans le dossier `dist`)
+CMD ["npm", "start"]
