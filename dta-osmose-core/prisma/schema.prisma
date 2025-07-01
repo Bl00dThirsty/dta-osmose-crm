@@ -109,6 +109,10 @@ model claim {
   //user            user        @relation(fields: [userCreatorId], references: [id])
   invoice         saleInvoice @relation(fields: [invoiceId], references: [id])
   product         product     @relation(fields: [productId], references: [id])
+
+  customer customer[]
+
+  user user[]
 }
 
 model claimResponse {
