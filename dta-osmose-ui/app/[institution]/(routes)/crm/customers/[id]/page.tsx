@@ -65,6 +65,7 @@ export default function DetailCustomerPage() {
         <p><strong>Vos avoirs :</strong> {totalAvailableCredit?.toFixed(2) || 0} FCFA</p>
         </div>
         <div>
+        <p className="mb-2"><strong>Nom d'utilisateur :</strong> {customer.userName || "Aucun"}</p>
         <p className="mb-2"><strong>Role :</strong> {customer.role}</p>
         <p className="mb-2"><strong>Région :</strong> {customer.region}</p>
         <p className="mb-2"><strong>Ville :</strong> {customer.ville}</p>

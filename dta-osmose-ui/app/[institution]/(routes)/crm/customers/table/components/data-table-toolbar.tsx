@@ -19,9 +19,11 @@ import { useState } from "react"
 type CustomerFormData = {
   customId: string;
   name: string;
+  userName: string;
   phone: string;
   nameresponsable?: string;
   email: string;
+  password: string;
   ville?: string;
   website: string;
   status?: boolean;
@@ -59,10 +61,10 @@ export function DataTableToolbar<TData>({
           }
           className="h-8 w-[150px] lg:w-[250px]"
         />
-        {table.getColumn("type_customer") && (
+        {table.getColumn("customId") && (
           <DataTableFacetedFilter
-            column={table.getColumn("type_customer")}
-            title="type du client"
+            column={table.getColumn("customId")}
+            title="ID du client"
             options={statuses}
           />
         )}

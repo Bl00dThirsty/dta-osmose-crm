@@ -137,8 +137,10 @@ model customer {
   id              Int         @id @default(autoincrement())
   customId        String          @unique
   name            String
+  userName        String?               @unique
   phone           String        @unique
   email           String        @unique
+  password        String?    
   ville           String?
   nameresponsable String?
   quarter         String?
@@ -149,9 +151,11 @@ model customer {
   website         String?
   created_at      DateTime      @default(now())
   updated_at      DateTime?      @updatedAt
-  saleInvoice     saleInvoice[]
+  //saleInvoice     saleInvoice[]
+  saleInvoice         saleInvoice[]  @relation(name: "CustomerSaleInvoice")
+  creatorSaleInvoices saleInvoice[]  @relation(name: "CustomerCreatorSaleInvoice")
   credits         credit[]
-  claims    claim[]
+  //claims    claim[]
 
   
 }
@@ -244,8 +248,9 @@ model saleInvoice {
   id              String      @id @default(uuid())
   invoiceNumber   String      @unique
   customerId      Int
-  userId          Int
+  userId          Int?
   institutionId   String
+  customerCreatorId  Int? // ID du client créateur
   totalAmount     Float
   discount        Float
   finalAmount     Float
@@ -258,8 +263,9 @@ model saleInvoice {
   updatedAt       DateTime    @updatedAt
   delivred        Boolean              @default(false)
   ready           Boolean              @default(false)
-  customer        customer    @relation(fields: [customerId], references: [id])
-  user            user        @relation(fields: [userId], references: [id])
+  customer        customer    @relation(name: "CustomerSaleInvoice", fields: [customerId], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "CustomerSaleInvoiceRelation")
+  customerCreator    customer?      @relation(name: "CustomerCreatorSaleInvoice", fields: [customerCreatorId], references: [id], map: "CustomerCreatorSaleInvoiceRelation")
+  user            user?        @relation(fields: [userId], references: [id])
   institution     institution @relation(fields: [institutionId], references: [id])
   items           saleItem[]
   claims          claim[]
@@ -550,7 +556,7 @@ model user {
   saleInvoice        saleInvoice[]
   //salePromise        salePromise[]
   department         department?          @relation(fields: [departmentId], references: [id])
-  claims    claim[]
+  //claims    claim[]
 }
 
 

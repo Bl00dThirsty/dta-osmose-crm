@@ -191,6 +191,83 @@ export const createClaims = async (
     }
   };
 
+  export const updateClaimResponse = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { responseId } = req.params;
+      const { status, description } = req.body;
+  
+      // 1. Vérifier que la réponse existe
+      const existingResponse = await prisma.claimResponse.findUnique({
+        where: { id: responseId },
+        include: {
+          claim: {
+            include: {
+              invoice: {
+                include: { customer: true }
+              }
+            }
+          }
+        }
+      });
+  
+      if (!existingResponse) {
+        res.status(404).json({ message: "Réponse introuvable." });
+        return;
+      }
+  
+      const claim = existingResponse.claim;
+  
+      // 2. Vérifier si un crédit existe pour cette réclamation (par montant équivalent et client)
+      const credit = await prisma.credit.findFirst({
+        where: {
+          customerId: claim.invoice.customerId,
+          amount: claim.totalAmount
+        }
+      });
+  
+      // 3. Si un crédit existe et a été utilisé, on empêche la modification
+      if (credit && credit.usedAmount > 0) {
+        res.status(400).json({
+          message: "La réponse ne peut pas être modifiée car le crédit a déjà été utilisé."
+        });
+        return;
+      }
+  
+      // 4. Mettre à jour la réponse
+      const updatedResponse = await prisma.claimResponse.update({
+        where: { id: responseId },
+        data: {
+          status,
+          description
+        }
+      });
+  
+      // 5. Si le statut est devenu ACCEPTED, s'assurer qu'un crédit existe
+      if (status === "ACCEPTED" && !credit) {
+        await prisma.credit.create({
+          data: {
+            customerId: claim.invoice.customerId,
+            amount: claim.totalAmount,
+            usedAmount: 0
+          }
+        });
+      }
+  
+      // 6. Si le statut devient autre que ACCEPTED et un crédit existe → le supprimer (optionnel selon logique)
+      if (status !== "ACCEPTED" && credit) {
+        await prisma.credit.delete({
+          where: { id: credit.id }
+        });
+      }
+  
+      res.status(200).json(updatedResponse);
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour de la réponse :", error);
+      res.status(500).json({ message: "Erreur interne du serveur." });
+    }
+  };
+  
+
   export const deleteSingleClaim = async (
     req: Request,
     res: Response

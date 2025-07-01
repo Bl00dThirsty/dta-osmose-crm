@@ -7,6 +7,7 @@ export const getDashboardMetrics = async (
     req: Request,
     res: Response
   ): Promise<void> => {
+    
     try {
       const { startDate, endDate } = req.query;
       // Version optimisée dans dashboardController.ts
@@ -153,7 +154,46 @@ export const getDashboardMetrics = async (
       });
       
       const totalAvailableCredit = (totalCredits._sum.amount || 0) - (totalCredits._sum.usedAmount || 0);
+
+      let customerStats = null;
       
+      if (req.auth?.role === "Particulier") {
+        const customerId = Number(req.auth.sub);
+        console.log("cus", customerId);
+        // Récupère toutes ses commandes
+        const commandes = await prisma.saleInvoice.findMany({
+          where: { customerId },
+        });
+        let newStatus = 'PAID';
+        const commandespaye = await prisma.saleInvoice.findMany({
+          where: { customerId,
+            paymentStatus: newStatus,
+           },
+        });
+        const totalAchats = commandes.reduce((acc:any, cmd:any) => acc + cmd.finalAmount, 0);
+        const nombreCommandes = commandes.length;
+        const nombreCommandespaye = commandespaye.length;
+        const nombreCommandesImpaye = nombreCommandes - nombreCommandespaye;
+      
+        const credit = await prisma.credit.aggregate({
+          where: {
+            customerId
+          },
+          _sum: {
+            amount: true,
+            usedAmount: true
+          }
+        });
+      
+        const avoirDisponible = (credit._sum.amount || 0) - (credit._sum.usedAmount || 0);
+      
+        customerStats = {
+          totalAchats,
+          nombreCommandes,
+          avoirDisponible,
+          nombreCommandesImpaye
+        };
+      }
           
       res.json({
             popularProducts,
@@ -161,7 +201,8 @@ export const getDashboardMetrics = async (
             saleProfitCount,
             formattedData3,
             totalUsers,
-            totalAvailableCredit
+            totalAvailableCredit,
+            customerStats,
       });
     } catch (error) {
       console.error('Dashboard error:', error);
