@@ -6,6 +6,8 @@ import { ThemeProvider } from "@/app/providers/ThemeProvider";
 import { AuthProvider } from "./[institution]/(auth)/sign-in/context/authContext";
 import store from "@/redux/store";
 import Providers from "./_providers";
+import ToastProvider from "./providers/ToastProvider";
+
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,6 +25,7 @@ export default function RootLayout({ children }: Props) {
         </Providers>
         </ThemeProvider>
         <SonnerToaster />
+        <ToastProvider />
       </body>
     </html>
   );

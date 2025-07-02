@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useGetDepartmentsQuery, useGetDesignationsQuery, useGetRolesQuery } from "@/state/api"
 import Link from "next/link";
+import { ToastContainer, toast } from 'react-toastify';
 
 export default function RegisterComponent() {
   const { register, error } = useAuth();
@@ -94,8 +95,10 @@ export default function RegisterComponent() {
 
       await register(formattedValues);
       resetForm();
+      toast.success("Utilisateur crée avec succès")
     } catch (err) {
       console.error(err);
+      toast.error("Erreur, lors de la création")
     } finally {
       setIsSubmitting(false);
     }

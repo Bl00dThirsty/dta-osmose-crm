@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import Footer from "@/app/[institution]/(routes)/components/Footer";
-
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const AuthLayout = async ({ children }: { children: React.ReactNode }) => {
   //Get github stars from github api
@@ -15,6 +16,7 @@ const AuthLayout = async ({ children }: { children: React.ReactNode }) => {
         {children}
       </div>
       <Footer />
+      <ToastContainer />
     </div>
   );
 };
