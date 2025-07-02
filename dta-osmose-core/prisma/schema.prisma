@@ -159,6 +159,8 @@ model customer {
   saleInvoice         saleInvoice[]  @relation(name: "CustomerSaleInvoice")
   creatorSaleInvoices saleInvoice[]  @relation(name: "CustomerCreatorSaleInvoice")
   credits         credit[]
+  institutionId                String?
+  institution                  institution?    @relation(fields: [institutionId], references: [id])
   //claims    claim[]
 
   
@@ -211,6 +213,7 @@ model institution {
   saleInvoice  saleInvoice[]
   appSetting   appSetting[]
   claims    claim[]
+  customer  customer[]
 }
 
 model product {
