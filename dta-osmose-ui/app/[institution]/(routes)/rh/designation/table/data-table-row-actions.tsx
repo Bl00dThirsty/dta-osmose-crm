@@ -30,6 +30,9 @@ import {
 } from "@/components/ui/dialog"
 import { useState } from "react" 
 import { useDeleteDesignationMutation } from "@/state/api"
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useParams } from "next/navigation";
 import { labels } from "@/app/[institution]/(routes)/crm/products/table/data/data"
 
 interface DataTableRowActionsProps<TData> {
@@ -41,15 +44,42 @@ export function DataTableRowActions<TData>({
 }: DataTableRowActionsProps<TData>) {
   const router = useRouter();
   const designation = row.original as any
+  const { institution } = useParams() as { institution: string }
   const [deleteDesignation] = useDeleteDesignationMutation()
   const [open, setOpen] = useState(false);
+  const showToastMessage = () => {
+    return toast.success('🦄 Designation supprimé avec succès !', {
+      position: "top-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+    });
+  };
+
+  const showErrorToast = () => {
+    return toast.error('Erreur lors de la suppression  !', {
+      position: "top-left",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+    });
+  };
 
   const handleDelete = async () => {
     try {
       await deleteDesignation(designation.id).unwrap()
       console.log("Designation supprimé avec succès")
+      showToastMessage();
+      router.push(`/${institution}/rh/designation`);
     } catch (error) {
-      console.log("Erreur lors de la suppression :")
+      console.log("Erreur lors de la suppression :");
+      showErrorToast();
     }
   }
   return (
@@ -89,6 +119,7 @@ export function DataTableRowActions<TData>({
        </DialogFooter>
      </DialogContent>
    </Dialog>
+   
    </>
 
   )

@@ -17,6 +17,7 @@ import { NewRole } from "@/state/api"
 import { PlusIcon } from "lucide-react"
 import { ChangeEvent, FormEvent, useState } from "react"
 import { v4 } from "uuid"
+import { ToastContainer, toast } from 'react-toastify';
 
 type RoleFormData = {
   name: string;
@@ -52,9 +53,11 @@ export const AddRoleDialog = ({ onCreate }: RoleFormDataDialogProps) => {
     e.preventDefault();
     onCreate(formData);
     resetForm();
+    toast.success('Notification de succès !');
   };
 
   return (
+    <>
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="outline">Ajouter <PlusIcon /></Button>
@@ -88,5 +91,7 @@ export const AddRoleDialog = ({ onCreate }: RoleFormDataDialogProps) => {
         </form>
       </DialogContent>
     </Dialog>
+    <ToastContainer />
+    </>
   )
 }

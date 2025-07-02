@@ -207,17 +207,16 @@ export const deleteRolePermission = async (
     res: Response
   ): Promise<void> => {
     try {
-        const deletedRole = await prisma.role.update({
+      const { id } = req.params;
+        const deletedRole = await prisma.role.delete({
             where: {
-              id: Number(req.params.id)
+              id: Number(id)
             },
-            data: {
-              status: req.body.status
-            }
-          });
+            
+        });
           // Récupérer les anciennes valeurs du role
           const existingRole = await prisma.role.findUnique({
-            where: { id: Number(req.params.id) }
+            where: { id: Number(id) }
           });
       
           // Vérifier si le role existe

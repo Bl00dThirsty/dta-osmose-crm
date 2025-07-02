@@ -1,5 +1,4 @@
 version: '3.9'
-
 services:
   postgres:
     image: postgres:10.3
@@ -14,7 +13,7 @@ services:
 
   backend:
     build:
-      context: ./dta-osmose-core
+      context: .
       dockerfile: Dockerfile
     restart: always
     ports:

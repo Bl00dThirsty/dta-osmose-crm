@@ -28,9 +28,11 @@ import {
   DialogDescription,
   DialogCancel,
   DialogAction,
-} from "@/components/ui/dialog"
-import { useState } from "react"
-import { useParams } from "next/navigation"
+} from "@/components/ui/dialog";
+import { useState } from "react";
+import { useParams } from "next/navigation";
+import { ToastContainer, toast } from 'react-toastify';
+
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>
@@ -48,9 +50,11 @@ export function DataTableRowActions<TData>({
     try {
       await deleteRole(roleId).unwrap()
       console.log("Designation supprimé avec succès")
+      toast.success("Vente enregistrée avec succès");
       router.push(`/${institution}/role`);
     } catch (error) {
       console.log("Erreur lors de la suppression :")
+      toast.error("Échec de l'enregistrement");
     }
   }
 
@@ -76,7 +80,7 @@ export function DataTableRowActions<TData>({
         <DropdownMenuSeparator />
       </DropdownMenuContent>
     </DropdownMenu>
-
+    <ToastContainer />
     <Dialog open={open} onOpenChange={setOpen}>
      <DialogContent>
        <DialogHeader>

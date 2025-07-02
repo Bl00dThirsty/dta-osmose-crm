@@ -1,3 +1,4 @@
+
 import RegisterComponent from "./components/signupComponent";
 
 const SignUpPage = () => {

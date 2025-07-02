@@ -5,6 +5,15 @@ const bcrypt = require("bcrypt");
 const saltRounds = 10;
 const jwt = require("jsonwebtoken");
 const prisma = new PrismaClient();
+const nodemailer = require("nodemailer");
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  }
+});
 
 export const getCustomers = async (
     req: Request,
@@ -65,6 +74,75 @@ export const getCustomers = async (
         });
       }
 };
+
+const generateResetToken = (customerId: number) => {
+  return jwt.sign({ id: customerId }, process.env.JWT_SECRET!, {
+    expiresIn: "1h"
+  });
+};
+
+export const sendTokenResetPassword = async (req: Request, res: Response): Promise<void> => {
+  const { email } = req.body;
+  const institution = req.params.institution;
+  try {
+    const customer = await prisma.customer.findUnique({ where: { email } });
+    if (!customer) {
+      res.status(404).json({ error: "Utilisateur non trouvé" });
+    }
+
+    const token = generateResetToken(customer.id);
+    const resetUrl = `${process.env.FRONTEND_URL}/${institution}/ResetPassword?token=${token}`;
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Réinitialisation de votre mot de passe",
+      html: `
+        <h3>Réinitialisation de votre mot de passe</h3>
+        <p>Bonjour ${customer.name},</p>
+        <p>Veuillez cliquer sur ce lien pour réinitialiser votre mot de passe :</p>
+        <a href="${resetUrl}">${resetUrl}</a>
+        <p>Ce lien n'est valable pour qu'une (1h) heure uniquement.</p>
+      `
+    });
+
+    res.json({ message: "Email de réinitialisation envoyé." });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erreur serveur." });
+  }
+};
+
+export const resetPassword = async (req: Request, res: Response): Promise<void> => {
+  const { token, newPassword } = req.body;
+  
+  try {
+    if (!token) {
+      res.status(400).json({ error: "Token manquant ou invalide" });
+      return;
+    }
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+    const customerId = decoded.id;
+
+    const customer = await prisma.customer.findUnique({ where: { id: customerId } });
+    if (!customer) {
+      res.status(404).json({ error: "Client introuvable" });
+      return;
+    }
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await prisma.customer.update({
+      where: { id: customerId },
+      data: { password: hashedPassword }
+    });
+
+    res.json({ message: "Mot de passe réinitialisé avec succès" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Lien invalide ou expiré." });
+  }
+};
+
 
 // src/controllers/customerController.ts
 export const getSingleCustomer = async (

@@ -218,7 +218,7 @@ export interface NewCustomer {
   website?: string;
   status?: boolean;
   type_customer?: string;
-  role: string;
+  role?: string;
   quarter?: string;
   region?: string; 
   saleInvoice?: SaleInvoice[];
@@ -596,6 +596,26 @@ export const api = createApi({
             invalidatesTags: ["Customers"],
           }),
 
+          sendTokenResetPassword: build.mutation<Customer, { email: string, institution: string }>({
+            query: ({ email, institution }) => ({
+              url: `/customer/${institution}/sendTokenResetPassword`,
+              method: 'POST',
+              body: { email },
+            }),
+          }),
+          //customer ou any
+          resetPassword: build.mutation<Customer, { token: string; newPassword: string; institution: string }>({
+            query: ({ token, newPassword, institution }) => ({
+              url: `/customer/${institution}/resetPassword`,
+              method: 'POST',
+              body: { token, newPassword },
+              headers: {
+                "Content-Type": "application/json", // ✅ Important
+              },
+            }),
+          }),
+          
+
           //setting
           getSettings: build.query<AppSetting[], { institution: string }>({
             query: ({ institution }) => ({
@@ -621,4 +641,4 @@ export const { useGetDashboardMetricsQuery, useGetProductsQuery, useCreateProduc
     useRespondToClaimMutation, useUpdateClaimResponseMutation, useGetClaimQuery, useGetClaimByIdQuery, useDeleteClaimMutation, useGetDepartmentsQuery,
     useGetDesignationsQuery, useCreateDesignationsMutation, useDeleteDesignationMutation,useGetRolesQuery, useCreateRolesMutation, 
     useDeleteRoleMutation, useGetUsersQuery, useGetUserByIdQuery, useDeleteUserMutation,  useGetCustomersQuery, useCreateCustomersMutation,
-    useGetCustomerByIdQuery, useDeleteCustomerMutation, useGetSettingsQuery, useUpdateSettingsMutation} = api;
+    useGetCustomerByIdQuery, useDeleteCustomerMutation, useSendTokenResetPasswordMutation, useResetPasswordMutation, useGetSettingsQuery, useUpdateSettingsMutation} = api;

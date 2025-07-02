@@ -10,6 +10,6 @@ router.get("/:id", getSingleRole);
 router.get('/:id/permission', getPermissionsByRoleId);
 router.delete('/:roleId/permission/:permissionId', deleteRolePermission);
 
-router.patch("/:id", deleteSingleRole)
+router.delete("/:id", deleteSingleRole)
 
 export default router;

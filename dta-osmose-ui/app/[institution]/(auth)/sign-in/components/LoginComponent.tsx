@@ -98,30 +98,17 @@ export function LoginComponent() {
         </form>
 
         <CardFooter className="flex flex-col space-y-5">
-          <p className="text-sm text-gray-500">
-            Un problème avec votre compte? Contactez un administrateur{" "}
-            <Link href="/sign-up" className="text-blue-500">
-              ici
+          <p className="text-sm text-gray-500 mt-5">
+          Un problème, Vous avez déjà un compte ? {" "}
+            <Link href={`/${institution}/sign-up`} className="text-blue-500">
+            Inscrivez-vous ici
             </Link>
           </p>
           <p className="text-sm text-gray-500">
-            Mot de passe oublié? Cliquez
-            <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-              <DialogTrigger className="text-blue-500">
-                <span className="px-2">ici</span>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle className="p-5">Réinitialisation du mot de passe</DialogTitle>
-                  <DialogDescription className="p-5">
-                    Entrez votre nom d'utilisateur
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogTrigger className="w-full text-right pt-5">
-                  <Button variant="destructive">Annuler</Button>
-                </DialogTrigger>
-              </DialogContent>
-            </Dialog>
+            Mot de passe oublié? Cliquez {" "}
+            <Link href={`/${institution}/ForgotPassword`} className="text-blue-500">
+              ici
+            </Link>
           </p>
         </CardFooter>
       </Card>

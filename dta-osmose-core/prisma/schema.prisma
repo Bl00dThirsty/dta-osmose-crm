@@ -109,6 +109,10 @@ model claim {
   //user            user        @relation(fields: [userCreatorId], references: [id])
   invoice         saleInvoice @relation(fields: [invoiceId], references: [id])
   product         product     @relation(fields: [productId], references: [id])
+
+  customer customer[]
+
+  user user[]
 }
 
 model claimResponse {
@@ -155,9 +159,13 @@ model customer {
   saleInvoice         saleInvoice[]  @relation(name: "CustomerSaleInvoice")
   creatorSaleInvoices saleInvoice[]  @relation(name: "CustomerCreatorSaleInvoice")
   credits         credit[]
+  institutionId                String?
+  institution                  institution?    @relation(fields: [institutionId], references: [id])
   //claims    claim[]
 
   
+
+  claim claim[]
 }
 
 /*model CustomerCounter {
@@ -205,6 +213,7 @@ model institution {
   saleInvoice  saleInvoice[]
   appSetting   appSetting[]
   claims    claim[]
+  customer  customer[]
 }
 
 model product {
@@ -557,6 +566,8 @@ model user {
   //salePromise        salePromise[]
   department         department?          @relation(fields: [departmentId], references: [id])
   //claims    claim[]
+
+  claim claim[]
 }
 
 

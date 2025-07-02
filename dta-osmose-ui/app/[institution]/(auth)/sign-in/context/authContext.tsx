@@ -116,6 +116,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   );
 
+//Si tu ne fais pas encore de refresh token, remplace tout le bloc try/catch par :
+// Pas de refresh token => déconnecte immédiatement
+// setUser(null);
+// localStorage.removeItem('accessToken');
+// router.push('/');
+// return Promise.reject(error);
+
+
   // Vérifier l'authentification au chargement
   useEffect(() => {
     const checkAuth = async () => {

@@ -9,11 +9,12 @@ import { useRouter } from 'next/navigation';
 import { columns } from "./table/columns"
 import { DataTable } from "./table/data-table"
 import { useGetRolesQuery } from "@/state/api"
+import { ToastContainer, toast } from 'react-toastify';
 
 const DesignationsPage = () => {
   const router = useRouter();
   const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-
+  const notify = () => toast("Wow so easy!");
   useEffect(() => {
     if (!token) {
       router.push('/sign-in');
@@ -39,6 +40,7 @@ if (isError) return <p>Erreur lors du chargement.</p>
         <p className="text-muted-foreground">
           Ici vous trouverez la liste de tous les roles enregistrés !
         </p>
+       
       </div>
     </div>
     <DataTable data={role || []} columns={columns} />
