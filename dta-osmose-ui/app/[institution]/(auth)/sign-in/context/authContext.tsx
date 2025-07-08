@@ -16,6 +16,7 @@ interface User {
   userType: "user" | "customer";
 }
 
+
 interface RegisterValues {
   firstName: string;
   lastName: string;
@@ -116,6 +117,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   );
 
+//Si tu ne fais pas encore de refresh token, remplace tout le bloc try/catch par :
+// Pas de refresh token => déconnecte immédiatement
+// setUser(null);
+// localStorage.removeItem('accessToken');
+// router.push('/');
+// return Promise.reject(error);
+
+
   // Vérifier l'authentification au chargement
   useEffect(() => {
     const checkAuth = async () => {
@@ -124,6 +133,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         
         if (token) {
           const { data } = await api.get('/auth/me');
+          console.log("User reçu depuis /auth/me :", data.user);
           setUser(data.user);
         }
       } catch (err) {
@@ -144,18 +154,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   
       const response = await api.post('/auth/login', { email, password });
   
-      const { accessToken, ...userData } = response.data;
+      const { accessToken, userType, ...userData } = response.data;
   
       // Stockage du token et du nom d'utilisateur
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('user', userData.userName);
       localStorage.setItem('id', userData.id);
       localStorage.setItem('role', userData.role);
-      localStorage.setItem('userType', userData.userType);
+      localStorage.setItem('userType', userType);
 
   
       // Mise à jour du contexte utilisateur
-      setUser(userData);
+      //setUser(userData);
+      setUser({
+        ...userData,
+        userType
+      });
   
       return response.data;
     } catch (err: any) {

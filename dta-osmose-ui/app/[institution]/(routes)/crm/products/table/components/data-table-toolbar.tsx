@@ -1,6 +1,6 @@
 "use client"
 
-import { Table } from "@tanstack/react-table"
+import { useReactTable, Table } from "@tanstack/react-table"
 import { X, Upload } from "lucide-react"
 import { useParams } from "next/navigation"
 import { useState } from "react"

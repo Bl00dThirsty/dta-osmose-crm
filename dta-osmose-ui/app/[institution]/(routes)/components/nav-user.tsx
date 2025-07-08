@@ -33,7 +33,7 @@ import {
   User,
   
 } from "lucide-react";
-
+import { useParams, useRouter } from "next/navigation"
 import { useAuth } from "@/app/[institution]/(auth)/sign-in/context/authContext"; // Import du contexte Auth
 
 export function NavUser({
@@ -48,7 +48,8 @@ export function NavUser({
   const { isMobile } = useSidebar();
   const userName = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
   const { logout } = useAuth(); // Appel de la fonction logout depuis le contexte
- 
+  const router = useRouter();
+  const { institution } = useParams() as { institution: string }
   const handleLogout = async () => {
     try {
       await logout(); // Appel de la fonction logout
@@ -105,7 +106,7 @@ export function NavUser({
                 <BadgeCheck />
                 Compte
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push(`/${institution}/notification`)}>
                 <Bell />
                 Notifications
               </DropdownMenuItem>
