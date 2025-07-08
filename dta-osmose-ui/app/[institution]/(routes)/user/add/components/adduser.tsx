@@ -10,6 +10,7 @@ import { useGetDepartmentsQuery, useGetDesignationsQuery, useGetRolesQuery } fro
 import Link from "next/link";
 import { ToastContainer, toast } from 'react-toastify';
 
+
 export default function RegisterComponent() {
   const { register, error } = useAuth();
 

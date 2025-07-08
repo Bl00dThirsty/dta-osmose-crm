@@ -161,6 +161,7 @@ model customer {
   credits         credit[]
   institutionId                String?
   institution                  institution?    @relation(fields: [institutionId], references: [id])
+  notification       Notification[]
   //claims    claim[]
 
   
@@ -239,6 +240,7 @@ model product {
   reorder_quantity             Int?
   saleItem                     saleItem[]
   claims                       claim[]
+  notification                 Notification[]
 }
 
 model ProductCounter {
@@ -278,6 +280,7 @@ model saleInvoice {
   institution     institution @relation(fields: [institutionId], references: [id])
   items           saleItem[]
   claims          claim[]
+  notification       Notification[]
 }
 
 model saleItem {
@@ -291,6 +294,31 @@ model saleItem {
   invoice         saleInvoice @relation(fields: [invoiceId], references: [id])
   product         product     @relation(fields: [productId], references: [id])
 }
+
+model Notification {
+  id             String      @id @default(uuid())
+  title          String?
+  message        String
+  type           String
+  isRead           Boolean     @default(false)
+  userId    Int?        // Utilisateur destinataire (user.id)
+  customerId     Int?        // Client destinataire (customer.id)
+  saleId  String?     // Si la notif est liée à une commande
+  productId      String?     // Si la notif est liée à un produit
+  createdAt      DateTime    @default(now())
+
+  recipient      user?       @relation(fields: [userId], references: [id])
+  customer       customer?   @relation(fields: [customerId], references: [id])
+  saleInvoice    saleInvoice? @relation(fields: [saleId], references: [id])
+  product        product?    @relation(fields: [productId], references: [id])
+}
+
+enum NotificationType {
+  LOW_STOCK
+  NEW_ORDER
+  ORDER_READY
+}
+
 
 model appSetting {
   id           Int    @id @default(autoincrement())
@@ -568,6 +596,7 @@ model user {
   //claims    claim[]
 
   claim claim[]
+  notification       Notification[]
 }
 
 

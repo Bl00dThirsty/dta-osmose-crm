@@ -98,11 +98,14 @@ export const sendTokenResetPassword = async (req: Request, res: Response): Promi
       to: email,
       subject: "Réinitialisation de votre mot de passe",
       html: `
-        <h3>Réinitialisation de votre mot de passe</h3>
-        <p>Bonjour ${customer.name},</p>
-        <p>Veuillez cliquer sur ce lien pour réinitialiser votre mot de passe :</p>
-        <a href="${resetUrl}">${resetUrl}</a>
-        <p>Ce lien n'est valable pour qu'une (1h) heure uniquement.</p>
+        <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+          <h3>Réinitialisation de votre mot de passe</h3>
+          <p>Bonjour ${customer.name},</p>
+          <p>Veuillez cliquer sur ce lien pour réinitialiser votre mot de passe :</p>
+            <a href="${resetUrl}">${resetUrl}</a>
+          <p>Ce lien n'est valable pour qu'une (1h) heure uniquement.</p>
+          <p>Si vous n'avez pas demandé cette réinitialisation, veuillez ignorer cet e-mail.</p>
+        </div>
       `
     });
 

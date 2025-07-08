@@ -263,6 +263,18 @@ export interface Claim {
   }
 }
 
+export interface Notification{
+  id: string;
+  title: string;
+  message: string;
+  type?: string;
+  isRead: boolean;
+  userId: number;
+  customerId: number;
+  saleId: number;
+  createdAt: Date;
+}
+
 export interface AppSetting{
   id: number;
   company_name: string;
@@ -326,7 +338,7 @@ export const api = createApi({
         return headers;
       }, }),
     reducerPath: "api",
-    tagTypes: ["DashboardMetrics", "Products", "Users", "Designations", "Roles", "Customers", "Sales", "AppSettings", "Claims"],
+    tagTypes: ["DashboardMetrics", "Products", "Users", "Designations", "Roles", "Customers", "Sales", "AppSettings", "Claims", "Notifications"],
     endpoints: (build) => ({
         getDashboardMetrics: build.query<DashboardMetrics, { institution: string, startDate?: string; endDate?: string  }>({
             query: ({ institution, startDate, endDate }) => {
@@ -631,7 +643,23 @@ export const api = createApi({
             }),
             invalidatesTags: ["AppSettings"],
           }),
+
+          //NOTIFICATIONS
           
+          getAllNotifications: build.query<Notification[], string | void>({  
+            query: (search) => ({
+                url: "/notification/all",
+                params: search ? { search } : {}
+            }),
+          }), 
+          
+          deleteNotifications: build.mutation<void, string>({
+            query: (id) => ({
+              url: `/sale/${id}`, 
+              method: "DELETE",
+            }),
+            invalidatesTags: (result, error, id) => [{ type: 'Notifications', id }],
+          }),
       
     }),
 });
@@ -641,4 +669,5 @@ export const { useGetDashboardMetricsQuery, useGetProductsQuery, useCreateProduc
     useRespondToClaimMutation, useUpdateClaimResponseMutation, useGetClaimQuery, useGetClaimByIdQuery, useDeleteClaimMutation, useGetDepartmentsQuery,
     useGetDesignationsQuery, useCreateDesignationsMutation, useDeleteDesignationMutation,useGetRolesQuery, useCreateRolesMutation, 
     useDeleteRoleMutation, useGetUsersQuery, useGetUserByIdQuery, useDeleteUserMutation,  useGetCustomersQuery, useCreateCustomersMutation,
-    useGetCustomerByIdQuery, useDeleteCustomerMutation, useSendTokenResetPasswordMutation, useResetPasswordMutation, useGetSettingsQuery, useUpdateSettingsMutation} = api;
+    useGetCustomerByIdQuery, useDeleteCustomerMutation, useSendTokenResetPasswordMutation, useResetPasswordMutation, 
+    useGetSettingsQuery, useUpdateSettingsMutation, useGetAllNotificationsQuery, useDeleteNotificationsMutation} = api;
