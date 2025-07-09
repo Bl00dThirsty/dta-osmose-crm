@@ -38,7 +38,7 @@ export default function NotificationBellStock() {
                key={idx}
                message={<Link href={`/${institution}/crm/products/${notif.productId}`}>{notif.message}</Link>}
                showIcon
-               type= "warning"
+               type={notif.type === "warning" ? "info" : "success"}
                style={{ marginBottom: "16px" }}
                closable
                onClose={async () => {

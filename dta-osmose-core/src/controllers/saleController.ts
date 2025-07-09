@@ -291,6 +291,39 @@ export const checkCustomerDebtStatus = async (req: Request, res: Response) => {
 
   const hasDebt = unpaidOldInvoices.length > 0;
 
+  const client = await prisma.customer.findUnique({
+    where: { id: unpaidOldInvoices.customerId }
+  });
+
+  if (client) {
+    // Assurez-vous que notifyUser accepte l'identifiant du client
+    await notifyUserOrCustomer({
+      saleId: unpaidOldInvoices.id,
+      customerId: unpaidOldInvoices.customerId,
+      message: `Vous avez une dette dette de ${unpaidOldInvoices.dueAmount} F CFA`,
+      type: "order"
+    });
+  }
+
+  const users = await prisma.user.findMany({
+    where: {
+      role: {
+        in: ['manager', 'admin']
+      }
+    }
+  });
+
+  for (const u of users) {
+    await notifyAllUsers({
+      saleId: unpaidOldInvoices.id,
+      userId: u.id,
+      // customerId: unpaidOldInvoices.customerId,
+      message: `Le client: ${unpaidOldInvoices.customer.name} n'a pas terminé de payer sa dette de.${unpaidOldInvoices.dueAmount} F CFA, cela fait plus d'un mois`,
+      type: "order"
+    });
+  }
+
+
   res.json({ hasDebt });
 };
 

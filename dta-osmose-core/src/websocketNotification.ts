@@ -107,7 +107,7 @@ const notifyUserOrCustomer = async ({
   }
 };
 
-// 🔔 Notification à tous les utilisateurs (optionnel)
+// 🔔 Notification à tous les utilisateurs
 const notifyAllUsers = async (saleId: string, message: string) => {
   const users = await prisma.user.findMany({
     where: {
