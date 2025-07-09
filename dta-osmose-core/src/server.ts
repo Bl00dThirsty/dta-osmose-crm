@@ -8,6 +8,8 @@ import dotenv from "dotenv";
 import helmet from "helmet";
 import morgan from "morgan";
 import cookieParser from 'cookie-parser';
+import http from "http";
+import { initWebSocketServer } from "./websocketNotification";
 const { PrismaClient } = require("@prisma/client");
 import { errorHandler } from './error/errorHandler';
 import dashboardRoutes from './routes/dashboardRoutes';
@@ -22,14 +24,15 @@ import userRoutes from './routes/userRoutes';
 import customerRoutes from './routes/customerRoutes';
 import saleRoutes from './routes/saleRoutes';
 import settingRoutes from './routes/settingRoutes';
-import claimRoutes from './routes/claimRoute'
+import claimRoutes from './routes/claimRoute';
+import NotificationRoutes from './routes/notificationRoutes'
 
 export const prisma = new PrismaClient();
 
 dotenv.config();
 const app = express();
-//const upload = multer({ dest: "uploads/" });
 
+//const upload = multer({ dest: "uploads/" });
 
 app.use(helmet());
 app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin"}));
@@ -60,12 +63,17 @@ app.use("/designation", designationRoute);
 app.use("/user", userRoutes);
 app.use("/sale", saleRoutes);
 app.use("/setting", settingRoutes);
-app.use("/claim", claimRoutes)
+app.use("/claim", claimRoutes);
+app.use("/notification", NotificationRoutes)
 
 // Error handling middleware
 app.use(errorHandler);
 
+const server = http.createServer(app);
+initWebSocketServer(server);
+
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+

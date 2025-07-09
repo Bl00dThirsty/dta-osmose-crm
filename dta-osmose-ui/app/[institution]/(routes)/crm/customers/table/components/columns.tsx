@@ -84,6 +84,22 @@ export const columns: ColumnDef<Customer>[] = [
     ),
     cell: ({ row }) => <div className="w-[100px]">{row.getValue("quarter")}</div>,
   },
+
+  {
+    accessorKey: "region",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Région" />
+    ),
+    cell: ({ row }) => <div className="w-[100px]">{row.getValue("region")}</div>,
+  },
+  
+  {
+    accessorKey: "ville",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Ville" />
+    ),
+    cell: ({ row }) => <div className="w-[100px]">{row.getValue("ville")}</div>,
+  },
   
   
   {

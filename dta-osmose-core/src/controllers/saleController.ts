@@ -3,6 +3,10 @@ const { PrismaClient } = require("@prisma/client");
 import { randomInt } from "crypto"; 
 //import { generateInvoiceNumber } from '../utils/invoiceGenerator';
 import { v4 as uuidv4 } from 'uuid';
+const {
+  notifyUserOrCustomer,
+  notifyAllUsers
+} = require("../websocketNotification");
 
 const prisma = new PrismaClient();
 
@@ -204,6 +208,22 @@ export const createSaleInvoice = async (req: Request, res: Response): Promise<vo
        where: { id: invoice.id },
        data: { paymentStatus }
      });
+     
+     if (creatorType === "customer") {
+      await notifyAllUsers(
+        invoice.id,
+        `Votre commande N°: ${invoice.invoiceNumber} a été créée et la valeur à payer est de: ${invoice.finalAmount} fcfa.`
+      );
+     }
+     
+     if (creatorType === "user") {
+      await notifyUserOrCustomer({
+        saleId: invoice.id,
+        customerId: invoice.customerId,
+        message: `Nouvelle commande créée avec ID : ${invoice.invoiceNumber} par le client No ${customerId}`,
+        type: "order"
+      });
+     }
 
 
     // Mise à jour des stocks
@@ -215,6 +235,33 @@ export const createSaleInvoice = async (req: Request, res: Response): Promise<vo
         }
       })
     ));
+    for (const item of items) {
+      const product = await prisma.product.findUnique({
+        where: { id: item.productId }
+      });
+    if (product.quantity <= product.restockingThreshold) {
+      const users = await prisma.user.findMany({
+        where: {
+          role: {
+            in: ['manager', 'admin']
+          }
+        }
+      });
+    
+      for (const u of users) {
+        await notifyUserOrCustomer({
+          saleId: null,
+          userId: u.id,
+          productId: product.id,
+          message: `Le stock du produit "${product.designation}" est bas (seuil atteint), "${product.restockingThreshold}" Produits restants"`,
+          type: "stock_alert"
+        });
+      }
+    }
+  }
+
+    const users = await prisma.user.findMany();
+
 
     res.status(201).json(updatedInvoice);
   } catch (error) {
@@ -243,6 +290,39 @@ export const checkCustomerDebtStatus = async (req: Request, res: Response) => {
   });
 
   const hasDebt = unpaidOldInvoices.length > 0;
+
+  const client = await prisma.customer.findUnique({
+    where: { id: unpaidOldInvoices.customerId }
+  });
+
+  if (client) {
+    // Assurez-vous que notifyUser accepte l'identifiant du client
+    await notifyUserOrCustomer({
+      saleId: unpaidOldInvoices.id,
+      customerId: unpaidOldInvoices.customerId,
+      message: `Vous avez une dette dette de ${unpaidOldInvoices.dueAmount} F CFA`,
+      type: "order"
+    });
+  }
+
+  const users = await prisma.user.findMany({
+    where: {
+      role: {
+        in: ['manager', 'admin']
+      }
+    }
+  });
+
+  for (const u of users) {
+    await notifyAllUsers({
+      saleId: unpaidOldInvoices.id,
+      userId: u.id,
+      // customerId: unpaidOldInvoices.customerId,
+      message: `Le client: ${unpaidOldInvoices.customer.name} n'a pas terminé de payer sa dette de.${unpaidOldInvoices.dueAmount} F CFA, cela fait plus d'un mois`,
+      type: "order"
+    });
+  }
+
 
   res.json({ hasDebt });
 };
@@ -343,6 +423,25 @@ export const updateSaleStatus = async (req: Request, res: Response): Promise<voi
         delivred: typeof delivred === 'boolean' ? delivred : invoice.delivred,
       },
     });
+    
+    if (ready === true) {
+      const clientId = updatedInvoice.customer.id; // Utilisation de l'id du client associé à la commande
+
+      // Envoi de la notification au client
+      const client = await prisma.customer.findUnique({
+        where: { id: clientId }
+      });
+
+      if (client) {
+        // Assurez-vous que notifyUser accepte l'identifiant du client
+        await notifyUserOrCustomer({
+          saleId: updatedInvoice.id,
+          customerId: updatedInvoice.customerId,
+          message: `Votre commande N°: ${updatedInvoice.invoiceNumber} est prête.`,
+          type: "update_order"
+        });
+      }
+    }
 
     res.status(200).json(updatedInvoice);
   } catch (error) {
