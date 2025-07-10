@@ -74,9 +74,6 @@ export function DataTableRowActions<TData>({
               Supprimer
             
         </DropdownMenuItem>
-        <DropdownMenuItem>
-          Modifier
-        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
 
