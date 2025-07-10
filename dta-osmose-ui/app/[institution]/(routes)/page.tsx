@@ -11,11 +11,13 @@ import Link from "next/link";
 import Container from "../../[institution]/(routes)/components/ui/Container";
 import NotionsBox from "../../[institution]/(routes)/components/dasboard/notions";
 import LoadingBox from "../../[institution]/(routes)/components/dasboard/loading-box";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGetDashboardMetricsQuery } from "@/state/api";
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useParams } from "next/navigation"
+import { DashboardCard } from "./components/dasboard/dashboard-card";
+import { ChartAreaInteractive } from "./components/dasboard/chart-area-interactive";
 
 
 const DashboardPage = () => {
@@ -92,167 +94,141 @@ const totalInvoices = dashboardMetrics?.formattedData3
 export default DashboardPage;
 //const { institution } = useParams() as { institution: string }
 const AdminDashboard = ({ dashboardMetrics, totalSales, totalProfits, totalInvoices }: any) => (
-  <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+<div className="@container/main flex flex-1 flex-col gap-2">
+  <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+    <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
 
-        <Suspense fallback={<LoadingBox />}>
-        
-        <DashboardCard title="Produits">
-          <>
-          <div className="overflow-auto h-full">
-            {dashboardMetrics?.popularProducts?.map((product:any) => (
-              <div key={product.id} className="flex intems-center justify-between gap-3 px-5 py7 border-b">
-                <div className="flex items-center gap-3">
-                <div className="flex flex-col justify-between gap-1">
-                  <div className="font-semibold text-sm text-gray-700">{product.designation}</div>
-                  <div className="flex text-sm items-center">
-                      <span className="font-bold text-blue-500 text-xs">
-                        €{product.sellingPriceTTC}
-                      </span>
-                    </div>
-                </div>
-                </div>
-                <div className="text-xs flex items-center">
-                  <button className="p-2 rounded-full bg-blue-100 text-blue-600 mr-2">
-                    <ShoppingBag className="w-4 h-4" />
-                  </button>
-                  {Math.round(product.quantity / 10)} vendu
-                </div>  
-              </div>
-            ))}
-          </div>
-          </>
-        </DashboardCard>
-        </Suspense>
-        <Suspense fallback={<LoadingBox />}>
-          <DashboardCard title="Bénéfices">
-          <div className="text-2xl font-medium">
-          <div>
-            {/* BODY HEADER */}
-            <div className="flex justify-between items-center mb-6 px-7 mt-5">
-              <div className="text-lg font-medium">
-                <p className="text-xs text-gray-400">Valeur</p>
-                <span className="text-2xl font-extrabold">{totalProfits?.toLocaleString() ?? "0"} FCFA</span>
-                <span className="text-green-500 text-sm ml-2">
-                  <TrendingUp className="inline w-4 h-4 mr-1" />
-                  5.78%
-                </span>
-              </div>
-            </div>
-            {/* CHART */}
-            
-          </div>
-            </div>
-          </DashboardCard>
-        </Suspense>
-        {/* //href={`/${institution}/sales/all`}  */}
-        <DashboardCard title="Nombre de ventes">
-  <div className="px-7 mt-5">
-    <p className="text-xs text-gray-400">Factures générées</p>
-    <span className="text-2xl font-extrabold text-yellow-600">
-      {totalInvoices?.toLocaleString() ?? "0"}
-    </span>
+  <DashboardCard
+    title="Bénéfices"
+    description="Bénéfices nets"
+    value={`${totalProfits?.toLocaleString() ?? "0"} F CFA`}
+    trend="+5.78%"
+    trendDirection="up"
+    footerTop="Tendance positive"
+    footerBottom="Comparé au mois dernier"
+  />
+
+  <DashboardCard
+    title="Nombre de ventes"
+    description="Factures générées"
+    value={totalInvoices?.toLocaleString() ?? "0"}
+    trend="+3.1%"
+    trendDirection="up"
+    footerTop="Croissance stable"
+    footerBottom="30 derniers jours"
+  />
+
+  <DashboardCard
+    title="Total des ventes"
+    description="Montant total"
+    value={`${totalSales?.toLocaleString() ?? "0"} F CFA`}
+    trend="+5.2%"
+    trendDirection="up"
+    footerTop="En hausse ce mois-ci"
+    footerBottom="Basé sur les ventes mensuelles"
+  />
+
+  <DashboardCard
+    title="Les Avoirs"
+    description="Total des avoirs"
+    value={`${dashboardMetrics?.totalAvailableCredit?.toLocaleString() ?? "0"} F CFA`}
+    trend="+1.8%"
+    trendDirection="up"
+    footerTop="Utilisation modérée"
+    footerBottom="Valeur cumulée"
+  />
+
+  <DashboardCard
+    title="Employés"
+    description="Utilisateurs enregistrés"
+    value={dashboardMetrics?.totalUsers?.toLocaleString() ?? "0"}
+    trend="+2.4%"
+    trendDirection="up"
+    footerTop="Recrutements récents"
+    footerBottom="Inclut les utilisateurs actifs"
+  />
+    </div>
+    <div className="px-4 lg:px-6">
+          <ChartAreaInteractive />
+    </div>
   </div>
-</DashboardCard>
-
-<DashboardCard title="Total des ventes">
-  <div className="px-7 mt-5">
-    <p className="text-xs text-gray-400">Montant total</p>
-    <span className="text-2xl font-extrabold text-blue-600">
-      {totalSales?.toLocaleString() ?? "0"} F CFA
-    </span>
-  </div>
-</DashboardCard>
-
-        <DashboardCard title="Les Avoirs">
-        <div className="px-7 mt-5">
-          <p className="text-xs text-gray-400">Total des avoirs</p>
-          <span className="text-2xl font-extrabold text-blue-600">
-            {dashboardMetrics?.totalAvailableCredit?.toLocaleString() ?? "0"} F CFA
-          </span>
-        </div>
-        </DashboardCard>
-        
-        <DashboardCard
-          
-          title="Employés"
-        >
-          {/* {dashboardMetrics?.popularUsers.map((user) => ( */}
-          <div className="px-7 mt-5">
-    <p className="text-xs text-gray-400">Total utilisateurs</p>
-    <span className="text-2xl font-extrabold text-blue-600">
-      {dashboardMetrics?.totalUsers.toLocaleString() ?? "0"} 
-    </span>
-  </div>
-          {/* ))} */}
-        </DashboardCard>
-
-        
-      </div>
-        );
+</div>
+);
 
         const StaffDashboard = ({ dashboardMetrics, totalSales, totalInvoices }: any) => (
-          <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            <DashboardCard title="Total des ventes">
-              <div className="text-2xl font-medium">
-                <p className="text-xs text-gray-400">Montant total</p>
-                <span className="text-2xl font-extrabold text-blue-600">
-                  {totalSales?.toLocaleString() ?? "0"} FCFA
-                </span>
-              </div>
-            </DashboardCard>
-        
-            <DashboardCard title="Nombre de factures">
-              <div className="text-2xl font-medium">
-                <p className="text-xs text-gray-400">Factures générées</p>
-                <span className="text-2xl font-extrabold text-yellow-600">
-                  {totalInvoices?.toLocaleString() ?? "0"}
-                </span>
-              </div>
-            </DashboardCard>
+          <div className="@container/main flex flex-1 flex-col gap-2">
+          <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+          <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+
+                <DashboardCard
+                  title="Total des ventes"
+                  description="Montant total"
+                  value={`${totalSales?.toLocaleString() ?? "0"} F CFA`}
+                  trend="+5.2%"
+                  trendDirection="up"
+                  footerTop="En hausse ce mois-ci"
+                  footerBottom="Basé sur les ventes mensuelles"
+                />
+
+                <DashboardCard
+                  title="Nombre de ventes"
+                  description="Factures générées"
+                  value={totalInvoices?.toLocaleString() ?? "0"}
+                  trend="+3.1%"
+                  trendDirection="up"
+                  footerTop="Croissance stable"
+                  footerBottom="30 derniers jours"
+                />
+          </div>
+          </div>
           </div>
         );
+       const ClientDashboard = ({ dashboardMetrics }: any) => (
+           <div className="@container/main flex flex-1 flex-col gap-2">
+            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+            <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
 
-        const ClientDashboard = ({ dashboardMetrics, totalSales, totalProfits, totalInvoices }: any) => (
-          
-            
-          <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-           
-            <DashboardCard title="Mes Avoirs disponibles">
-              <div className="px-7 mt-5">
-                <p className="text-xs text-gray-400">Total des crédits disponibles</p>
-                <span className="text-2xl font-extrabold text-green-500">
-                  {dashboardMetrics?.customerStats?.avoirDisponible?.toLocaleString() ?? "0"} FCFA
-                </span>
-              </div>
-            </DashboardCard>
-            <DashboardCard title="Total des Achats">
-              <div className="px-7 mt-5">
-                <p className="text-xs text-gray-400">Montant total des Achats</p>
-                  <span className="text-2xl font-extrabold text-blue-600">
-                  {dashboardMetrics?.customerStats?.totalAchats?.toLocaleString() ?? "0"} FCFA
-                  </span>
-              </div>
-            </DashboardCard>
-            <DashboardCard title="Nombre de Commandes">
-              <div className="px-7 mt-5">
-                <p className="text-xs text-gray-400">Nombre de commandes</p>
-                  <span className="text-2xl font-extrabold text-yellow-600">
-                  {dashboardMetrics?.customerStats?.nombreCommandes?.toLocaleString() ?? "0"}
-                  </span>
-              </div>
-            </DashboardCard>
-            <DashboardCard title="Nombre de Commandes Impayées">
-              <div className="px-7 mt-5">
-                <p className="text-xs text-gray-400">Nombre de commandes Impayées</p>
-                  <span className="text-2xl font-extrabold text-yellow-600">
-                  {dashboardMetrics?.customerStats?.nombreCommandesImpaye?.toLocaleString() ?? "0"}
-                  </span>
-              </div>
-            </DashboardCard>
-          </div>
-        );
+            {/* Mes Avoirs disponibles */}
+            <DashboardCard
+              title="Mes Avoirs disponibles"
+              description="Total des crédits disponibles"
+              value={`${dashboardMetrics?.customerStats?.avoirDisponible?.toLocaleString() ?? "0"} FCFA`}
 
-const DashboardCard = ({
+              // For example:
+              // trend="+5%"
+              // trendDirection="up"
+              // footerTop="Mis à jour le 09/07/2025"
+              // footerBottom="Crédit client"
+            />
+
+            {/* Total des Achats */}
+            <DashboardCard
+              title="Total des Achats"
+              description="Montant total des Achats"
+              value={`${dashboardMetrics?.customerStats?.totalAchats?.toLocaleString() ?? "0"} FCFA`}
+              // Ajoute trend, trendDirection, footerTop, footerBottom si nécessaire
+            />
+
+            {/* Nombre de Commandes */}
+            <DashboardCard
+              title="Nombre de Commandes"
+              description="Nombre total de commandes passées"
+              value={`${dashboardMetrics?.customerStats?.nombreCommandes?.toLocaleString() ?? "0"}`}
+              // Ajoute trend, trendDirection, footerTop, footerBottom si nécessaire
+            />
+
+            {/* Nombre de Commandes Impayées */}
+            <DashboardCard
+              title="Nombre de Commandes Impayées"
+              description="Total des commandes en attente de paiement"
+              value={`${dashboardMetrics?.customerStats?.nombreCommandesImpaye?.toLocaleString() ?? "0"}`}
+              // Ajoute trend, trendDirection, footerTop, footerBottom si nécessaire
+            />
+  </div>
+  </div>
+  </div>
+);
+/*const DashboardCard = ({
   href,
   title,
   children,
@@ -278,5 +254,5 @@ const DashboardCard = ({
       </Card>
     </Suspense>
   </Link>
-);
+);*/
 

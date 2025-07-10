@@ -559,6 +559,14 @@ export const api = createApi({
             }),
             invalidatesTags: (result, error, id) => [{ type: 'Users', id }],
           }),
+          updateUser: build.mutation<User, { id: number; data: Partial<User> }>({
+            query: ({ id, data }) => ({
+              url: `/User/${id}`,
+              method: "PUT",
+              body: data,
+            }),
+            invalidatesTags: ["Users"],
+          }),
 
           //customer
           getCustomers: build.query<Customer[], string | void>({            
@@ -650,5 +658,5 @@ export const { useGetDashboardMetricsQuery, useGetProductsQuery, useCreateProduc
     useGetSaleByIdQuery,useUpdateSaleStatusMutation, useUpdateSalePaymentMutation, useDeleteSaleInvoiceMutation, useCreateClaimMutation, 
     useRespondToClaimMutation, useUpdateClaimResponseMutation, useGetClaimQuery, useGetClaimByIdQuery, useDeleteClaimMutation, useGetDepartmentsQuery,
     useGetDesignationsQuery, useCreateDesignationsMutation, useDeleteDesignationMutation,useGetRolesQuery, useCreateRolesMutation, 
-    useDeleteRoleMutation, useGetUsersQuery, useGetUserByIdQuery, useDeleteUserMutation,  useGetCustomersQuery, useCreateCustomersMutation,
+    useDeleteRoleMutation, useGetUsersQuery, useGetUserByIdQuery, useDeleteUserMutation,useUpdateUserMutation,  useGetCustomersQuery, useCreateCustomersMutation,
     useGetCustomerByIdQuery, useDeleteCustomerMutation,useUpdateCustomerMutation, useSendTokenResetPasswordMutation, useResetPasswordMutation, useGetSettingsQuery, useUpdateSettingsMutation} = api;
