@@ -96,7 +96,7 @@ const AdminDashboard = ({ dashboardMetrics, totalSales, totalProfits, totalInvoi
 
         <Suspense fallback={<LoadingBox />}>
         
-        <DashboardCard title="Produits">
+        {/* <DashboardCard title="Produits">
           <>
           <div className="overflow-auto h-full">
             {dashboardMetrics?.popularProducts?.map((product:any) => (
@@ -121,14 +121,14 @@ const AdminDashboard = ({ dashboardMetrics, totalSales, totalProfits, totalInvoi
             ))}
           </div>
           </>
-        </DashboardCard>
+        </DashboardCard> */}
         </Suspense>
         <Suspense fallback={<LoadingBox />}>
           <DashboardCard title="Bénéfices">
           <div className="text-2xl font-medium">
           <div>
-            {/* BODY HEADER */}
-            <div className="flex justify-between items-center mb-6 px-7 mt-5">
+            {/* BODY HEADER flex justify-between items-center mb-6 px-7 mt-5*/}
+            <div className="px-7 mt-5">
               <div className="text-lg font-medium">
                 <p className="text-xs text-gray-400">Valeur</p>
                 <span className="text-2xl font-extrabold">{totalProfits?.toLocaleString() ?? "0"} FCFA</span>
@@ -263,7 +263,7 @@ const DashboardCard = ({
 }) => (
   <Link href={href || "#"}>
     <Suspense fallback={<LoadingBox />}>
-      <Card>
+      <Card className="w-75 justify-between space-x-2">
         <CardHeader className="flex flex-row items-center justify-between space-y-1">
           <CardTitle className="text-lg font-semibold">{title}</CardTitle>
         </CardHeader>
