@@ -187,6 +187,50 @@ export const getSingleCustomer = async (
   }
 };
 
+//mise à jour du client
+export const updateSingleCustomer = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const id = Number(req.params.id); // Utilisation directe de Number
+  try {
+    const updateData: any = {
+      customId: req.body.customId,
+      name: req.body.name,
+      userName: req.body.userName,
+      phone: req.body.phone,
+      email: req.body.email,
+      ville: req.body.ville,
+      nameresponsable: req.body.nameresponsable,
+      quarter: req.body.quarter,
+      region: req.body.region,
+      role: req.body.role,
+      status: req.body.status,
+      type_customer: req.body.type_customer,
+      website: req.body.website,
+      institutionId: req.body.institutionId,
+    };
+
+    // Hachage du mot de passe si fourni
+    if (req.body.password) {
+      const hash = await bcrypt.hash(req.body.password, saltRounds);
+      updateData.password = hash;
+    }
+
+    const updateCustomer = await prisma.customer.update({
+      where: { id },
+      data: updateData,
+    });
+
+    // Exclusion du mot de passe de la réponse
+    const { password, ...customerWithoutPassword } = updateCustomer;
+    res.status(200).json(customerWithoutPassword);  
+  } catch (error) {
+    res.status(500).json({ message: "Erreur lors de la mise à jour du client" });
+  }
+};
+
+
 export const deleteSingleCustomer = async (
   req: Request,
   res: Response

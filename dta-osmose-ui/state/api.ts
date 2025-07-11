@@ -571,6 +571,14 @@ export const api = createApi({
             }),
             invalidatesTags: (result, error, id) => [{ type: 'Users', id }],
           }),
+          updateUser: build.mutation<User, { id: number; data: Partial<User> }>({
+            query: ({ id, data }) => ({
+              url: `/User/${id}`,
+              method: "PUT",
+              body: data,
+            }),
+            invalidatesTags: ["Users"],
+          }),
 
           //customer
           getCustomers: build.query<Customer[], string | void>({            
@@ -600,6 +608,7 @@ export const api = createApi({
             providesTags: (result, error, { id }) => [{ type: "Customers", id }],
           }),
       
+
           deleteCustomer: build.mutation<void, string>({
             query: (id) => ({
               url: `/customer/${id}`,
@@ -615,6 +624,7 @@ export const api = createApi({
               body: { email },
             }),
           }),
+          
           //customer ou any
           resetPassword: build.mutation<Customer, { token: string; newPassword: string; institution: string }>({
             query: ({ token, newPassword, institution }) => ({
@@ -625,6 +635,14 @@ export const api = createApi({
                 "Content-Type": "application/json", // ✅ Important
               },
             }),
+          }),
+          updateCustomer: build.mutation<Customer, { id: number; data: Partial<Customer> }>({
+            query: ({ id, data }) => ({
+              url: `/Customer/${id}`,
+              method: "PUT",
+              body: data,
+            }),
+            invalidatesTags: ["Customers"],
           }),
           
 
@@ -669,5 +687,6 @@ export const { useGetDashboardMetricsQuery, useGetProductsQuery, useCreateProduc
     useRespondToClaimMutation, useUpdateClaimResponseMutation, useGetClaimQuery, useGetClaimByIdQuery, useDeleteClaimMutation, useGetDepartmentsQuery,
     useGetDesignationsQuery, useCreateDesignationsMutation, useDeleteDesignationMutation,useGetRolesQuery, useCreateRolesMutation, 
     useDeleteRoleMutation, useGetUsersQuery, useGetUserByIdQuery, useDeleteUserMutation,  useGetCustomersQuery, useCreateCustomersMutation,
-    useGetCustomerByIdQuery, useDeleteCustomerMutation, useSendTokenResetPasswordMutation, useResetPasswordMutation, 
+    useGetCustomerByIdQuery, useDeleteCustomerMutation,useUpdateCustomerMutation, useSendTokenResetPasswordMutation, useResetPasswordMutation, 
     useGetSettingsQuery, useUpdateSettingsMutation, useGetAllNotificationsQuery, useDeleteNotificationsMutation} = api;
+

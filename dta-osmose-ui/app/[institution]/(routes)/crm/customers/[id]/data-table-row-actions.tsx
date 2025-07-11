@@ -60,8 +60,6 @@ export function DataTableRowActions<TData>({
         <DropdownMenuItem onClick={() => router.push(`/${institution}/sales/${saleId}`)}>
           Voir
         </DropdownMenuItem>
-        
-        
       </DropdownMenuContent>
     </DropdownMenu>
 

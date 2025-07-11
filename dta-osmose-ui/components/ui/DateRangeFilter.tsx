@@ -1,11 +1,12 @@
 // src/components/DateRangeFilter.tsx
 
 
-import { Button } from "@/components/ui/button";
+/*import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { CalendarIcon } from "lucide-react";
+
+import { ChevronDownIcon } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -31,7 +32,7 @@ export const DateRangeFilter = ({
               !dateRange.start && "text-muted-foreground"
             )}
           >
-            <CalendarIcon className="mr-2 h-4 w-4" />
+            <ChevronDownIcon className="mr-2 h-4 w-4" />
             {dateRange.start ? (
               format(dateRange.start, "PPP", { locale: fr })
             ) : (
@@ -61,7 +62,7 @@ export const DateRangeFilter = ({
               !dateRange.end && "text-muted-foreground"
             )}
           >
-            <CalendarIcon className="mr-2 h-4 w-4" />
+            <ChevronDownIcon className="mr-2 h-4 w-4" />
             {dateRange.end ? (
               format(dateRange.end, "PPP", { locale: fr })
             ) : (
@@ -89,4 +90,4 @@ export const DateRangeFilter = ({
       </Button>
     </div>
   );
-};
+};*/

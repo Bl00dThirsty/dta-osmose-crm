@@ -1,6 +1,4 @@
-
-
-import React from 'react'
+ import React from 'react'
 import Footer from '@/app/[institution]/(routes)/components/Footer'
 import Link from 'next/link';
 import { Button } from '@/components/ui/button'
@@ -10,7 +8,8 @@ import { Button } from '@/components/ui/button'
 export default function InstitutionPage() {
   
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-black-50 px-4">
+    <div className="flex flex-col min-h-screen">
+      <div className="flex-grow flex flex-col items-center justify-center bg-black-50 px-4">
       <h1 className="text-3xl font-bold mb-8 text-center text-white-800">Choisissez votre interface</h1>
 
       <div className="flex flex-col sm:flex-row gap-6">
@@ -25,7 +24,10 @@ export default function InstitutionPage() {
           </Button>
         </Link>
       </div>
+      </div>
+      <div className="w-full">
       <Footer />
+    </div>
     </div>
   )
 }
