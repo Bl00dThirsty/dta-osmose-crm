@@ -117,6 +117,7 @@ export interface SaleInvoice{
   delivred?: boolean;
   profit: number;
   createdAt:  Date;
+  date?: Date;
   items: SaleItemInput[];
   user: {
     id: number;
@@ -156,6 +157,7 @@ export interface NewSaleInvoice{
   delivred?: boolean;
   profit: number;
   createdAt?:  Date;
+  date?: Date;
   items: SaleItemInput[];
   user?: {
     id: number;

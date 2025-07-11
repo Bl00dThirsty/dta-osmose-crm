@@ -274,6 +274,7 @@ model saleInvoice {
   updatedAt       DateTime    @updatedAt
   delivred        Boolean              @default(false)
   ready           Boolean              @default(false)
+  date            DateTime?
   customer        customer    @relation(name: "CustomerSaleInvoice", fields: [customerId], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "CustomerSaleInvoiceRelation")
   customerCreator    customer?      @relation(name: "CustomerCreatorSaleInvoice", fields: [customerCreatorId], references: [id], map: "CustomerCreatorSaleInvoiceRelation")
   user            user?        @relation(fields: [userId], references: [id])
