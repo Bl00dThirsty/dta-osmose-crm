@@ -1,112 +1,184 @@
 // src/app/customer/[id]/page.tsx
 "use client"
 import { useParams } from "next/navigation";
-import { useGetCustomerByIdQuery } from "@/state/api"; 
+import { useGetCustomerByIdQuery, useUpdateCustomerMutation } from "@/state/api"; 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { format } from "date-fns"; // Pour formater les dates
-import { DataTable } from "./data-table"
-import { columns } from "./columns"
+import { UpdateCustomerForm } from "@/app/[institution]/(routes)/crm/components/UpdateCustomer";
+import { DataTable } from "./data-table";
+import { columns } from "./columns";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 export default function DetailCustomerPage() {
+  const [isMounted, setIsMounted] = useState(false);
+  const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
+  const [dates, setDates] = useState({
+    startDate: '',
+    endDate: ''
+  });
+
   const router = useRouter();
   const { id } = useParams();
-  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
 
-  const now = new Date();
-  const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-
-  const [startDate, setStartDate] = useState<string>(firstDayOfMonth.toISOString().split("T")[0]);
-  const [endDate, setEndDate] = useState<string>(lastDayOfMonth.toISOString().split("T")[0]);
-
-  const { data: customer, isLoading, error } = useGetCustomerByIdQuery({ id: id as string, startDate, endDate });
-
+  // Initialisation côté client uniquement
   useEffect(() => {
-    if (!token) {
+    setIsMounted(true);
+    setToken(localStorage.getItem('accessToken'));
+    
+    const now = new Date();
+    setDates({
+      startDate: new Date(now.getFullYear(), now.getMonth(), 1)
+                .toISOString().split("T")[0],
+      endDate: new Date(now.getFullYear(), now.getMonth() + 1, 0)
+              .toISOString().split("T")[0]
+    });
+  }, []);
+
+  // Redirection si non authentifié
+  useEffect(() => {
+    if (isMounted && !token) {
       router.push('/sign-in');
     }
-  }, [token]);
+  }, [token, isMounted, router]);
 
-  const handleGoBack = () => {
-    router.back();
-  };
+  // Requêtes API
+  const { 
+    data: customer, 
+    isLoading, 
+    error, 
+    refetch 
+  } = useGetCustomerByIdQuery({ 
+    id: id as string, 
+    startDate: dates.startDate, 
+    endDate: dates.endDate 
+  });
+
+  const [updateCustomer, { isLoading: isUpdating }] = useUpdateCustomerMutation();
+
+  // Calcul du crédit disponible
   const totalAvailableCredit = customer?.credits?.reduce(
-    (sum, credits) => sum + (credits.amount - credits.usedAmount),
+    (sum, credit) => sum + (credit.amount - credit.usedAmount),
     0
-  );
+  ) || 0;
 
-  if (isLoading) return <p>Chargement...</p>;
-  if (error || !customer) return <p>Utilisateur introuvable.</p>;
+  // Gestion de la mise à jour
+  const handleUpdate = async (updatedData: Partial<Customer>) => {
+    try {
+      if (!customer?.id) {
+        throw new Error("ID client manquant");
+      }
+
+      const response = await updateCustomer({
+        id: customer.id,
+        data: updatedData  // Correction ici pour matcher votre API
+      }).unwrap();
+
+      toast.success("Client mis à jour avec succès");
+      await refetch();
+      setIsUpdateDialogOpen(false);
+      
+      return response;
+    } catch (error: any) {
+      console.error("Échec de la mise à jour:", error);
+      const errorMessage = error.data?.message || 
+                         error.message || 
+                         "Erreur lors de la mise à jour";
+      toast.error(`Échec: ${errorMessage}`);
+      throw error;
+    }
+  };
+
+  if (!isMounted || isLoading) return <p className="text-center py-8">Chargement en cours...</p>;
+  if (error || !customer) return <p className="text-center py-8 text-red-500">Client introuvable</p>;
 
   return (
     <div className="space-y-6">
-    <Card className="max-w-3xl mx-auto mt-6 shadow">
-      <div className="mb-4 ml-4">
-        <button
-          onClick={handleGoBack}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-800 transition"
-        >
-          ← Retour
-        </button>
-      </div>
-      <CardHeader>
-        <CardTitle className="text-2xl text-center">{customer.name}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-5 mt-5">
-      <div className="grid grid-cols-2 gap-8 mb-8">
-        <div>
-        <p className="mb-2"><strong>ID client :</strong> {customer.customId}</p>
-        <p className="mb-2"><strong>Email :</strong> {customer.email}</p>
-        <p className="mb-2"><strong>Téléphone :</strong> {customer.phone}</p>
-        <p className="mb-2"><strong>Nom du responsable :</strong> {customer.nameresponsable}</p>
-        <p className="mb-2"><strong>Adresse :</strong> {customer.quarter}</p>
-        <p><strong>Vos avoirs :</strong> {totalAvailableCredit?.toFixed(2) || 0} FCFA</p>
+      {/* Carte principale */}
+      <Card className="max-w-3xl mx-auto mt-6 shadow">
+        <div className="flex justify-between items-center p-4">
+          <Button 
+            onClick={() => router.back()}
+            variant="outline"
+            className="bg-blue-600 text-white hover:bg-blue-700"
+          >
+            ← Retour
+          </Button>
+          <Button 
+            onClick={() => setIsUpdateDialogOpen(true)}
+            className="ml-auto bg-blue-600 text-white hover:bg-blue-700"
+            disabled={isUpdating}
+          >
+            {isUpdating ? "Enregistrement..." : "Modifier"}
+          </Button>
         </div>
-        <div>
-        <p className="mb-2"><strong>Nom d'utilisateur :</strong> {customer.userName || "Aucun"}</p>
-        <p className="mb-2"><strong>Role :</strong> {customer.role}</p>
-        <p className="mb-2"><strong>Région :</strong> {customer.region}</p>
-        <p className="mb-2"><strong>Ville :</strong> {customer.ville}</p>
-        <p className="mb-2"><strong>Type de client :</strong> {customer.type_customer}</p>
-        <p><strong>Site web :</strong> {customer.website}</p>
-        </div>
-      </div>
-      </CardContent>
-    </Card>
+
+        <CardHeader>
+          <CardTitle className="text-2xl text-center">{customer.name}</CardTitle>
+        </CardHeader>
+        
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-8 py-4">
+          <div className="space-y-4">
+            <p><strong>ID client :</strong> {customer.customId}</p>
+            <p><strong>Email :</strong> {customer.email}</p>
+            <p><strong>Téléphone :</strong> {customer.phone}</p>
+            <p><strong>Nom du responsable :</strong> {customer.nameresponsable}</p>
+            <p><strong>Adresse :</strong> {customer.quarter}</p>
+            <p><strong>Crédit disponible :</strong> {totalAvailableCredit.toFixed(2)} FCFA</p>
+          </div>
+          <div className="space-y-4">
+            <p><strong>Nom d'utilisateur :</strong> {customer.userName || "Non défini"}</p>
+            <p><strong>Rôle :</strong> {customer.role}</p>
+            <p><strong>Région :</strong> {customer.region}</p>
+            <p><strong>Ville :</strong> {customer.ville}</p>
+            <p><strong>Type de client :</strong> {customer.type_customer}</p>
+            <p><strong>Site web :</strong> {customer.website || "Non défini"}</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Historique des commandes */}
       <Card className="max-w-6xl mx-auto shadow">
         <CardHeader>
-      {/* Formulaire de filtre par période */}
-      <div className="flex justify-between items-center">
-      <CardTitle>Historique des commandes</CardTitle>
-        <div className="flex space-x-4">
-          <input
-            type="date"
-            value={startDate || ""}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="border p-2 rounded"
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <CardTitle>Historique des commandes</CardTitle>
+            <div className="flex gap-2">
+              <input
+                type="date"
+                value={dates.startDate}
+                onChange={(e) => setDates(prev => ({...prev, startDate: e.target.value}))}
+                className="border p-2 rounded text-sm"
+              />
+              <input
+                type="date"
+                value={dates.endDate}
+                onChange={(e) => setDates(prev => ({...prev, endDate: e.target.value}))}
+                className="border p-2 rounded text-sm"
+              />
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <DataTable
+            data={customer.saleInvoice || []}
+            columns={columns}
           />
-          <input
-            type="date"
-            value={endDate || ""}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="border p-2 rounded"
-          />
-        </div>
-      </div>
-      </CardHeader>
+        </CardContent>
+      </Card>
 
-      {/* Tableau des ventes */}
-      <CardContent>
-      <DataTable
-              
-              data={customer.saleInvoice || []}
-              columns={columns}
-            />
-      </CardContent>
-    </Card>
-  </div>
+      {/* Formulaire de modification */}
+      {customer && (
+        <UpdateCustomerForm
+          customer={customer}
+          open={isUpdateDialogOpen}
+          onOpenChange={setIsUpdateDialogOpen}
+          onUpdate={handleUpdate}
+          isLoading={isUpdating}
+        />
+      )}
+    </div>
   );
 }
 {/* <CardContent className="flex space-x-9 space-y-7 mt-5">
