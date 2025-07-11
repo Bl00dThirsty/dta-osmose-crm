@@ -239,7 +239,7 @@ const AdminDashboard = ({ dashboardMetrics, totalSales, totalProfits, totalInvoi
 }) => (
   <Link href={href || "#"}>
     <Suspense fallback={<LoadingBox />}>
-      <Card>
+      <Card className="w-75 justify-between space-x-2">
         <CardHeader className="flex flex-row items-center justify-between space-y-1">
           <CardTitle className="text-lg font-semibold">{title}</CardTitle>
         </CardHeader>

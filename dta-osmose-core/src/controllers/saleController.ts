@@ -291,6 +291,39 @@ export const checkCustomerDebtStatus = async (req: Request, res: Response) => {
 
   const hasDebt = unpaidOldInvoices.length > 0;
 
+  const client = await prisma.customer.findUnique({
+    where: { id: unpaidOldInvoices.customerId }
+  });
+
+  if (client) {
+    // Assurez-vous que notifyUser accepte l'identifiant du client
+    await notifyUserOrCustomer({
+      saleId: unpaidOldInvoices.id,
+      customerId: unpaidOldInvoices.customerId,
+      message: `Vous avez une dette dette de ${unpaidOldInvoices.dueAmount} F CFA`,
+      type: "order"
+    });
+  }
+
+  const users = await prisma.user.findMany({
+    where: {
+      role: {
+        in: ['manager', 'admin']
+      }
+    }
+  });
+
+  for (const u of users) {
+    await notifyAllUsers({
+      saleId: unpaidOldInvoices.id,
+      userId: u.id,
+      // customerId: unpaidOldInvoices.customerId,
+      message: `Le client: ${unpaidOldInvoices.customer.name} n'a pas terminé de payer sa dette de.${unpaidOldInvoices.dueAmount} F CFA, cela fait plus d'un mois`,
+      type: "order"
+    });
+  }
+
+
   res.json({ hasDebt });
 };
 
@@ -370,9 +403,9 @@ export const getSaleInvoiceById = async (req: Request, res: Response): Promise<v
 export const updateSaleStatus = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const { ready, delivred } = req.body;
+    const { ready, delivred, date } = req.body;
     const institutionslug = req.params.institution;
-
+    const now = new Date();
     // Validation
     const invoice = await prisma.saleInvoice.findUnique({
       where: { id },
@@ -388,6 +421,8 @@ export const updateSaleStatus = async (req: Request, res: Response): Promise<voi
       data: {
         ready: typeof ready === 'boolean' ? ready : invoice.ready,
         delivred: typeof delivred === 'boolean' ? delivred : invoice.delivred,
+        date: delivred === true ? new Date() : invoice.date,
+
       },
     });
     
@@ -409,6 +444,7 @@ export const updateSaleStatus = async (req: Request, res: Response): Promise<voi
         });
       }
     }
+
 
     res.status(200).json(updatedInvoice);
   } catch (error) {
