@@ -263,7 +263,7 @@ const CreateSalePage = () => {
                 onChange={(e) => {
                 const selectedId = Number(e.target.value);
                   setCustomerId(selectedId);
-                  refetchDebtStatus();
+                  if (selectedId) refetchDebtStatus();
                 }}
             >
            <option value="">Sélectionner un client</option>

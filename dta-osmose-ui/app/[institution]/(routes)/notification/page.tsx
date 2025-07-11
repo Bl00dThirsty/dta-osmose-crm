@@ -44,10 +44,24 @@ import { useRouter } from 'next/navigation';
 import { columns } from "./columns"
 import { DataTable } from "./data-table"
 import { toast } from "react-toastify";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+  DialogCancel,
+  DialogAction,
+} from "@/components/ui/dialog"
+
+
 import { useGetAllNotificationsQuery, useDeleteNotificationsMutation } from "@/state/api";
 
 const NotificationAdmin = () => {
   const router = useRouter();
+  const [open, setOpen] = useState(false);
   const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
   const { institution } = useParams() as { institution: string }
   useEffect(() => {
@@ -85,6 +99,7 @@ if (isError) return <p>Erreur lors du chargement.</p>
 
 
   return (
+    <>
     <Container
       title="Toutes les notifications"
       description=""
@@ -96,7 +111,7 @@ if (isError) return <p>Erreur lors du chargement.</p>
     </div>
     {!isParticulier && (
     <div>        
-          <Button onClick={handleClearAll} className="bg-red-700 text-white">🗑️ Supprimer toutes les notifications</Button>      
+          <Button onClick={() => setOpen(true)} className="bg-red-700 text-white hover:bg-red-400">🗑️ Tous Supprimer</Button>      
     </div>
     )}
     <DataTable data={notifications || []} columns={columns} />
@@ -104,6 +119,22 @@ if (isError) return <p>Erreur lors du chargement.</p>
         </section>
       </div>
     </Container>
+
+   <Dialog open={open} onOpenChange={setOpen}>
+<DialogContent>
+  <DialogHeader>
+    <DialogTitle>Confirmation</DialogTitle>
+    <DialogDescription>
+      Voulez-vous vraiment supprimer toutes les notifications ?
+    </DialogDescription>
+  </DialogHeader>
+  <DialogFooter>
+    <DialogCancel onClick={() => setOpen(false)}>Annuler</DialogCancel>
+    <DialogAction onClick={handleClearAll}>Oui</DialogAction>
+  </DialogFooter>
+</DialogContent>
+</Dialog>
+</>
   );
 };
 

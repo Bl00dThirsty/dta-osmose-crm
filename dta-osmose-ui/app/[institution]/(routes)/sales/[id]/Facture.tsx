@@ -51,7 +51,7 @@ const PrintToPdf = forwardRef<HTMLDivElement, PrintToPdfProps>(({ sale }, ref) =
           <div>
             <h1 className="text-2xl font-bold">Facture N°: {sale.invoiceNumber}</h1>
             <p className="text-gray-500">Date de comande: {new Date(sale.createdAt).toLocaleDateString()}</p>
-            <p className="text-gray-500">Date de livraison: {new Date(sale.updatedAt).toLocaleDateString()}</p>
+            <p className="text-gray-500">Date de livraison: {new Date(sale.date).toLocaleDateString()}</p>
           </div>
         </div>
 
