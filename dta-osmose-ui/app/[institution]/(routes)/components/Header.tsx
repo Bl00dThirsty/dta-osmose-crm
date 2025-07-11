@@ -1,7 +1,8 @@
 import Feedback from "./Feedback";
 import FulltextSearch from "./FulltextSearch";
 import AvatarDropdown from "./ui/AvatarDropdown";
-
+import NotificationBell from './ui/NotificationBell'
+import NotificationBellStock from './ui/NotificatioBellStock'
 import { Separator } from "@/components/ui/separator";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { CommandComponent } from "@/components/CommandComponent";
@@ -27,8 +28,10 @@ const Header = () => {
         <div className="flex justify-center">
           <FulltextSearch />
         </div>
-        <div className="flex items-center gap-3">
-          <Feedback />
+        <div className="flex items-center gap-4">
+          <NotificationBellStock />
+          <NotificationBell />
+          {/* <Feedback /> */}
           <ThemeToggle />
           <SupportComponent />
           <AvatarDropdown />

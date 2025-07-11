@@ -229,4 +229,57 @@ export const register = async (
     }
   };
 
+  interface JwtPayload {
+    sub: number;
+    role: string;
+    permissions?: string[];
+    userType: "user" | "customer";
+  }
+  
+  export const getCurrentUser = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const auth = req.auth as JwtPayload;
+  
+      if (!auth?.sub || !auth?.userType) {
+        res.status(401).json({ message: "Non autorisé" });
+      }
+  
+      let user;
+      if (auth.userType === "user") {
+        user = await prisma.user.findUnique({
+          where: { id: auth.sub },
+          select: {
+            id: true,
+            email: true,
+            role: true,
+            userName: true,
+            
+          }
+        });
+      } else if (auth.userType === "customer") {
+        user = await prisma.customer.findUnique({
+          where: { id: auth.sub },
+          select: {
+            id: true,
+            email: true,
+            role: true,
+            userName: true,
+            
+          }
+        });
+      }
+  
+      if (!user) {
+        res.status(404).json({ message: "Utilisateur introuvable" });
+      }
+  
+      res.json({ user: { ...user, userType: auth.userType } });
+    } catch (error) {
+      console.error("Erreur dans /auth/me:", error);
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  };
+
+
+
   
