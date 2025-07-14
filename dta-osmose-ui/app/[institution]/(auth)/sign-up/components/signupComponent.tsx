@@ -166,7 +166,7 @@ export default function RegisterComponent() {
           </CardContent>
         </form>
 
-        <CardFooter className="flex flex-col space-y-5 mt-5">
+        <CardFooter className="flex flex-col space-y-5">
           <p className="text-sm text-gray-500">
             Vous avez déjà un compte ?{" "}
             <Link href={`/${institution}/sign-in`} className="text-blue-500">
