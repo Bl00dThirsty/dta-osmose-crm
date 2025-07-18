@@ -3,6 +3,7 @@
       
       "customId": "Client0001",
       "name": "Pharmacie ABC",
+      "userName": "Client1",
       "phone": "6998741526",
       "email": "client1@example.com",
       "role": "Particulier",
@@ -13,6 +14,7 @@
       
       "customId": "Client0002",
       "name": "Cosmetique ABC",
+      "userName": "Client2",
       "phone": "6998741574",
       "email": "client2@example.com",
       "role": "Particulier",

@@ -152,7 +152,7 @@ const CreateSalePage = () => {
       toast.success("Vente enregistrée avec succès");
       router.push(`/${institution}/sales/${result.id}`);
     } catch (error) {
-      console.error("Erreur création vente:", error);
+      console.log("Erreur création vente:");
       toast.error("Échec de l'enregistrement");
     }
   };
@@ -263,7 +263,7 @@ const CreateSalePage = () => {
                 onChange={(e) => {
                 const selectedId = Number(e.target.value);
                   setCustomerId(selectedId);
-                  if (selectedId) refetchDebtStatus();
+                  refetchDebtStatus();
                 }}
             >
            <option value="">Sélectionner un client</option>

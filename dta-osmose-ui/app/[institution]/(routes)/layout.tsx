@@ -38,6 +38,7 @@ export const metadata: Metadata = {
 export default async function AppLayout({
   children,
   params,
+  
 }: {
   children: React.ReactNode;
   params: { institution: string };

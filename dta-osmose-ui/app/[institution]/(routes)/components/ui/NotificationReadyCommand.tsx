@@ -1,10 +1,8 @@
-"use client" 
-
 import React, { useEffect, useState } from "react";
 import io from "socket.io-client";
 import Link from 'next/link';
 import { Alert } from "antd";
-import { BellIcon } from "lucide-react";
+import { BellOutlined } from "@ant-design/icons";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useAuth } from "../../../(auth)/sign-in/context//authContext";
@@ -18,12 +16,12 @@ const socket = io(process.env.NEXT_PUBLIC_API_BASE_URL, {
 // const socket = io("http://192.168.1.176:5001");
 
 
-function NotificationBell() {
+function ReadyCommandeNotification() {
     const { user, loading, clearError } = useAuth();
     const userType = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
-    let userId = null;
-    if ((userType === "admin") || (userType === "manager")){
-      userId = user?.id;  
+    let customerId = null;
+    if (userType === "Particulier"){
+      customerId = user?.id;  
     }
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -32,9 +30,9 @@ function NotificationBell() {
 
   useEffect(() => {
     // Identify the user when they connect
-    if (userId) {
-      console.log(`Customer ${userId} is identifying`);
-      socket.emit("identify", { userId });
+    if (customerId) {
+      console.log(`Customer ${customerId} is identifying`);
+      socket.emit("identify", { customerId });
     }
 
     // Handle incoming notifications
@@ -79,7 +77,7 @@ function NotificationBell() {
     return () => {
       socket.off("customer-notification", handleCustomerNotification);
     };
-  }, [userId]);
+  }, [customerId]);
 
   const handleNotificationClick = async () => {
     // setShowNotifications(!showNotifications);
@@ -91,7 +89,7 @@ function NotificationBell() {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({ 
-              userId
+              customerId
             }),
           });
     
@@ -114,7 +112,7 @@ function NotificationBell() {
       
       {/* Icône de cloche */}
       <button onClick={() => setShowNotifications(!showNotifications)}>
-        <BellIcon className="w-6 h-6" />
+        <BellOutlined className="w-6 h-6" style={{ color: "#fadb14" }} />
         {unreadNotifications.length >= 0 && (
           <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-1">
             {unreadNotifications.length}
@@ -129,7 +127,7 @@ function NotificationBell() {
               key={item.id}
               message={<Link href={`/${institution}/sales/${item.saleId}`}>{item.message}</Link>}
               showIcon
-              type={item.type === "info" ? "success" : "warning"}
+              type={item.type === "success" ? "info" : "warning"}
               style={{ marginBottom: "16px" }}
               closable
               onClose={handleNotificationClick}
@@ -142,4 +140,4 @@ function NotificationBell() {
   );
 }
 
-export default NotificationBell;
+export default ReadyCommandeNotification;

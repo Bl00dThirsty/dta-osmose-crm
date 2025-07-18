@@ -215,6 +215,7 @@ model institution {
   appSetting   appSetting[]
   claims    claim[]
   customer  customer[]
+  notification       Notification[]
 }
 
 model product {
@@ -305,6 +306,7 @@ model Notification {
   userId    Int?        // Utilisateur destinataire (user.id)
   customerId     Int?        // Client destinataire (customer.id)
   saleId  String?     // Si la notif est liée à une commande
+  institutionId   String?
   productId      String?     // Si la notif est liée à un produit
   createdAt      DateTime    @default(now())
 
@@ -312,6 +314,7 @@ model Notification {
   customer       customer?   @relation(fields: [customerId], references: [id])
   saleInvoice    saleInvoice? @relation(fields: [saleId], references: [id])
   product        product?    @relation(fields: [productId], references: [id])
+  institution     institution? @relation(fields: [institutionId], references: [id])
 }
 
 enum NotificationType {
