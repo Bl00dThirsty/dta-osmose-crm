@@ -33,15 +33,15 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
     const role = localStorage.getItem('role');
     console.log("role", role)
     //user.userType ou userType
-    if (userType === "admin") {
+    if ((userType === "admin") || (userType === "manager")) {
       socket.emit("identify", { userId: user.id });
       console.log(`user ${user.id} is identifying`);
       socket.on("user-notification", (notification) => {
-        if (notification.type === "order") {
-          setNotifications((prev) => [notification, ...prev]);
+        if (notification.type === "stock_alert") {
           
-        } else {
           setStockNotifications((prev) => [notification, ...prev]);
+        } else {
+          setNotifications((prev) => [notification, ...prev]);
         }
       
         toast(notification.message, {
@@ -50,7 +50,7 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
         });
       });
       
-    } else if (userType === "Particulier") {
+    } else {
       socket.emit("identify", { customerId: user.id });
   
       socket.on("customer-notification", (notification) => {

@@ -270,6 +270,7 @@ export interface Notification{
   title: string;
   message: string;
   type?: string;
+  institutionId: string
   isRead: boolean;
   userId: number;
   customerId: number;
@@ -666,16 +667,25 @@ export const api = createApi({
 
           //NOTIFICATIONS
           
-          getAllNotifications: build.query<Notification[], string | void>({  
+          getAllNotifications: build.query<Notification[], { institution: string }>({  
+            query: ({ institution }) => ({
+                url: `/notification/${institution}/all`,
+                //params: search ? { search } : {}
+            }),
+            providesTags: ["Notifications"]
+          }), 
+          
+          getCustomerNotifications: build.query<Notification[], string | void>({  
             query: (search) => ({
-                url: "/notification/all",
+                url: `/notification/customer`,
                 params: search ? { search } : {}
             }),
+            providesTags: ["Notifications"]
           }), 
           
           deleteNotifications: build.mutation<void, string>({
             query: (id) => ({
-              url: `/sale/${id}`, 
+              url: `/notification/${id}`, 
               method: "DELETE",
             }),
             invalidatesTags: (result, error, id) => [{ type: 'Notifications', id }],
@@ -690,5 +700,5 @@ export const { useGetDashboardMetricsQuery, useGetProductsQuery, useCreateProduc
     useGetDesignationsQuery, useCreateDesignationsMutation, useDeleteDesignationMutation,useGetRolesQuery, useCreateRolesMutation, 
     useDeleteRoleMutation, useGetUsersQuery, useGetUserByIdQuery, useDeleteUserMutation,  useGetCustomersQuery, useCreateCustomersMutation,
     useGetCustomerByIdQuery, useDeleteCustomerMutation,useUpdateCustomerMutation, useSendTokenResetPasswordMutation, useResetPasswordMutation, 
-    useGetSettingsQuery, useUpdateSettingsMutation, useGetAllNotificationsQuery, useDeleteNotificationsMutation} = api;
+    useGetSettingsQuery, useUpdateSettingsMutation, useGetAllNotificationsQuery, useGetCustomerNotificationsQuery, useDeleteNotificationsMutation} = api;
 

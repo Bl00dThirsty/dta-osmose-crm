@@ -77,3 +77,15 @@ server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
+
+
+
+// process.on("uncaughtException", (err) => {
+//   console.error("❌ Erreur non interceptée:", err);
+// });
+
+// process.on("unhandledRejection", (reason, promise) => {
+//   console.error("❌ Rejection non gérée:", reason);
+// });
+
+

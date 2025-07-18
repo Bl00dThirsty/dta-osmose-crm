@@ -60,9 +60,12 @@ export function DataTableRowActions<TData>({
     try {
       await deleteSaleInvoice(saleId).unwrap()
       console.log("Commande supprimé avec succès")
+      toast.success("Commande annulée, réactualisez la page")
       router.push(`/${institution}/sales/all`);
+     
     } catch (error) {
       console.log("Erreur lors de la suppression :")
+      toast.error("Erreur lors de l'annulation de la commande");
     }
   }
 

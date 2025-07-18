@@ -98,42 +98,42 @@ export const columns: ColumnDef<Claim>[] = [
     cell: ({ row }) => <div className="w-[80px]">{row.getValue("reason")}</div>,
   },
 
-  {
-    accessorKey: "response",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Réponse" />
-    ),
-    cell: ({ row }) => {
-      const response = row.original.response?.status as 
-        | 'ACCEPTED' 
-        | 'REJECTED' 
-        | 'PENDING' 
-        | undefined;
+  // {
+  //   accessorKey: "response",
+  //   header: ({ column }) => (
+  //     <DataTableColumnHeader column={column} title="Réponse" />
+  //   ),
+  //   cell: ({ row }) => {
+  //     const response = row.original.response?.status as 
+  //       | 'ACCEPTED' 
+  //       | 'REJECTED' 
+  //       | 'PENDING' 
+  //       | undefined;
       
-      const getStatusConfig = (status: typeof response) => {
-        switch (status) {
-          case 'ACCEPTED':
-            return { className: 'bg-green-500', label: 'ACCEPTÉ' };
-          case 'REJECTED':
-            return { className: 'bg-red-500', label: 'REJETÉ' };
-          default:
-            return { className: 'bg-yellow-500', label: 'EN ATTENTE' };
-        }
-      };
+  //     const getStatusConfig = (status: typeof response) => {
+  //       switch (status) {
+  //         case 'ACCEPTED':
+  //           return { className: 'bg-green-500', label: 'ACCEPTÉ' };
+  //         case 'REJECTED':
+  //           return { className: 'bg-red-500', label: 'REJETÉ' };
+  //         default:
+  //           return { className: 'bg-yellow-500', label: 'EN ATTENTE' };
+  //       }
+  //     };
       
-      const { className, label } = getStatusConfig(response);
+  //     const { className, label } = getStatusConfig(response);
   
-      return (
-        <Button
-          className={`px-2 py-1 rounded text-white ${className}`}
-          size="sm"
-          variant="outline"
-        >
-          {label}
-        </Button>
-      );
-    },
-  },
+  //     return (
+  //       <Button
+  //         className={`px-2 py-1 rounded text-white ${className}`}
+  //         size="sm"
+  //         variant="outline"
+  //       >
+  //         {label}
+  //       </Button>
+  //     );
+  //   },
+  // },
  
   {
     id: "actions",

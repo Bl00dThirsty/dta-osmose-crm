@@ -210,22 +210,31 @@ export const createSaleInvoice = async (req: Request, res: Response): Promise<vo
      });
      
      if (creatorType === "customer") {
-      await notifyAllUsers(
-        invoice.id,
-        `Votre commande N°: ${invoice.invoiceNumber} a été créée et la valeur à payer est de: ${invoice.finalAmount} fcfa.`
-      );
+    //   await notifyAllUsers({
+    //     saleId: invoice.id,
+    //     institutionId: institution.id,
+    //     message: `Nouvelle commande créée avec ID : ${invoice.invoiceNumber} par le client No ${invoice.customerId}`,
+    //     type: "order"
+    //  });
+    await notifyAllUsers(
+      invoice.id,
+      //institution.id,
+      `Nouvelle commande créée avec ID : ${invoice.invoiceNumber} par le client ${creatorId}`
+    );
      }
      
      if (creatorType === "user") {
       await notifyUserOrCustomer({
         saleId: invoice.id,
         customerId: invoice.customerId,
-        message: `Nouvelle commande créée avec ID : ${invoice.invoiceNumber} par le client No ${customerId}`,
+        institutionId: institution.id,
+        productId: null,
+        message: `Votre commande N°: ${invoice.invoiceNumber} a été créée et la valeur à payer est de: ${updatedInvoice.finalAmount} fcfa.`,
         type: "order"
       });
      }
 
-
+    console.log("le type user", creatorType)
     // Mise à jour des stocks
     await Promise.all(items.map((item) => 
       prisma.product.update({
@@ -253,6 +262,7 @@ export const createSaleInvoice = async (req: Request, res: Response): Promise<vo
           saleId: null,
           userId: u.id,
           productId: product.id,
+          institutionId: institution.id,
           message: `Le stock du produit "${product.designation}" est bas (seuil atteint), "${product.restockingThreshold}" Produits restants"`,
           type: "stock_alert"
         });
@@ -276,6 +286,7 @@ export const createSaleInvoice = async (req: Request, res: Response): Promise<vo
 // Récupération des factures impayées depuis plus d'un mois
 export const checkCustomerDebtStatus = async (req: Request, res: Response) => {
   const { customerId } = req.params;
+  
 
   const now = new Date();
   const oneMonthAgo = new Date(now.setMonth(now.getMonth() - 1));
@@ -285,43 +296,48 @@ export const checkCustomerDebtStatus = async (req: Request, res: Response) => {
     where: {
       customerId: parseInt(customerId),
       paymentStatus: { not: "PAID" },
+      delivred: true,
       createdAt: { lt: oneMonthAgo },
     },
+    
   });
 
   const hasDebt = unpaidOldInvoices.length > 0;
 
-  const client = await prisma.customer.findUnique({
-    where: { id: unpaidOldInvoices.customerId }
-  });
-
-  if (client) {
-    // Assurez-vous que notifyUser accepte l'identifiant du client
-    await notifyUserOrCustomer({
-      saleId: unpaidOldInvoices.id,
-      customerId: unpaidOldInvoices.customerId,
-      message: `Vous avez une dette dette de ${unpaidOldInvoices.dueAmount} F CFA`,
-      type: "order"
+  if (unpaidOldInvoices.length > 0) {
+    const firstInvoice = unpaidOldInvoices[0];
+  
+    const client = await prisma.customer.findUnique({
+      where: { id: firstInvoice.customerId }
     });
-  }
-
-  const users = await prisma.user.findMany({
-    where: {
-      role: {
-        in: ['manager', 'admin']
-      }
+  
+    if (client) {
+      await notifyUserOrCustomer({
+        saleId: firstInvoice.id,
+        customerId: client.id,
+        message: `Vous avez une dette de ${firstInvoice.dueAmount} F CFA`,
+        type: "order"
+      });
     }
-  });
-
-  for (const u of users) {
-    await notifyAllUsers({
-      saleId: unpaidOldInvoices.id,
-      userId: u.id,
-      // customerId: unpaidOldInvoices.customerId,
-      message: `Le client: ${unpaidOldInvoices.customer.name} n'a pas terminé de payer sa dette de.${unpaidOldInvoices.dueAmount} F CFA, cela fait plus d'un mois`,
-      type: "order"
+  
+    const users = await prisma.user.findMany({
+      where: {
+        role: {
+          in: ['manager', 'admin']
+        }
+      }
     });
+  
+    for (const u of users) {
+      await notifyAllUsers({
+        saleId: firstInvoice.id,
+        userId: u.id,
+        message: `Le client: ${client.name} n'a pas terminé de payer sa dette de ${firstInvoice.dueAmount} F CFA, cela fait plus d'un mois`,
+        type: "order"
+      });
+    }
   }
+  
 
 
   res.json({ hasDebt });
@@ -427,7 +443,7 @@ export const updateSaleStatus = async (req: Request, res: Response): Promise<voi
     });
     
     if (ready === true) {
-      const clientId = updatedInvoice.customer.id; // Utilisation de l'id du client associé à la commande
+      const clientId = updatedInvoice.customerId; // Utilisation de l'id du client associé à la commande
 
       // Envoi de la notification au client
       const client = await prisma.customer.findUnique({
@@ -473,6 +489,14 @@ export const updatePayment = async (req: Request, res: Response): Promise<void> 
     }
        
     const invoice = await prisma.saleInvoice.findUnique({ where: { id } });
+    const credit = await prisma.credit.findFirst({
+      where: {
+        customerId: invoice.customerId,
+        amount: { gt: 0 },
+        usedAmount: { lt: prisma.credit.fields.amount },
+      },
+      orderBy: { createdAt: 'asc' }, // Utiliser le plus ancien crédit disponible
+    });
     if (!invoice) {
       res.status(404).json({ error: 'Invoice not found' });
       return;
@@ -495,9 +519,30 @@ export const updatePayment = async (req: Request, res: Response): Promise<void> 
 
     const totalDiscount = (invoice.discount ?? 0) + discount;
     const totalPaid = (invoice.paidAmount ?? 0) + paidAmount;
-    const newFinalAmount = (invoice.totalAmount ?? 0) - totalDiscount;
-    const remainingAmount = Math.max(newFinalAmount - totalPaid, 0); // toujours >= 0
+    const finalAmount = (invoice.totalAmount ?? 0) - totalDiscount;
+    //const remainingAmount = Math.max(newFinalAmount - totalPaid, 0); // toujours >= 0
 
+    // Appliquer le crédit disponible
+    let remainingAmount = finalAmount;
+    let creditUsed = 0;
+
+    if (credit) {
+      const availableCredit = credit.amount - credit.usedAmount;
+      creditUsed = Math.min(availableCredit, finalAmount);
+      remainingAmount -= creditUsed;
+
+      // Mettre à jour l'état du crédit
+      await prisma.credit.update({
+        where: { id: credit.id },
+        data: {
+          usedAmount: {
+            increment: creditUsed,
+          },
+        },
+      });
+    }
+    // Calcul du montant dû après paiement
+    remainingAmount = Math.max(remainingAmount - totalPaid, 0); // Assurez-vous que le montant restant est >= 0
     let newStatus = invoice.paymentStatus;
     if (remainingAmount === 0) newStatus = 'PAID';
     else if (totalPaid > 0) newStatus = 'PARTIAL';
@@ -509,12 +554,13 @@ export const updatePayment = async (req: Request, res: Response): Promise<void> 
         paymentMethod,
         paymentStatus: newStatus,
         discount: totalDiscount,
-        finalAmount: newFinalAmount,
+        finalAmount: finalAmount,
         paidAmount: totalPaid,
         dueAmount: remainingAmount,
         profit: profit, // bien mis à jour ici
       },
     });
+
 
     res.json(updatedInvoice);
   } catch (error) {
@@ -569,11 +615,11 @@ export const deleteSaleInvoice = async (req: Request, res: Response): Promise<vo
     });
 
     // Supprimer les reclamation qui y sont reliers
-    await prisma.claim.delete({
-      where: {
-        invoiceId: id,
-      },
-    });
+    // await prisma.claim.delete({
+    //   where: {
+    //     invoiceId: id,
+    //   },
+    // });
 
     // Supprimer la facture
     await prisma.saleInvoice.delete({
@@ -594,5 +640,34 @@ export const deleteSaleInvoice = async (req: Request, res: Response): Promise<vo
     res.status(500).json({ error: "Erreur lors de l'annulation de la commande." });
   }
 };
+
+// let totalPurchasePrice = 0;
+//     items.forEach((item: any, index: number) => {
+//       totalPurchasePrice += allProduct[index].purchase_price * item.quantity;
+//     });
+
+//     const totalDiscount = (invoice.discount ?? 0) + discount;
+//     const totalPaid = (invoice.paidAmount ?? 0) + paidAmount;
+//     const newFinalAmount = (invoice.totalAmount ?? 0) - totalDiscount;
+//     const remainingAmount = Math.max(newFinalAmount - totalPaid, 0); // toujours >= 0
+
+//     let newStatus = invoice.paymentStatus;
+//     if (remainingAmount === 0) newStatus = 'PAID';
+//     else if (totalPaid > 0) newStatus = 'PARTIAL';
+//     const profit = totalPaid - totalPurchasePrice;
+
+//     const updatedInvoice = await prisma.saleInvoice.update({
+//       where: { id },
+//       data: {
+//         paymentMethod,
+//         paymentStatus: newStatus,
+//         discount: totalDiscount,
+//         finalAmount: newFinalAmount,
+//         paidAmount: totalPaid,
+//         dueAmount: remainingAmount,
+//         profit: profit, // bien mis à jour ici
+//       },
+//     });
+
 
 

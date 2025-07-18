@@ -54,8 +54,10 @@ const InvoicePage = () => {
       await deleteSaleInvoice(id).unwrap()
       console.log("Commande supprimé avec succès")
       router.push(`/${institution}/sales/all`);
+      toast.success("Commande annulée")
     } catch (error) {
       console.log("Erreur lors de la suppression :")
+      toast.error("Erreur lors de l'annulation de la commande");
     }
   }
   const handleMarkReady = async () => {
