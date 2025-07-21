@@ -21,7 +21,7 @@ import { ChartAreaInteractive } from "./components/dasboard/chart-area-interacti
 
 
 const DashboardPage = () => {
-  //const token = localStorage.getItem("accessToken");
+  //const token = localStorage.getItem("accessToken");`/${institution}/sign-in`
   const { institution } = useParams() as { institution: string }
   const router = useRouter();
   const now = new Date();
@@ -37,6 +37,14 @@ const DashboardPage = () => {
       router.push(`/${institution}/sign-in`);
     }
   }, [token]);
+  // if (!token) {
+  //   return {
+  //     redirect: {
+  //       destination: `/${institution}/sign-in`, // Remplacez par la route de votre page de connexion
+  //       permanent: false,
+  //     },
+  //   };
+  // }
 
   const userType = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
   const {data: dashboardMetrics} = useGetDashboardMetricsQuery({ institution, startDate, endDate });

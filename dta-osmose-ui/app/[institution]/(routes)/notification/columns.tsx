@@ -115,7 +115,7 @@ export const columns: ColumnDef<Notification>[] = [
         minute: "2-digit",
       });
   
-      return <div className="w-[100px]">{formattedDate}</div>;
+      return <div className="w-[120px]">{formattedDate}</div>;
     },
   },
   

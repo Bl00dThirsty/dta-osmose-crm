@@ -109,7 +109,7 @@ const PaymentPage = () => {
           <option value="mobile">Paiement mobile</option>
           <option value="bancaire">Paiement bancaire</option>
           <option value="espece">Espèces</option>
-          <option value="cheque">Par chèque</option>
+          <option value="chèque">Par chèque</option>
           <option value="remise">Remise</option>
        </select>
 
