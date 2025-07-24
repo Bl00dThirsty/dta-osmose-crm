@@ -8,6 +8,8 @@ import { useGetUsersQuery } from '@/state/api';
 import { useRouter, useParams } from 'next/navigation';
 import { Input } from "@/components/ui/input";
 import { toast } from "react-toastify";
+import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export interface Product {
   id: string;
@@ -187,38 +189,36 @@ const CreateSalePage = () => {
                className="border p-3 rounded cursor-pointer hover:bg-gray-50 hover:text-red-700"
                onClick={() => handleAddProduct(product)}
             >
-            <h3 className="font-medium">{product.designation}</h3>
-            <p>Prix: {product.sellingPriceTTC} FCFA</p>
-            <p>Stock: {product.quantity}</p>
+            <h3 className="font-bold">{product.designation}</h3>
+            <p >Prix: {product.sellingPriceTTC} €</p>
+            <p className="font-noraml text-gray-500">Stock: {product.quantity}</p>
             </div>
            ))}
           </div>
           <div className="flex justify-center mt-4 space-x-2">
-  <button
+  <Button
     disabled={currentPage === 1}
     onClick={() => setCurrentPage(currentPage - 1)}
-    className="px-3 py-1 bg-blue-500 text-white-500 rounded disabled:opacity-50"
   >
-    ← Précédent
-  </button>
+    <ChevronLeft/> Précédent
+  </Button>
 
   {Array.from({ length: totalPages }, (_, i) => (
-    <button
+    <Button
       key={i + 1}
       onClick={() => setCurrentPage(i + 1)}
       className={`px-3 py-1 rounded ${currentPage === i + 1 ? 'bg-blue-600 text-gray' : 'bg-gray-200'}`}
     >
       {i + 1}
-    </button>
+    </Button>
   ))}
 
-  <button
+  <Button
     disabled={currentPage === totalPages}
     onClick={() => setCurrentPage(currentPage + 1)}
-    className="px-3 py-1 bg-blue-500 text-white-500 rounded disabled:opacity-10"
   >
-    Suivant →
-  </button>
+    Suivant <ChevronRight/>
+  </Button>
 </div>
 
 

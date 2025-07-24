@@ -13,8 +13,8 @@ const Footer = async () => {
         </Link>
       </div>
       <div className="hidden md:flex space-x-2 pr-2">
-        powered by DTA
-        <span className="bg-black rounded-md text-white px-1 mx-1">
+        Powered by DTA
+        <span className= "bg-foreground rounded-md text-white px-1 mx-1">
         Software Development & Cloud Architecture Department
         </span>
         +
@@ -23,7 +23,7 @@ const Footer = async () => {
         </Link>{" "}
         hosted by:
         <span className="text-bold underline">
-          <Link href="https://www.vercel.com">OVH / Vercel</Link>
+          <Link href="https://www.vercel.com">Vercel</Link>
         </span>
       </div>
       <div className="hidden md:flex space-x-2">

@@ -7,6 +7,7 @@ import {
   AudioWaveform,
   BookOpen,
   Package,
+  Plus,
   ChartCandlestick,
   ChevronRightIcon,
   Command,
@@ -17,7 +18,8 @@ import {
   Crown,
   User,
   BookAIcon,
-  ShoppingBag
+  ShoppingBag,
+  MoreHorizontal
 } from "lucide-react";
 
 import { AppSwitcher } from "./app-switcher";
@@ -34,6 +36,7 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
@@ -41,6 +44,7 @@ import {
   SidebarMenuSubItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 //const { user } = useAuth();
 //const userType = user?.userType ?? "user";
 const userType = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
