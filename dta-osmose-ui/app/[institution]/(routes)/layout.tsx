@@ -1,8 +1,6 @@
 import Header from "./components/Header";
-import SideBar from "./components/SideBar";
 import Footer from "./components/Footer";
 import { Metadata } from "next";
-import { Sidebar } from "@/components/ui/sidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/app/[institution]/(routes)/components/app-sidebar"
 

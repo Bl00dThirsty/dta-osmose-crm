@@ -113,7 +113,8 @@
     "typeRoots": ["./src/types", "./node_modules/@types"]                               /* Skip type checking all .d.ts files. */
   },
   "include": [
-    "src",
-    "types"
+    "src/**/*.ts",
+    "types",
+    "src/types/express-unless.d.ts"
   ]
 }
