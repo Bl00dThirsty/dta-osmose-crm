@@ -26,6 +26,7 @@ import saleRoutes from './routes/saleRoutes';
 import settingRoutes from './routes/settingRoutes';
 import claimRoutes from './routes/claimRoute';
 import NotificationRoutes from './routes/notificationRoutes'
+import InventoryRoutes from './routes/inventoryRoutes'
 
 export const prisma = new PrismaClient();
 
@@ -64,7 +65,8 @@ app.use("/user", userRoutes);
 app.use("/sale", saleRoutes);
 app.use("/setting", settingRoutes);
 app.use("/claim", claimRoutes);
-app.use("/notification", NotificationRoutes)
+app.use("/notification", NotificationRoutes);
+app.use("/inventory", InventoryRoutes)
 
 // Error handling middleware
 app.use(errorHandler);

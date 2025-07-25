@@ -145,7 +145,7 @@ const CreateSalePage = () => {
           unitPrice: p.unitPrice,
         })),
         discount,
-        paymentMethod: "ESPECES",
+        paymentMethod: "mobile",
         institution: institution, // L'institution actuelle
       }).unwrap();
   
