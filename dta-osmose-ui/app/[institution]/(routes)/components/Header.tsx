@@ -1,8 +1,11 @@
+"use client";
 
 import Feedback from "./Feedback";
 import FulltextSearch from "./FulltextSearch";
 import AvatarDropdown from "./ui/AvatarDropdown";
-
+import NotificationBell from './ui/NotificationBell'
+import NotificationBellStock from './ui/NotificatioBellStock'
+import ReadyCommandeNotification from './ui/NotificationReadyCommand'
 import { Separator } from "@/components/ui/separator";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { CommandComponent } from "@/components/CommandComponent";
@@ -14,6 +17,8 @@ const Header = () => {
   // const handleGoBack = () => {
   //   router.back();
   // };
+  const userType = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
+  const isParticulier = userType === "Particulier";
   return (
     <>
       <div className="flex h-20 justify-between items-center p-5 space-x-5">
@@ -28,8 +33,17 @@ const Header = () => {
         <div className="flex justify-center">
           <FulltextSearch />
         </div>
-        <div className="flex items-center gap-3">
-          <Feedback />
+        <div className="flex items-center gap-4">
+        {!isParticulier && (
+          <NotificationBellStock />
+        )}
+         {!isParticulier && (
+          <NotificationBell />
+         )}
+          {isParticulier && (
+          <ReadyCommandeNotification />
+          )}
+          {/* <Feedback /> */}
           <ThemeToggle />
           <SupportComponent />
           <AvatarDropdown />

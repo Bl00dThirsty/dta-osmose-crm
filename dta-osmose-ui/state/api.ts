@@ -117,6 +117,7 @@ export interface SaleInvoice{
   delivred?: boolean;
   profit: number;
   createdAt:  Date;
+  date?: Date;
   items: SaleItemInput[];
   user: {
     id: number;
@@ -156,6 +157,7 @@ export interface NewSaleInvoice{
   delivred?: boolean;
   profit: number;
   createdAt?:  Date;
+  date?: Date;
   items: SaleItemInput[];
   user?: {
     id: number;
@@ -218,7 +220,7 @@ export interface NewCustomer {
   website?: string;
   status?: boolean;
   type_customer?: string;
-  role: string;
+  role?: string;
   quarter?: string;
   region?: string; 
   saleInvoice?: SaleInvoice[];
@@ -263,6 +265,19 @@ export interface Claim {
   }
 }
 
+export interface Notification{
+  id: string;
+  title: string;
+  message: string;
+  type?: string;
+  institutionId: string
+  isRead: boolean;
+  userId: number;
+  customerId: number;
+  saleId: number;
+  createdAt: Date;
+}
+
 export interface AppSetting{
   id: number;
   company_name: string;
@@ -282,6 +297,39 @@ export interface NewAppSetting{
   website: string;
   footer: string;
 }
+export interface InventoryItem {
+  productId: string;
+  designation: string;
+  systemQty: number;
+  countedQty: number;
+  difference: number;
+  comment?: string;
+  product?:{
+    designation: string;
+    quantity: number;
+    EANCode?: string;
+    sellingPriceTTC: number;
+  }
+};
+
+export interface Inventory {
+  id: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+  titre?: string;
+  note?: string;
+  location?: string;
+  institutionId?:   String;
+  performedById: number;
+  user?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+  } 
+  inventoryItems: InventoryItem[];
+};
+
+
 
 export interface DashboardMetrics {
     popularProducts: Product[];
@@ -326,7 +374,7 @@ export const api = createApi({
         return headers;
       }, }),
     reducerPath: "api",
-    tagTypes: ["DashboardMetrics", "Products", "Users", "Designations", "Roles", "Customers", "Sales", "AppSettings", "Claims"],
+    tagTypes: ["DashboardMetrics", "Products", "Users", "Designations", "Roles", "Customers", "Sales", "AppSettings", "Claims", "Notifications", "Inventorys"],
     endpoints: (build) => ({
         getDashboardMetrics: build.query<DashboardMetrics, { institution: string, startDate?: string; endDate?: string  }>({
             query: ({ institution, startDate, endDate }) => {
@@ -356,6 +404,72 @@ export const api = createApi({
         getProductById: build.query<Product, string>({
           query: (id) => `/institutions/${id}`, // Construire l'URL avec l'ID de l'utilisateur
           providesTags: (result, error, id) => [{ type: "Products", id }], // Associer un tag pour l'invalidation
+        }),
+
+        //inventory
+        createInventory: build.mutation<Inventory, { 
+          titre: string;
+          location: string;
+          performedById: number;
+          inventoryItems: Array<{
+          productId: string;
+          systemQty: number;
+          countedQty: number;
+          comment?: string;
+          }>;
+          note?: string;
+          institution: string;
+         }>({
+          query: ({ institution, ...data }) => ({
+              url: `/inventory/${institution}/inventory`,
+              method: 'POST',
+              body: data
+          }),
+          invalidatesTags: ['Inventorys', 'Products']
+        }),
+
+        getInventory: build.query<Inventory[], { institution: string; search?: string }>({
+          query: ({ institution, search }) => ({
+              url: `/inventory/${institution}/all`,
+              params: search ? { search } : {}
+          }),
+          providesTags: ["Inventorys"]
+        }),
+
+        getInventoryId: build.query<Inventory, string>({
+          query: (id) => `/inventory/${id}`,
+          providesTags: (result, error, id) => [{ type: 'Inventorys', id }]
+        }),
+
+        updateInventory: build.mutation<Inventory, {
+          id: string;
+          institution: string;
+          titre: string;
+          location: string;
+          performedById: number;
+          note?: string;
+          inventoryItems: Array<{
+            productId: string;
+            systemQty: number;
+            countedQty: number;
+            comment?: string;
+          }>;
+        }>({
+          query: ({ institution, id, ...data }) => ({
+            url: `/inventory/${institution}/inventory/${id}`,
+            method: "PUT",
+            body: data
+          }),
+          invalidatesTags: ['Inventorys', 'Products']
+        }),
+        
+
+        deleteInventory: build.mutation<void, string>({
+          query: (id) => ({
+            url: `/inventory/${id}`, 
+            method: "DELETE",
+          }),
+          invalidatesTags: (result, error, id ) => [{ type: "Inventorys", id }],
         }),
 
         // Sales
@@ -559,6 +673,14 @@ export const api = createApi({
             }),
             invalidatesTags: (result, error, id) => [{ type: 'Users', id }],
           }),
+          updateUser: build.mutation<User, { id: number; data: Partial<User> }>({
+            query: ({ id, data }) => ({
+              url: `/User/${id}`,
+              method: "PUT",
+              body: data,
+            }),
+            invalidatesTags: ["Users"],
+          }),
 
           //customer
           getCustomers: build.query<Customer[], string | void>({            
@@ -588,6 +710,7 @@ export const api = createApi({
             providesTags: (result, error, { id }) => [{ type: "Customers", id }],
           }),
       
+
           deleteCustomer: build.mutation<void, string>({
             query: (id) => ({
               url: `/customer/${id}`,
@@ -595,6 +718,35 @@ export const api = createApi({
             }),
             invalidatesTags: ["Customers"],
           }),
+
+          sendTokenResetPassword: build.mutation<Customer, { email: string, institution: string }>({
+            query: ({ email, institution }) => ({
+              url: `/customer/${institution}/sendTokenResetPassword`,
+              method: 'POST',
+              body: { email },
+            }),
+          }),
+          
+          //customer ou any
+          resetPassword: build.mutation<Customer, { token: string; newPassword: string; institution: string }>({
+            query: ({ token, newPassword, institution }) => ({
+              url: `/customer/${institution}/resetPassword`,
+              method: 'POST',
+              body: { token, newPassword },
+              headers: {
+                "Content-Type": "application/json", // ✅ Important
+              },
+            }),
+          }),
+          updateCustomer: build.mutation<Customer, { id: number; data: Partial<Customer> }>({
+            query: ({ id, data }) => ({
+              url: `/Customer/${id}`,
+              method: "PUT",
+              body: data,
+            }),
+            invalidatesTags: ["Customers"],
+          }),
+          
 
           //setting
           getSettings: build.query<AppSetting[], { institution: string }>({
@@ -611,14 +763,42 @@ export const api = createApi({
             }),
             invalidatesTags: ["AppSettings"],
           }),
+
+          //NOTIFICATIONS
           
+          getAllNotifications: build.query<Notification[], { institution: string }>({  
+            query: ({ institution }) => ({
+                url: `/notification/${institution}/all`,
+                //params: search ? { search } : {}
+            }),
+            providesTags: ["Notifications"]
+          }), 
+          
+          getCustomerNotifications: build.query<Notification[], string | void>({  
+            query: (search) => ({
+                url: `/notification/customer`,
+                params: search ? { search } : {}
+            }),
+            providesTags: ["Notifications"]
+          }), 
+          
+          deleteNotifications: build.mutation<void, string>({
+            query: (id) => ({
+              url: `/notification/${id}`, 
+              method: "DELETE",
+            }),
+            invalidatesTags: (result, error, id) => [{ type: 'Notifications', id }],
+          }),
       
     }),
 });
 
-export const { useGetDashboardMetricsQuery, useGetProductsQuery, useCreateProductMutation, useGetProductByIdQuery, useCreateSaleMutation, useGetCustomerDebtStatusQuery, useGetSalesQuery,
+export const { useGetDashboardMetricsQuery, useGetProductsQuery, useCreateProductMutation, useGetProductByIdQuery, useCreateInventoryMutation, 
+  useGetInventoryQuery, useGetInventoryIdQuery, useUpdateInventoryMutation, useDeleteInventoryMutation, useCreateSaleMutation, useGetCustomerDebtStatusQuery, useGetSalesQuery,
     useGetSaleByIdQuery,useUpdateSaleStatusMutation, useUpdateSalePaymentMutation, useDeleteSaleInvoiceMutation, useCreateClaimMutation, 
     useRespondToClaimMutation, useUpdateClaimResponseMutation, useGetClaimQuery, useGetClaimByIdQuery, useDeleteClaimMutation, useGetDepartmentsQuery,
     useGetDesignationsQuery, useCreateDesignationsMutation, useDeleteDesignationMutation,useGetRolesQuery, useCreateRolesMutation, 
     useDeleteRoleMutation, useGetUsersQuery, useGetUserByIdQuery, useDeleteUserMutation,  useGetCustomersQuery, useCreateCustomersMutation,
-    useGetCustomerByIdQuery, useDeleteCustomerMutation, useGetSettingsQuery, useUpdateSettingsMutation} = api;
+    useGetCustomerByIdQuery, useDeleteCustomerMutation,useUpdateCustomerMutation, useSendTokenResetPasswordMutation, useResetPasswordMutation, 
+    useGetSettingsQuery, useUpdateSettingsMutation, useGetAllNotificationsQuery, useGetCustomerNotificationsQuery, useDeleteNotificationsMutation} = api;
+

@@ -1,12 +1,14 @@
 [
-    {
-      "id": "institution-iba",
-      "slug": "iba",
-      "name": "IBA"
-    },
-    {
-      "id": "institution-asermpharma",
-      "slug": "asermpharma",
-      "name": "Asermpharma"
-    }
-  ]
+  {
+    "id": "institution-iba",
+    "slug": "iba",
+    "name": "IBA"
+    
+  },
+  {
+    "id": "institution-asermpharma",
+    "slug": "asermpharma",
+    "name": "Asermpharma"
+    
+  }
+]

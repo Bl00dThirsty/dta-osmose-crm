@@ -145,14 +145,14 @@ const CreateSalePage = () => {
           unitPrice: p.unitPrice,
         })),
         discount,
-        paymentMethod: "ESPECES",
+        paymentMethod: "mobile",
         institution: institution, // L'institution actuelle
       }).unwrap();
   
       toast.success("Vente enregistrée avec succès");
       router.push(`/${institution}/sales/${result.id}`);
     } catch (error) {
-      console.error("Erreur création vente:", error);
+      console.log("Erreur création vente:");
       toast.error("Échec de l'enregistrement");
     }
   };

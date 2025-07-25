@@ -14,7 +14,6 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    // Étape 1 : Chercher l'institution à partir du slug
     const institution = await prisma.institution.findUnique({
       where: { slug: institutionSlug },
     });
@@ -65,7 +64,6 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    // 🔍 Chercher l'institution à partir du slug
     const institution = await prisma.institution.findUnique({
       where: { slug: institutionSlug },
     });
@@ -96,6 +94,63 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Erreur lors de la création du produit." });
+  }
+};
+
+export const importProducts = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const institutionSlug = req.params.institution;
+    const products: any[] = req.body;
+
+    if (!Array.isArray(products) || products.length === 0) {
+      res.status(400).json({ message: "Aucune donnée reçue." });
+      return;
+    }
+
+    const institution = await prisma.institution.findUnique({
+      where: { slug: institutionSlug },
+    });
+
+    if (!institution) {
+      res.status(404).json({ message: "Institution introuvable." });
+      return;
+    }
+
+    const createdProducts = [];
+
+    for (const row of products) {
+      if (!row.EANCode) continue;
+     
+      const existing = await prisma.product.findUnique({
+        where: { EANCode: row.EANCode },
+      });
+
+      if (existing) continue;
+
+      const product = await prisma.product.create({
+        data: {
+          id: uuidv4(),
+          EANCode: row.EANCode,
+          brand: row.brand,
+          designation: row.designation,
+          quantity: Number(row.quantity) || 0,
+          purchase_price: Number(row.purchase_price) || 0,
+          sellingPriceTTC: Number(row.sellingPriceTTC) || 0,
+          restockingThreshold: Number(row.restockingThreshold) || 0,
+          warehouse: row.warehouse,
+          institution: {
+            connect: { id: institution.id },
+          },
+        },
+      });
+
+      createdProducts.push(product);
+    }
+
+    res.status(201).json({ message: `${createdProducts.length} produits importés.` });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Erreur lors de l'import." });
   }
 };
 

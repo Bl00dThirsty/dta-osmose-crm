@@ -41,7 +41,7 @@ const InvoicePage = () => {
   //const { id } = (row.original as any);
   const [deleteSaleInvoice] = useDeleteSaleInvoiceMutation()
   const [updateStatus] = useUpdateSaleStatusMutation(); 
-
+  const now = new Date();
   const { data: sale, isLoading } = useGetSaleByIdQuery(id);
   const { data: settings = [] } = useGetSettingsQuery({ institution });
   const handleDelete = async () => {
@@ -54,8 +54,10 @@ const InvoicePage = () => {
       await deleteSaleInvoice(id).unwrap()
       console.log("Commande supprimé avec succès")
       router.push(`/${institution}/sales/all`);
+      toast.success("Commande annulée")
     } catch (error) {
       console.log("Erreur lors de la suppression :")
+      toast.error("Erreur lors de l'annulation de la commande");
     }
   }
   const handleMarkReady = async () => {
@@ -67,8 +69,8 @@ const InvoicePage = () => {
         ready: !sale.ready,
       }).unwrap();
       toast.success(`Commande marquée comme ${!sale.ready ? 'prête' : 'non prête'}`);
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.log("Erreur lors du marquage :");
       toast.error("Erreur lors de la mise à jour du statut 'prêt'.");
     }
   };
@@ -81,6 +83,7 @@ const InvoicePage = () => {
         institution,
         delivred: !sale.delivred,
       }).unwrap();
+     
       toast.success(`Commande ${!sale.delivred ? 'livrée' : 'non livrée'}`);
     } catch (err) {
       console.error(err);

@@ -5,6 +5,15 @@ const bcrypt = require("bcrypt");
 const saltRounds = 10;
 const jwt = require("jsonwebtoken");
 const prisma = new PrismaClient();
+const nodemailer = require("nodemailer");
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  }
+});
 
 export const getCustomers = async (
     req: Request,
@@ -66,6 +75,78 @@ export const getCustomers = async (
       }
 };
 
+const generateResetToken = (customerId: number) => {
+  return jwt.sign({ id: customerId }, process.env.JWT_SECRET!, {
+    expiresIn: "1h"
+  });
+};
+
+export const sendTokenResetPassword = async (req: Request, res: Response): Promise<void> => {
+  const { email } = req.body;
+  const institution = req.params.institution;
+  try {
+    const customer = await prisma.customer.findUnique({ where: { email } });
+    if (!customer) {
+      res.status(404).json({ error: "Utilisateur non trouvé" });
+    }
+
+    const token = generateResetToken(customer.id);
+    const resetUrl = `${process.env.FRONTEND_URL}/${institution}/ResetPassword?token=${token}`;
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Réinitialisation de votre mot de passe",
+      html: `
+        <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+          <h3>Réinitialisation de votre mot de passe</h3>
+          <p>Bonjour ${customer.name},</p>
+          <p>Veuillez cliquer sur ce lien pour réinitialiser votre mot de passe :</p>
+            <a href="${resetUrl}">${resetUrl}</a>
+          <p>Ce lien n'est valable pour qu'une (1h) heure uniquement.</p>
+          <p>Si vous n'avez pas demandé cette réinitialisation, veuillez ignorer cet e-mail.</p>
+        </div>
+      `
+    });
+
+    res.json({ message: "Email de réinitialisation envoyé." });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erreur serveur." });
+  }
+};
+
+export const resetPassword = async (req: Request, res: Response): Promise<void> => {
+  const { token, newPassword } = req.body;
+  
+  try {
+    if (!token) {
+      res.status(400).json({ error: "Token manquant ou invalide" });
+      return;
+    }
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+    const customerId = decoded.id;
+
+    const customer = await prisma.customer.findUnique({ where: { id: customerId } });
+    if (!customer) {
+      res.status(404).json({ error: "Client introuvable" });
+      return;
+    }
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await prisma.customer.update({
+      where: { id: customerId },
+      data: { password: hashedPassword }
+    });
+
+    res.json({ message: "Mot de passe réinitialisé avec succès" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Lien invalide ou expiré." });
+  }
+};
+
+
 // src/controllers/customerController.ts
 export const getSingleCustomer = async (
   req: Request,
@@ -105,6 +186,50 @@ export const getSingleCustomer = async (
     res.status(500).json({ message: "Erreur serveur" });
   }
 };
+
+//mise à jour du client
+export const updateSingleCustomer = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const id = Number(req.params.id); // Utilisation directe de Number
+  try {
+    const updateData: any = {
+      customId: req.body.customId,
+      name: req.body.name,
+      userName: req.body.userName,
+      phone: req.body.phone,
+      email: req.body.email,
+      ville: req.body.ville,
+      nameresponsable: req.body.nameresponsable,
+      quarter: req.body.quarter,
+      region: req.body.region,
+      role: req.body.role,
+      status: req.body.status,
+      type_customer: req.body.type_customer,
+      website: req.body.website,
+      institutionId: req.body.institutionId,
+    };
+
+    // Hachage du mot de passe si fourni
+    if (req.body.password) {
+      const hash = await bcrypt.hash(req.body.password, saltRounds);
+      updateData.password = hash;
+    }
+
+    const updateCustomer = await prisma.customer.update({
+      where: { id },
+      data: updateData,
+    });
+
+    // Exclusion du mot de passe de la réponse
+    const { password, ...customerWithoutPassword } = updateCustomer;
+    res.status(200).json(customerWithoutPassword);  
+  } catch (error) {
+    res.status(500).json({ message: "Erreur lors de la mise à jour du client" });
+  }
+};
+
 
 export const deleteSingleCustomer = async (
   req: Request,

@@ -10,8 +10,8 @@ const ProductsPage = () => {
 
   return (
     <Container
-      title="Tableau des differents Produits de l'institution"
-      description="En cours de développement... Ce composant affiche une vue d'ensemble des mmarques et des produits définis et enregistrés."
+      title="Catalogue des produits de l'institution"
+      description="Ici vous avez tous les produits entrés en stock dans cette institution."
     >
     <div className="h-full w-full overflow-x-auto">
       <section className="overflow-hidden rounded-[0.5rem] border bg-background shadow-zinc-50">

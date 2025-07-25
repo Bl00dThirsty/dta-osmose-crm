@@ -2,7 +2,6 @@
 
 import React from "react";
 import Container from "../../components/ui/Container";
-import CRMKanban from "./_components/CRMKanban";
 import { Bar, BarChart, XAxis } from "recharts"
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart"
 import { useEffect } from 'react';

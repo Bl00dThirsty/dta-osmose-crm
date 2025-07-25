@@ -64,6 +64,71 @@ const PaymentPage = () => {
     router.back();
   };
 
+  const handleCinetPay = () => {
+    const transactionId = Math.floor(Math.random() * 100000000).toString();
+  
+    const cinetpayConfig = {
+      apikey: process.env.NEXT_PUBLIC_CINETPAY_APIKEY!,
+      site_id: process.env.NEXT_PUBLIC_CINETPAY_SITE_ID!,
+      notify_url: `${process.env.NEXT_PUBLIC_API_BASE_URL}/cinetpay/notify`,
+      mode: 'PRODUCTION',
+    };
+  
+    const checkoutParams = {
+      transaction_id: transactionId,
+      amount: paidAmount, 
+      currency: 'XOF',
+      channels: 'ALL',
+      description: `Paiement partiel facture ${sale?.invoiceNumber}`,
+      customer_name: 'Nom',
+      customer_surname: 'Prenom',
+      customer_email: 'email@exemple.com',
+      customer_phone_number: '000000000',
+      customer_address: 'Adresse',
+      customer_city: 'Ville',
+      customer_country: 'CI',
+      customer_state: 'CI',
+      customer_zip_code: '00000'
+    };
+  
+    // if (window.CinetPay) {
+    //   window.CinetPay.setConfig(cinetpayConfig);
+    //   window.CinetPay.getCheckout(checkoutParams);
+    //   window.CinetPay.waitResponse(function (data: any) {
+    //     if (data.status === "ACCEPTED") {
+    //       alert("Paiement réussi !");
+    //       // Redirige vers le backend pour maj de la facture
+    //       fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/sale/${sale?.id}/payment`, {
+    //         method: 'PATCH',
+    //         headers: { 'Content-Type': 'application/json' },
+    //         body: JSON.stringify({
+    //           invoiceId: sale?.id,
+    //           amount: paidAmount,
+    //           paymentMethod,
+    //           dueAmount,
+    //           discount,
+    //         }),
+    //       }).then(() => router.push(`/${institution}/sales/${sale?.id}`));
+    //     } else {
+    //       alert("Paiement refusé !");
+    //     }
+    //   });
+  
+    //   window.CinetPay.onError(function (err: any) {
+    //     console.error("Erreur CinetPay:", err);
+    //   });
+    // }
+    useEffect(() => {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.cinetpay.com/seamless/main.js';
+      script.async = true;
+      document.body.appendChild(script);
+    }, []);
+    
+  };
+  
+
+
   if (isLoading) return <p>Chargement...</p>;
   if (!sale) return <p>Facture introuvable</p>;
 
@@ -109,10 +174,10 @@ const PaymentPage = () => {
           <option value="mobile">Paiement mobile</option>
           <option value="bancaire">Paiement bancaire</option>
           <option value="espece">Espèces</option>
-          <option value="cheque">Par chèque</option>
+          <option value="chèque">Par chèque</option>
           <option value="remise">Remise</option>
        </select>
-
+       
       <Label className='mb-3'>Montant donné</Label>
       <Input
         type="number"
@@ -120,8 +185,17 @@ const PaymentPage = () => {
         min={0}
         max={sale.finalAmount ?? 0}
         onChange={handleMontantDonneChange}
-        className="w-full mb-4"
+        className="w-full mb-3"
       />
+      
+      {(paymentMethod === "mobile" || paymentMethod === "bancaire") && paidAmount > 0 && (
+       <button
+          onClick={handleCinetPay}
+          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-500 mb-4 mr-3 w-50"
+       >
+          Payer avec CinetPay
+       </button>
+      )}
 
       <button
         onClick={handleSubmit}

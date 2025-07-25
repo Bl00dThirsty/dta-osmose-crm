@@ -57,7 +57,7 @@ const data = {
     {
       title: "Dashoard",
       path: "#",
-      icon: () => <LayoutDashboard className="w-20 h-20" />,
+      icon: () => <LayoutDashboard strokeWidth="1.5" className="w-5 h-5" />,
       isActive: true,
       items: [
         { title: "Mon dashboard", path: "" },
@@ -67,7 +67,7 @@ const data = {
     {
       title: "Produits",
       path: "products",
-      icon: () => <Package size={40} />,
+      icon: () => <Package strokeWidth="1.5" className="w-5 h-5" />,
       items: [
         { title: "Listes des produits", path: "crm/products" },
         { title: "Statistiques", path: "#" },
@@ -76,9 +76,10 @@ const data = {
     {
       title: "Stock de produits",
       path: "#",
-      icon: () => <TrendingUp size={40} />,
+      icon: () => <TrendingUp strokeWidth="1.5" className="w-5 h-5" />,
       items: [
         { title: "Tableau de rotation", path: "#" },
+        { title: "Inventaire", path: "inventory/all" },
         { title: "Tableau des Pertes", path: "perte" }
       ],
       
@@ -86,7 +87,7 @@ const data = {
     {
       title: "Ventes",
       path: "sales",
-      icon: () => <ShoppingBag size={40} />,
+      icon: () => <ShoppingBag strokeWidth="1.5" className="w-5 h-5" />,
       items: [
         { title: "Ventes", path: "sales" },
         { title: "Liste des ventes", path: "sales/all" },
@@ -96,7 +97,7 @@ const data = {
     {
       title: "Réclamations",
       path: "#",
-      icon: () => <BookAIcon size={40} />,
+      icon: () => <BookAIcon strokeWidth="1.5" className="w-5 h-5" />,
       items: [
         { title: "Liste des Réclamations", path: "claims/all" },
         
@@ -105,7 +106,7 @@ const data = {
     {
       title: "Fournisseurs",
       path: "#",
-      icon: () => <ArrowBigDownDash size={40} />,
+      icon: () => <ArrowBigDownDash strokeWidth="1.5" className="w-5 h-5" />,
       items: [
         { title: "Liste des fournisseurs", path: "#" },
         { title: "Commandes", path: "#" },
@@ -114,7 +115,7 @@ const data = {
     {
       title: "Comptes clients",
       path: "customers",
-      icon: () => <Crown size={40} />,
+      icon: () => <Crown strokeWidth="1.5" className="w-5 h-5" />,
       items: [
         { title: "Liste des comptes clients", path: "crm/customers" },
         { title: "Facturation", path: "sales/all" },
@@ -123,7 +124,7 @@ const data = {
     {
       title: "Utilisateurs",
       url: "#",
-      icon: () => <User size={40} />,
+      icon: () => <User strokeWidth="1.5" className="w-5 h-5" />,
       items: [
         { title: "Ajouter un utilisateur", path: "user/add" },
         { title: "Liste des utilisateurs", path: "user/all" },
@@ -137,7 +138,7 @@ const data = {
 
       title: "Paramètres",
       path: "#",
-      icon: () => <Settings2 size={40} />,
+      icon: () => <Settings2 strokeWidth="1.5" className="w-5 h-5" />,
       items: [
         { title: "Compte", path: "#" },
         { title: "Facturation", path: "crm/setting" },
@@ -147,7 +148,7 @@ const data = {
     {
       title: "Documentation",
       path: "#",
-      icon: () => <BookOpen size={40} />,
+      icon: () => <BookOpen strokeWidth="1.5" className="w-5 h-5" />,
       items: [
         { title: "Introduction", path: "#" },
         { title: "Commencer", path: "#" },
@@ -169,7 +170,7 @@ const data = {
     {
       title: "Achats",
       path: "sales",
-      icon: () => <ShoppingBag size={40} />,
+      icon: () => <ShoppingBag strokeWidth="1.5" className="w-5 h-5" />,
       isActive: true,
       items: [
         { title: "Boutiques", path: "sales" },

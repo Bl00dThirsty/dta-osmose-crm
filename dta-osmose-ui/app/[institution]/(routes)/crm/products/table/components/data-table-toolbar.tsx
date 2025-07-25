@@ -1,9 +1,10 @@
 "use client"
 
-import { Table } from "@tanstack/react-table"
+import { useReactTable, Table } from "@tanstack/react-table"
 import { X, Upload } from "lucide-react"
 import { useParams } from "next/navigation"
 import { useState } from "react"
+import * as XLSX from 'xlsx'
 import Papa from "papaparse"
 
 import { Button } from "@/components/ui/button"
@@ -56,43 +57,38 @@ export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>)
     const selectedFile = e.target.files?.[0] ?? null
     setFile(selectedFile)
   }
+  const handleUpload = async () => {
+  if (!file) return;
 
-  const handleUpload = () => {
-    if (!file) return
+  const reader = new FileReader();
+  reader.readAsArrayBuffer(file);
 
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      complete: async ({ data }: Papa.ParseResult<any>) => {
-        console.log("CSV data :", data)
-        for (const rawProduct of data) {
-          try {
-            await createProduct({
-              institution,
-              data: {
-                EANCode: rawProduct.EANCode || "",
-                brand: rawProduct.brand,
-                designation: rawProduct.designation,
-                quantity: Number(rawProduct.quantity) || 0,
-                purchase_price: Number(rawProduct.purchase_price) || 0, 
-                sellingPriceTTC: Number(rawProduct.sellingPriceTTC) || 0,
-                restockingThreshold: Number(rawProduct.restockingThreshold) || 0,
-                warehouse: rawProduct.warehouse,
-                
-              },
-            }).unwrap()
-          } catch (error) {
-            console.log("Erreur lors de l'import d'un produit :", error)
-          }
-        }
+  reader.onload = async (e) => {
+    const data = new Uint8Array(e.target?.result as ArrayBuffer);
+    const workbook = XLSX.read(data, { type: "array" });
+    const sheetName = workbook.SheetNames[0];
+    const excelData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
-        alert("Produits importés avec succès.")
-      },
-      error: (err) => {
-        console.error("Erreur de lecture CSV :", err)
-      },
-    })
-  }
+    console.log("Données Excel :", excelData);
+
+    try {
+      await fetch(`/api/institutions/${institution}/products/import`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(excelData),
+      });
+
+      toast.success("Produits importés avec succès.");
+    } catch (error) {
+      console.error("Erreur lors de l'import :", error);
+      toast.error("Erreur d'importation.");
+    }
+  };
+
+  reader.onerror = (err) => console.error("Erreur de lecture du fichier :", err);
+};
+
+
 
   const handleExport = () => {
     const rows = table.getFilteredRowModel().rows
@@ -174,9 +170,9 @@ export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>)
           </DialogTrigger>
           <DialogContent className="sm:max-w-md space-y-4">
             <DialogHeader>
-              <DialogTitle>Importer un fichier CSV</DialogTitle>
+              <DialogTitle>Importer un fichier Excel</DialogTitle>
             </DialogHeader>
-            <Input type="file" accept=".csv" onChange={handleFileChange} />
+            <Input type="file" accept=".xlsx, .xls" onChange={handleFileChange} />
             <Button onClick={handleUpload} disabled={!file}>
               Envoyer
             </Button>

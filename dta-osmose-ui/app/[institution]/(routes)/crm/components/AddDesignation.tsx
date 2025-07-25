@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { Button } from "@/components/ui/button"
 import {
@@ -17,6 +17,8 @@ import { NewDesignation } from "@/state/api"
 import { PlusIcon } from "lucide-react"
 import { ChangeEvent, FormEvent, useState } from "react"
 import { v4 } from "uuid"
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 type DesignationFormData = {
   name: string;
@@ -40,6 +42,18 @@ export const AddDesignationDialog = ({ onCreate }: AddDesignationDialogProps) =>
    });
   };
 
+  const showToastMessage = () => {
+    return toast.success('Notification de succès !', {
+      position: "top-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+    });
+  };
+
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
     setFormData({
@@ -52,9 +66,11 @@ export const AddDesignationDialog = ({ onCreate }: AddDesignationDialogProps) =>
     e.preventDefault();
     onCreate(formData);
     resetForm();
+    toast.success('Notification de succès !');
   };
 
   return (
+    <>
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="outline">Ajouter <PlusIcon /></Button>
@@ -88,5 +104,7 @@ export const AddDesignationDialog = ({ onCreate }: AddDesignationDialogProps) =>
         </form>
       </DialogContent>
     </Dialog>
+    <ToastContainer />
+    </>
   )
 }

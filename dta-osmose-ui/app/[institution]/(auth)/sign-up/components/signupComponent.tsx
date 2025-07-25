@@ -8,38 +8,82 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { toast } from "sonner"
+import { useCreateCustomersMutation } from "@/state/api"
 
 export default function RegisterComponent() {
   const { register, error, clearError } = useAuth();
   const [formValues, setFormValues] = useState({
-    firstName: "",
-    lastName: "",
+    customId: "",
+    name: "",
     userName: "",
+    phone: "",
     password: "",
     email: "",
-    role: "", // ou "admin", selon ce que tu veux
+    
   });
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const router = useRouter();
+  const resetForm= () => {
+    setFormValues({
+      customId: "",
+      name: "",
+      userName: "",
+      phone: "",
+      password: "",
+      email: "",
+    });
+   };
+  //const [userName, setUsername] = useState("");
+  //const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormValues({ ...formValues, [e.target.name]: e.target.value });
   };
+  const { institution } = useParams() as { institution: string }
+
+  const handleGenerateCustomId = () => {
+    const randomDigits = Math.floor(100000000 + Math.random() * 900000000);
+    if (institution) {
+      const generatedId = `Cli_${institution}-${randomDigits}`;
+      setFormValues((prev) => ({ ...prev, customId: generatedId }));
+      return generatedId;
+    } else {
+      toast.warning("Institution non définie.");
+      return null;
+    }
+  };
+  const [createCustomer] = useCreateCustomersMutation();
 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await register(formValues);
-    } catch (err) {
+      const generatedId = handleGenerateCustomId();
+      if (!generatedId) return;
+  
+      const dataToSend = {
+        ...formValues,
+        customId: generatedId,
+      };
+  
+      await createCustomer(dataToSend).unwrap();
+      toast.success("Compte client créé avec succès !");
+      resetForm();
+      router.push(`/${institution}/sign-in`);
+    } catch (err: any) {
       console.error(err);
+      toast.error(err?.data?.message || "Erreur lors de la création");
     } finally {
       setIsSubmitting(false);
     }
   };
+  
+
+  
 
   return (
     <div className="flex justify-center items-start pt-8 px-4">
@@ -65,6 +109,7 @@ export default function RegisterComponent() {
 
           <CardContent className="grid gap-4">
             <Input
+             name="email"
               placeholder="Email"
               type="text"
               value={formValues.email}
@@ -72,14 +117,16 @@ export default function RegisterComponent() {
               required
             />
             <Input
-              placeholder="Nom utilisateur"
+             name="name"
+              placeholder="Designation"
               type="text"
-              value={formValues.userName}
+              value={formValues.name}
               onChange={handleChange}
               required
             />
             <div className="flex items-center w-full">
               <Input
+                name="password"
                 placeholder="Mot de passe"
                 type={showPassword ? "text" : "password"}
                 value={formValues.password}
@@ -93,6 +140,22 @@ export default function RegisterComponent() {
                 <FingerprintIcon size={25} className="text-gray-400 cursor-pointer" />
               </span>
             </div>
+            <Input
+              name="userName"
+              placeholder="Nom utilisateur"
+              type="text"
+              value={formValues.userName}
+              onChange={handleChange}
+              required
+            />
+            <Input
+              name="phone"
+              placeholder="Téléphone"
+              type="text"
+              value={formValues.phone}
+              onChange={handleChange}
+              required
+            />
             <Button
               className="w-full h-12"
               type="submit"
@@ -103,10 +166,10 @@ export default function RegisterComponent() {
           </CardContent>
         </form>
 
-        <CardFooter className="flex flex-col space-y-5">
+        <CardFooter className="flex flex-col space-y-5 mt-5">
           <p className="text-sm text-gray-500">
             Vous avez déjà un compte ?{" "}
-            <Link href="/sign-in" className="text-blue-500">
+            <Link href={`/${institution}/sign-in`} className="text-blue-500">
               Connectez-vous ici
             </Link>
           </p>
