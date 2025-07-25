@@ -79,6 +79,7 @@ const data = {
       icon: () => <TrendingUp strokeWidth="1.5" className="w-5 h-5" />,
       items: [
         { title: "Tableau de rotation", path: "#" },
+        { title: "Inventaire", path: "inventory/all" },
         { title: "Tableau des Pertes", path: "perte" }
       ],
       

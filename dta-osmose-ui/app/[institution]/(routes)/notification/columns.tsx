@@ -5,10 +5,10 @@ import { Button } from '@/components/ui/button'
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useRouter, useParams } from 'next/navigation';
-import { Notification } from "@/state/api"
+import { Notification, useDeleteNotificationsMutation } from "@/state/api"
 import { DataTableColumnHeader } from "../user/all/table/components/data-table-column-header"
 import { useNotification } from "../.././(auth)/sign-in/context/NotificationContext";
-// import { DataTableRowActions } from "./data-table-row-actions"
+ import { DataTableRowActions } from "./data-table-row-actions"
 
 const statusMap: Record<string, { label: string, color: string }> = {
   "true": { label: "Actif", color: "green" },
@@ -121,11 +121,11 @@ export const columns: ColumnDef<Notification>[] = [
   
  
   {
-    accessorKey: "actions",
+    id: "actions",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Actions" />
+      <DataTableColumnHeader column={column} title="Action" />
     ),
-    cell: ({ row }) => <div className="w-[80px] text-red-500"> X </div>,
+    cell: ({ row }) => <DataTableRowActions row={row} />,
   },
   
 ]
