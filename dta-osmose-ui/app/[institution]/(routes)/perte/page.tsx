@@ -37,7 +37,7 @@ if (isError) return <p>Erreur lors du chargement.</p>
   return (
     <Container
       title="Tableau des Pertes Après les réclamations"
-      description=""
+      description="Ce tableau affiche la liste des pertes par produits après qu'une réclamation aie été accepté"
     >
     <div className="h-full w-full overflow-x-auto">
       <section className="overflow-hidden rounded-[0.5rem] border bg-background shadow-zinc-50">

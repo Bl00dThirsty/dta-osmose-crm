@@ -92,25 +92,31 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const originalRequest = error.config;
       
       // Si l'erreur est 401 et que ce n'est pas une requête de refresh token
-      if (error.response?.status === 401 && !originalRequest._retry && originalRequest.url !== '/auth/refresh-token') {
+      if (error.response?.status === 401 && 
+        !originalRequest._retry && 
+        originalRequest.url !== '/auth/refresh-token') {
         originalRequest._retry = true;
         
-        try {
-          // Tenter de rafraîchir le token
-          //
-          const { data } = await api.post('/auth/refresh-token');
-          localStorage.setItem('accessToken', data.accessToken);
+        // try {
+        //   // Tenter de rafraîchir le token
+        //   //
+        //   const { data } = await api.post('/auth/refresh-token');
+        //   localStorage.setItem('accessToken', data.accessToken);
           
-          // Mettre à jour le header et renvoyer la requête
-          originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
-          return api(originalRequest);
-        } catch (refreshError) {
-          // Si le refresh échoue, déconnecter l'utilisateur
-          setUser(null);
-          localStorage.removeItem('accessToken');
-          router.push('/');
-          return Promise.reject(refreshError);
-        }
+        //   // Mettre à jour le header et renvoyer la requête
+        //   originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
+        //   return api(originalRequest);
+        // } catch (refreshError) {
+        //   // Si le refresh échoue, déconnecter l'utilisateur
+        //   setUser(null);
+        //   localStorage.removeItem('accessToken');
+        //   router.push('/');
+        //   return Promise.reject(refreshError);
+        // }
+        setUser(null);
+        localStorage.removeItem('accessToken');
+        router.push('/');
+        return Promise.reject(error);
       }
       
       return Promise.reject(error);
@@ -230,7 +236,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         clearError
       }}
     >
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   );
   // return (

@@ -108,37 +108,37 @@ export const markNotificationsAsRead = async (req: Request, res: Response): Prom
   };
   
 
-  export const deleteAllNotifications = async (req: Request, res: Response): Promise<void> => {
-    const { userId, customerId } = req.body;
-    const institutionSlug = req.params.institution;
+  // export const deleteAllNotifications = async (req: Request, res: Response): Promise<void> => {
+  //   const { userId, customerId } = req.body;
+  //   const institutionSlug = req.params.institution;
 
-    if (!institutionSlug) {
-      res.status(400).json({ message: "Institution manquante." });
-      return;
-    }
+  //   if (!institutionSlug) {
+  //     res.status(400).json({ message: "Institution manquante." });
+  //     return;
+  //   }
 
-    const institution = await prisma.institution.findUnique({
-        where: { slug: institutionSlug },
-    });
+  //   const institution = await prisma.institution.findUnique({
+  //       where: { slug: institutionSlug },
+  //   });
 
-    if (!institution) {
-        res.status(404).json({ message: "Institution introuvable." });
-        return;
-      }
+  //   if (!institution) {
+  //       res.status(404).json({ message: "Institution introuvable." });
+  //       return;
+  //     }
   
-    if (!userId && !customerId)
-      res.status(400).json({ error: "User or customer ID required" });
+  //   if (!userId && !customerId)
+  //     res.status(400).json({ error: "User or customer ID required" });
   
-    await prisma.notification.deleteMany({
-      where: {
-        ...(userId && { userId: Number(userId) }),
-        ...(customerId && { customerId: Number(customerId) }),
-        institutionId: institution.id,
-      },
-    });
+  //   await prisma.notification.deleteMany({
+  //     where: {
+  //       ...(userId && { userId: Number(userId) }),
+  //       ...(customerId && { customerId: Number(customerId) }),
+  //       institutionId: institution.id,
+  //     },
+  //   });
   
-    res.json({ message: "Notifications supprimées avec succès" });
-  };
+  //   res.json({ message: "Notifications supprimées avec succès" });
+  // };
 
   export const deleteSingleNotifications = async (
     req: Request,
@@ -161,5 +161,27 @@ export const markNotificationsAsRead = async (req: Request, res: Response): Prom
       res.status(500).json({ message: "Erreur lors de la suppression de la Notification" });
     }
   };
+
+  // POST /cinetpay/notify
+// export const handleCinetPayNotify = async (req: Request, res: Response) => {
+//   try {
+//     const { cpm_trans_status, cpm_custom } = req.body;
+
+//     if (cpm_trans_status !== "ACCEPTED") {
+//       return res.status(400).json({ error: "Paiement refusé" });
+//     }
+
+//     // Exemple: dans cpm_custom tu peux inclure JSON.stringify({ invoiceId, amount, ... })
+//     const metadata = JSON.parse(cpm_custom); 
+//     const { invoiceId, amount, discount, paymentMethod } = metadata;
+
+//     await updatePaymentLogic(invoiceId, paymentMethod, amount, discount);
+//     res.status(200).json({ message: "Paiement traité avec succès" });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: "Erreur serveur" });
+//   }
+// };
+
   
   

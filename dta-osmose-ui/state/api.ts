@@ -297,6 +297,39 @@ export interface NewAppSetting{
   website: string;
   footer: string;
 }
+export interface InventoryItem {
+  productId: string;
+  designation: string;
+  systemQty: number;
+  countedQty: number;
+  difference: number;
+  comment?: string;
+  product?:{
+    designation: string;
+    quantity: number;
+    EANCode?: string;
+    sellingPriceTTC: number;
+  }
+};
+
+export interface Inventory {
+  id: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+  titre?: string;
+  note?: string;
+  location?: string;
+  institutionId?:   String;
+  performedById: number;
+  user?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+  } 
+  inventoryItems: InventoryItem[];
+};
+
+
 
 export interface DashboardMetrics {
     popularProducts: Product[];
@@ -341,7 +374,7 @@ export const api = createApi({
         return headers;
       }, }),
     reducerPath: "api",
-    tagTypes: ["DashboardMetrics", "Products", "Users", "Designations", "Roles", "Customers", "Sales", "AppSettings", "Claims", "Notifications"],
+    tagTypes: ["DashboardMetrics", "Products", "Users", "Designations", "Roles", "Customers", "Sales", "AppSettings", "Claims", "Notifications", "Inventorys"],
     endpoints: (build) => ({
         getDashboardMetrics: build.query<DashboardMetrics, { institution: string, startDate?: string; endDate?: string  }>({
             query: ({ institution, startDate, endDate }) => {
@@ -371,6 +404,72 @@ export const api = createApi({
         getProductById: build.query<Product, string>({
           query: (id) => `/institutions/${id}`, // Construire l'URL avec l'ID de l'utilisateur
           providesTags: (result, error, id) => [{ type: "Products", id }], // Associer un tag pour l'invalidation
+        }),
+
+        //inventory
+        createInventory: build.mutation<Inventory, { 
+          titre: string;
+          location: string;
+          performedById: number;
+          inventoryItems: Array<{
+          productId: string;
+          systemQty: number;
+          countedQty: number;
+          comment?: string;
+          }>;
+          note?: string;
+          institution: string;
+         }>({
+          query: ({ institution, ...data }) => ({
+              url: `/inventory/${institution}/inventory`,
+              method: 'POST',
+              body: data
+          }),
+          invalidatesTags: ['Inventorys', 'Products']
+        }),
+
+        getInventory: build.query<Inventory[], { institution: string; search?: string }>({
+          query: ({ institution, search }) => ({
+              url: `/inventory/${institution}/all`,
+              params: search ? { search } : {}
+          }),
+          providesTags: ["Inventorys"]
+        }),
+
+        getInventoryId: build.query<Inventory, string>({
+          query: (id) => `/inventory/${id}`,
+          providesTags: (result, error, id) => [{ type: 'Inventorys', id }]
+        }),
+
+        updateInventory: build.mutation<Inventory, {
+          id: string;
+          institution: string;
+          titre: string;
+          location: string;
+          performedById: number;
+          note?: string;
+          inventoryItems: Array<{
+            productId: string;
+            systemQty: number;
+            countedQty: number;
+            comment?: string;
+          }>;
+        }>({
+          query: ({ institution, id, ...data }) => ({
+            url: `/inventory/${institution}/inventory/${id}`,
+            method: "PUT",
+            body: data
+          }),
+          invalidatesTags: ['Inventorys', 'Products']
+        }),
+        
+
+        deleteInventory: build.mutation<void, string>({
+          query: (id) => ({
+            url: `/inventory/${id}`, 
+            method: "DELETE",
+          }),
+          invalidatesTags: (result, error, id ) => [{ type: "Inventorys", id }],
         }),
 
         // Sales
@@ -694,7 +793,8 @@ export const api = createApi({
     }),
 });
 
-export const { useGetDashboardMetricsQuery, useGetProductsQuery, useCreateProductMutation, useGetProductByIdQuery, useCreateSaleMutation, useGetCustomerDebtStatusQuery, useGetSalesQuery,
+export const { useGetDashboardMetricsQuery, useGetProductsQuery, useCreateProductMutation, useGetProductByIdQuery, useCreateInventoryMutation, 
+  useGetInventoryQuery, useGetInventoryIdQuery, useUpdateInventoryMutation, useDeleteInventoryMutation, useCreateSaleMutation, useGetCustomerDebtStatusQuery, useGetSalesQuery,
     useGetSaleByIdQuery,useUpdateSaleStatusMutation, useUpdateSalePaymentMutation, useDeleteSaleInvoiceMutation, useCreateClaimMutation, 
     useRespondToClaimMutation, useUpdateClaimResponseMutation, useGetClaimQuery, useGetClaimByIdQuery, useDeleteClaimMutation, useGetDepartmentsQuery,
     useGetDesignationsQuery, useCreateDesignationsMutation, useDeleteDesignationMutation,useGetRolesQuery, useCreateRolesMutation, 
