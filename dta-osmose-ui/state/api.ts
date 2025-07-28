@@ -26,6 +26,7 @@ export interface NewProduct {
 }
 
 export interface User {
+    saleInvoice: never[];
     id:number;
     firstName: string;
     lastName: string;

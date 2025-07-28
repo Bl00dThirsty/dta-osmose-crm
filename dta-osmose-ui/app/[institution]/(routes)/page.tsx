@@ -39,19 +39,26 @@ const DashboardPage = () => {
   }, [token]);
 
   const userType = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
-  const {data: dashboardMetrics} = useGetDashboardMetricsQuery({ institution, startDate, endDate });
-  const totalSales = dashboardMetrics?.saleProfitCount
-  .filter(item => item.type === "Ventes")
-  .reduce((sum, item) => sum + (item.amount || 0), 0);
 
-const totalProfits = dashboardMetrics?.saleProfitCount
-  .filter(item => item.type === "Profits")
-  .reduce((sum, item) => sum + (item.amount || 0), 0);
+const { data: dashboardMetrics } = useGetDashboardMetricsQuery({ institution, startDate, endDate });
 
-const totalInvoices = dashboardMetrics?.formattedData3
-  .filter(item => item.type === "nombre de facture")
-  .reduce((sum, item) => sum + (item.amount || 0), 0);
+const totalSales = Array.isArray(dashboardMetrics?.saleProfitCount)
+  ? dashboardMetrics.saleProfitCount
+      .filter(item => item.type === "Ventes")
+      .reduce((sum, item) => sum + (item.amount || 0), 0)
+  : 0;
 
+const totalProfits = Array.isArray(dashboardMetrics?.saleProfitCount)
+  ? dashboardMetrics.saleProfitCount
+      .filter(item => item.type === "Profits")
+      .reduce((sum, item) => sum + (item.amount || 0), 0)
+  : 0;
+
+const totalInvoices = Array.isArray(dashboardMetrics?.formattedData3)
+  ? dashboardMetrics.formattedData3
+      .filter(item => item.type === "nombre de facture")
+      .reduce((sum, item) => sum + (item.amount || 0), 0)
+  : 0;
   const renderDashboardByRole = () => {
     switch (userType) {
       case "admin":
@@ -149,7 +156,7 @@ const AdminDashboard = ({ dashboardMetrics, totalSales, totalProfits, totalInvoi
   />
     </div>
     <div className="px-4 lg:px-6">
-          <ChartAreaInteractive />
+          <ChartAreaInteractive institutionSlug="iba" />
     </div>
   </div>
 </div>
