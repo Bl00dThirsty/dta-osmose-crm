@@ -39,19 +39,26 @@ const DashboardPage = () => {
   }, [token]);
 
   const userType = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
-  const {data: dashboardMetrics} = useGetDashboardMetricsQuery({ institution, startDate, endDate });
-  const totalSales = dashboardMetrics?.saleProfitCount
-  .filter(item => item.type === "Ventes")
-  .reduce((sum, item) => sum + (item.amount || 0), 0);
 
-const totalProfits = dashboardMetrics?.saleProfitCount
-  .filter(item => item.type === "Profits")
-  .reduce((sum, item) => sum + (item.amount || 0), 0);
+const { data: dashboardMetrics } = useGetDashboardMetricsQuery({ institution, startDate, endDate });
 
-const totalInvoices = dashboardMetrics?.formattedData3
-  .filter(item => item.type === "nombre de facture")
-  .reduce((sum, item) => sum + (item.amount || 0), 0);
+const totalSales = Array.isArray(dashboardMetrics?.saleProfitCount)
+  ? dashboardMetrics.saleProfitCount
+      .filter(item => item.type === "Ventes")
+      .reduce((sum, item) => sum + (item.amount || 0), 0)
+  : 0;
 
+const totalProfits = Array.isArray(dashboardMetrics?.saleProfitCount)
+  ? dashboardMetrics.saleProfitCount
+      .filter(item => item.type === "Profits")
+      .reduce((sum, item) => sum + (item.amount || 0), 0)
+  : 0;
+
+const totalInvoices = Array.isArray(dashboardMetrics?.formattedData3)
+  ? dashboardMetrics.formattedData3
+      .filter(item => item.type === "nombre de facture")
+      .reduce((sum, item) => sum + (item.amount || 0), 0)
+  : 0;
   const renderDashboardByRole = () => {
     switch (userType) {
       case "admin":
@@ -101,7 +108,20 @@ const AdminDashboard = ({ dashboardMetrics, totalSales, totalProfits, totalInvoi
   <DashboardCard
     title="Bénéfices"
     description="Bénéfices nets"
-    value={`${totalProfits?.toLocaleString() ?? "0"} F CFA`}
+  value={
+    <>
+      <span className="text-sm">
+        {(totalProfits ?? 0).toLocaleString("fr-FR", {
+          style: "currency",
+          currency: "EUR",
+        })}
+      </span>
+      <br />
+      <span className="text-sm">
+        {(Math.round((totalProfits ?? 0) * 655.957)).toLocaleString("fr-FR")} F CFA
+      </span>
+    </>
+  }
     trend="+5.78%"
     trendDirection="up"
     footerTop="Tendance positive"
@@ -119,19 +139,47 @@ const AdminDashboard = ({ dashboardMetrics, totalSales, totalProfits, totalInvoi
   />
 
   <DashboardCard
-    title="Total des ventes"
-    description="Montant total"
-    value={`${totalSales?.toLocaleString() ?? "0"} F CFA`}
-    trend="+5.2%"
-    trendDirection="up"
-    footerTop="En hausse ce mois-ci"
-    footerBottom="Basé sur les ventes mensuelles"
-  />
+  title="Total des ventes"
+  description="Montant total"
+  value={
+    <>
+      <span className="text-sm">
+        {(totalSales ?? 0).toLocaleString("fr-FR", {
+          style: "currency",
+          currency: "EUR",
+        })}
+      </span>
+      <br />
+      <span className="text-sm">
+        {(Math.round((totalSales ?? 0) * 655.957)).toLocaleString("fr-FR")} F CFA
+      </span>
+    </>
+  }
+  trend="+5.2%"
+  trendDirection="up"
+  footerTop="En hausse ce mois-ci"
+  footerBottom="Basé sur les ventes mensuelles"
+/>
+
+
 
   <DashboardCard
     title="Les Avoirs"
     description="Total des avoirs"
-    value={`${dashboardMetrics?.totalAvailableCredit?.toLocaleString() ?? "0"} F CFA`}
+  value={
+    <>
+      <span className="text-sm">
+        {(dashboardMetrics?.totalAvailableCredit ?? 0).toLocaleString("fr-FR", {
+          style: "currency",
+          currency: "EUR",
+        })}
+      </span>
+      <br />
+      <span className="text-sm">
+        {(Math.round((dashboardMetrics?.totalAvailableCredit ?? 0) * 655.957)).toLocaleString("fr-FR")} F CFA
+      </span>
+    </>
+  }
     trend="+1.8%"
     trendDirection="up"
     footerTop="Utilisation modérée"
@@ -149,7 +197,7 @@ const AdminDashboard = ({ dashboardMetrics, totalSales, totalProfits, totalInvoi
   />
     </div>
     <div className="px-4 lg:px-6">
-          <ChartAreaInteractive />
+          <ChartAreaInteractive institutionSlug="iba" />
     </div>
   </div>
 </div>
@@ -163,7 +211,20 @@ const AdminDashboard = ({ dashboardMetrics, totalSales, totalProfits, totalInvoi
                 <DashboardCard
                   title="Total des ventes"
                   description="Montant total"
-                  value={`${totalSales?.toLocaleString() ?? "0"} F CFA`}
+                  value={
+                  <>
+                    <span className="text-sm">
+                      {(totalSales ?? 0).toLocaleString("fr-FR", {
+                        style: "currency",
+                        currency: "EUR",
+                      })}
+                    </span>
+                    <br />
+                    <span className="text-sm">
+                      {(Math.round((totalSales ?? 0) * 655.957)).toLocaleString("fr-FR")} F CFA
+                    </span>
+                  </>
+                }
                   trend="+5.2%"
                   trendDirection="up"
                   footerTop="En hausse ce mois-ci"
@@ -192,8 +253,20 @@ const AdminDashboard = ({ dashboardMetrics, totalSales, totalProfits, totalInvoi
             <DashboardCard
               title="Mes Avoirs disponibles"
               description="Total des crédits disponibles"
-              value={`${dashboardMetrics?.customerStats?.avoirDisponible?.toLocaleString() ?? "0"} FCFA`}
-
+               value={
+                  <>
+                    <span className="text-sm">
+                      {(dashboardMetrics?.customerStats?.avoirDisponible ?? 0).toLocaleString("fr-FR", {
+                        style: "currency",
+                        currency: "EUR",
+                      })}
+                    </span>
+                    <br />
+                    <span className="text-sm">
+                      {(Math.round((dashboardMetrics?.customerStats?.avoirDisponible ?? 0) * 655.957)).toLocaleString("fr-FR")} F CFA
+                    </span>
+                  </>
+                }
               // For example:
               // trend="+5%"
               // trendDirection="up"
@@ -205,7 +278,22 @@ const AdminDashboard = ({ dashboardMetrics, totalSales, totalProfits, totalInvoi
             <DashboardCard
               title="Total des Achats"
               description="Montant total des Achats"
-              value={`${dashboardMetrics?.customerStats?.totalAchats?.toLocaleString() ?? "0"} FCFA`}
+
+              value={
+                  <>
+                    <span className="text-sm">
+                      {(dashboardMetrics?.customerStats?.totalAchats ?? 0).toLocaleString("fr-FR", {
+                        style: "currency",
+                        currency: "EUR",
+                      })}
+                    </span>
+                    <br />
+                    <span className="text-sm">
+                      {(Math.round((dashboardMetrics?.customerStats?.totalAchats ?? 0) * 655.957)).toLocaleString("fr-FR")} F CFA
+                    </span>
+                  </>
+                }
+
               // Ajoute trend, trendDirection, footerTop, footerBottom si nécessaire
             />
 

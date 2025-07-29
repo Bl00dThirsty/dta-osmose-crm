@@ -1,63 +1,131 @@
 import { Request, Response } from "express";
-const { PrismaClient } = require("@prisma/client");
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export const getDashboardMetrics = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    
-    try {
-      const { startDate, endDate } = req.query;
-      // Version optimisée dans dashboardController.ts
-      const institutionSlug = req.params.institution;
-      const institution = await prisma.institution.findUnique({
-        where: { slug: institutionSlug },
-      });
-      //graphe vente par villes
-      const sales = await prisma.saleInvoice.findMany({
-        where: {
-          customer: {
-            ville: {
-              not: null,
-            },
-          },
-        },
-        include: {
-          customer: true,
-        },
-      });
-      
-      const salesByCityMap: Record<string, { montant: number; nombreVentes: number }> = {};
-      
-      for (const sale of sales) {
-        const ville = sale.customer.ville;
-      
-        if (!salesByCityMap[ville]) {
-          salesByCityMap[ville] = {
-            montant: 0,
-            nombreVentes: 0,
-          };
-        }
-      
-        salesByCityMap[ville].montant += sale.finalAmount;
-        salesByCityMap[ville].nombreVentes += 1;
-      }
-      
-      const chartData = Object.entries(salesByCityMap).map(([ville, data]) => ({
-        ville,
-        ...data,
-      }));
-      
-      
-      const popularProducts = await prisma.product.findMany({
-            take: 10,
-            orderBy: {
-              quantity: "desc",
-            },
-      });
-      //Total vente, montant total, total profit
+const generateChartData = async (
+  startDate: Date,
+  endDate: Date,
+  institutionId: string
+) => {
+
+   console.log("🔍 Génération des données du graphique...");
+  console.log("📅 Plage de dates :", { startDate, endDate });
+  console.log("🏫 Institution ID :", institutionId);
+
+  // 1. Récupérer toutes les ventes pertinentes
+  const rawSales = await prisma.saleInvoice.findMany({
+    where: {
+      institutionId,
+      delivred: true,
+      paymentStatus: "PAID",
+      createdAt: {
+        gte: startDate,
+        lte: endDate,
+      },
+    },
+    select: {
+      createdAt: true,
+      finalAmount: true,
+    },
+  });
+
+  console.log("📦 Ventes récupérées depuis la base :", rawSales.length);
+  console.log("🧾 Aperçu des ventes :", rawSales.slice(0, 5)); // Affiche les 5 premières
+
+
+  // 2. Regrouper les ventes par date (au format yyyy-mm-dd)
+  const grouped: Record<
+    string,
+    { count: number; amount: number }
+  > = {};
+
+  for (const sale of rawSales) {
+    const date = sale.createdAt.toISOString().split("T")[0];
+    if (!grouped[date]) {
+      grouped[date] = { count: 0, amount: 0 };
+    }
+    grouped[date].count += 1;
+    grouped[date].amount += sale.finalAmount;
+  }
+
+
+   console.log("📊 Données groupées par date :", grouped);
+  // 3. Générer la liste complète des jours entre startDate et endDate
+  const data: {
+    date: string;
+    "Nombre vente": number;
+    "Montant vente": number;
+  }[] = [];
+
+  const currentDate = new Date(startDate);
+
+  while (currentDate <= endDate) {
+    const formattedDate = currentDate.toISOString().split("T")[0];
+    const entry = grouped[formattedDate] || { count: 0, amount: 0 };
+
+    data.push({
+      date: formattedDate,
+      "Nombre vente": entry.count,
+      "Montant vente": entry.amount,
+    });
+
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+
+  console.log("📈 Données finales prêtes pour le graphique :", data);
+  
+
+  return data;
+};
+
+
+export const getDashboardMetrics = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { startDate, endDate } = req.query;
+    const institutionSlug = req.params.institution;
+
+    if (
+      !startDate ||
+      !endDate ||
+      typeof startDate !== "string" ||
+      typeof endDate !== "string"
+    ) {
+      res.status(400).json({ error: "Invalid or missing startDate or endDate" });
+      return;
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      res.status(400).json({ error: "Invalid date format" });
+      return;
+    }
+
+    if (start > end) {
+      res.status(400).json({ error: "startDate cannot be after endDate" });
+      return;
+    }
+
+    const institution = await prisma.institution.findUnique({
+      where: { slug: institutionSlug },
+    });
+
+    if (!institution) {
+      res.status(404).json({ error: "Institution not found" });
+      return;
+    }
+
+    const chartData = await generateChartData(start, end, institution.id);
+
+    const popularProducts = await prisma.product.findMany({
+      take: 10,
+      orderBy: { quantity: "desc" },
+    });
+
+
+     //Total vente, montant total, total profit
       let newStatus = 'PAID';
       const allSaleInvoice = await prisma.saleInvoice.groupBy({
         orderBy: {
@@ -133,79 +201,71 @@ export const getDashboardMetrics = async (
         };
       });
 
-      //Total des utilisateurs enregistrers
-      const totalUsers = await prisma.user.count();
 
-      //total des credit
-      const totalCredits = await prisma.credit.aggregate({
-        where: {
-          customer: {
-            saleInvoice: {
-              some: {
-                institutionId: institution.id
-              }
-            }
-          }
-        },
-        _sum: {
-          amount: true,
-          usedAmount: true
-        }
-      });
-      
-      const totalAvailableCredit = (totalCredits._sum.amount || 0) - (totalCredits._sum.usedAmount || 0);
-
-      let customerStats = null;
-      
-      if (req.auth?.role === "Particulier") {
-        const customerId = Number(req.auth.sub);
-        console.log("cus", customerId);
-        // Récupère toutes ses commandes
-        const commandes = await prisma.saleInvoice.findMany({
-          where: { customerId },
-        });
-        let newStatus = 'PAID';
-        const commandespaye = await prisma.saleInvoice.findMany({
-          where: { customerId,
-            paymentStatus: newStatus,
-           },
-        });
-        const totalAchats = commandes.reduce((acc:any, cmd:any) => acc + cmd.finalAmount, 0);
-        const nombreCommandes = commandes.length;
-        const nombreCommandespaye = commandespaye.length;
-        const nombreCommandesImpaye = nombreCommandes - nombreCommandespaye;
-      
-        const credit = await prisma.credit.aggregate({
-          where: {
-            customerId
+ //Total des utilisateurs enregistrers
+    const totalUsers = await prisma.user.count();
+  //total des credit
+    const totalCredits = await prisma.credit.aggregate({
+      where: {
+        customer: {
+          saleInvoice: {
+            some: { institutionId: institution.id },
           },
-          _sum: {
-            amount: true,
-            usedAmount: true
-          }
-        });
-      
-        const avoirDisponible = (credit._sum.amount || 0) - (credit._sum.usedAmount || 0);
-      
-        customerStats = {
-          totalAchats,
-          nombreCommandes,
-          avoirDisponible,
-          nombreCommandesImpaye
-        };
-      }
-          
-      res.json({
-            popularProducts,
-            salesByCity: chartData,
-            saleProfitCount,
-            formattedData3,
-            totalUsers,
-            totalAvailableCredit,
-            customerStats,
+        },
+      },
+      _sum: {
+        amount: true,
+        usedAmount: true,
+      },
+    });
+
+    
+
+    const totalAvailableCredit =
+      (totalCredits._sum.amount ?? 0) - (totalCredits._sum.usedAmount ?? 0);
+
+    let customerStats = null;
+
+    if (req.auth?.role === "Particulier") {
+      const customerId = Number(req.auth.sub);
+      const commandes = await prisma.saleInvoice.findMany({ where: { customerId } });
+
+      const commandespaye = await prisma.saleInvoice.findMany({
+        where: { customerId, paymentStatus: "PAID" },
       });
-    } catch (error) {
-      console.error('Dashboard error:', error);
-      res.status(500).json({message: "Erreur lors du chargement des données du dashboard"})
+
+      const totalAchats = commandes.reduce((acc, cmd) => acc + (cmd.finalAmount || 0), 0);
+      const nombreCommandes = commandes.length;
+      const nombreCommandespaye = commandespaye.length;
+      const nombreCommandesImpaye = nombreCommandes - nombreCommandespaye;
+
+      const credit = await prisma.credit.aggregate({
+        where: { customerId },
+        _sum: { amount: true, usedAmount: true },
+      });
+
+      const avoirDisponible = (credit._sum.amount || 0) - (credit._sum.usedAmount || 0);
+
+      customerStats = {
+        totalAchats,
+        nombreCommandes,
+        avoirDisponible,
+        nombreCommandesImpaye,
+      };
     }
+
+    res.setHeader("Content-Type", "application/json");
+    res.json({
+      chartData,
+      saleProfitCount,
+      formattedData3,
+      popularProducts,
+      totalUsers,
+      totalAvailableCredit,
+      customerStats,
+    });
+  } catch (error) {
+    console.error("Dashboard error:", error);
+    res.status(500).json({ error: "Erreur lors du chargement des données du dashboard" });
   }
+};
