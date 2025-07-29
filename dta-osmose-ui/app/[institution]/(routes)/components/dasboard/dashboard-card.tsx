@@ -12,7 +12,7 @@ import { IconTrendingUp, IconTrendingDown } from "@tabler/icons-react";
 type DashboardCardProps = {
   title: string;
   description: string;
-  value: string;
+   value: React.ReactNode;
   trend?: string;
   trendDirection?: "up" | "down";
   footerTop?: string;
