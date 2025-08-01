@@ -8,8 +8,9 @@ import { useEffect, useState } from 'react';
 import { UpdateCustomerForm } from "@/app/[institution]/(routes)/crm/components/UpdateCustomer";
 import { DataTable } from "./data-table";
 import { columns } from "./columns";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
+import { Customer } from "@/state/api"
 
 export default function DetailCustomerPage() {
   const [isMounted, setIsMounted] = useState(false);

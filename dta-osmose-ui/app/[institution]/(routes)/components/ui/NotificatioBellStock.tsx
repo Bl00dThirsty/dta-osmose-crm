@@ -10,12 +10,13 @@ import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 
 export default function NotificationBellStock() {
-  const { data: Notifications} = useGetAllNotificationsQuery();  
+    const { institution } = useParams<{ institution: string }>();
+  const { data: Notifications} = useGetAllNotificationsQuery({institution});  
   
   const { stockNotifications, setStockNotifications } = useNotification();
   const unreadCount = ( stockNotifications?.filter((n:any) => !n.isRead).length) ?? 0;
   const [open, setOpen] = useState(false);
-  const { institution } = useParams<{ institution: string }>();
+  
 
   return (
     <div className="relative">
@@ -38,7 +39,7 @@ export default function NotificationBellStock() {
                key={idx}
                message={<Link href={`/${institution}/crm/products/${notif.productId}`}>{notif.message}</Link>}
                showIcon
-               type={notif.type === "warning" ? "info" : "success"}
+               type={notif.type === "stock_alert" ? "error" : "info"}
                style={{ marginBottom: "16px" }}
                closable
                onClose={async () => {
@@ -50,7 +51,7 @@ export default function NotificationBellStock() {
                     },
                     body: JSON.stringify({
                       userId: notif.userId,
-                      customerId: notif.customerId,
+                    //   customerId: notif.customerId,
                     }),
                   });
             

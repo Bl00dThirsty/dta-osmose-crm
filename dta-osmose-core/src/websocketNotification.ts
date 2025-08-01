@@ -69,12 +69,16 @@ const notifyUserOrCustomer = async ({
   saleId,
   userId,
   customerId,
+  productId,
+  institutionId,
   message,
   type
 }: {
   saleId: string;
   userId?: number;
   customerId?: number;
+  productId?: string;
+  institutionId?: string;
   message: string;
   type: string;
 }) => {
@@ -83,6 +87,8 @@ const notifyUserOrCustomer = async ({
       data: {
         saleId,
         userId,
+        productId,
+        institutionId,
         message,
         type,
         isRead: false
@@ -97,6 +103,7 @@ const notifyUserOrCustomer = async ({
       data: {
         saleId,
         customerId,
+        institutionId,
         message,
         type,
         isRead: false
@@ -108,7 +115,7 @@ const notifyUserOrCustomer = async ({
 };
 
 // 🔔 Notification à tous les utilisateurs
-const notifyAllUsers = async (saleId: string, message: string) => {
+const notifyAllUsers = async (saleId: string, message: string, institutionId?: string, type?: string) => {
   const users = await prisma.user.findMany({
     where: {
       role: {
@@ -122,9 +129,11 @@ const notifyAllUsers = async (saleId: string, message: string) => {
       data: {
         saleId,
         userId: user.id,
+        institutionId,
         message,
-        type: "stock_alert",
+        type: "order",
         isRead: false
+
       }
     });
     const socketId = userSockets[user.id];

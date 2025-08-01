@@ -57,7 +57,7 @@ import {
 } from "@/components/ui/dialog"
 
 
-import { useGetAllNotificationsQuery, useDeleteNotificationsMutation } from "@/state/api";
+import { useGetAllNotificationsQuery, useDeleteNotificationsMutation, useGetCustomerNotificationsQuery } from "@/state/api";
 
 const NotificationAdmin = () => {
   const router = useRouter();
@@ -69,11 +69,13 @@ const NotificationAdmin = () => {
       router.push('/sign-in');
     }
   }, [token]);
+
   const [userId, setUserId] = useState<number | null>(null);
   const [customerId, setCustomerId] = useState<number | null>(null);
   const userRole = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
   const isParticulier = userRole === "Particulier";
-  const { data: notifications, isLoading, isError } = useGetAllNotificationsQuery();
+  const { data: NotificationCustomer } = useGetCustomerNotificationsQuery();
+  const { data: notifications, isLoading, isError } = useGetAllNotificationsQuery({institution});
   const handleClearAll = async () => {
     try {
       await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/notification`, {
@@ -96,6 +98,7 @@ const NotificationAdmin = () => {
 
 if (isLoading) return <p>Chargement...</p>
 if (isError) return <p>Erreur lors du chargement.</p>
+//if (!NotificationCustomer) return <p>Chargement...</p>
 
 
   return (
@@ -109,12 +112,17 @@ if (isError) return <p>Erreur lors du chargement.</p>
       <div className="hidden h-full flex-1 flex-col space-y-8 p-8 md:flex">
       <div className="flex items-center justify-between space-y-2">
     </div>
-    {!isParticulier && (
+    {/* {!isParticulier && (
     <div>        
           <Button onClick={() => setOpen(true)} className="bg-red-700 text-white hover:bg-red-400">🗑️ Tous Supprimer</Button>      
     </div>
-    )}
+    )} */}
+    {!isParticulier && (
     <DataTable data={notifications || []} columns={columns} />
+    )}
+    {isParticulier && (
+      <DataTable data={NotificationCustomer || []} columns={columns} />
+      )}
   </div>
         </section>
       </div>

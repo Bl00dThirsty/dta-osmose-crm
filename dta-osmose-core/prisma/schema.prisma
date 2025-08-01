@@ -215,6 +215,8 @@ model institution {
   appSetting   appSetting[]
   claims    claim[]
   customer  customer[]
+  notification       Notification[]
+  inventory          inventory[]
 }
 
 model product {
@@ -241,6 +243,7 @@ model product {
   saleItem                     saleItem[]
   claims                       claim[]
   notification                 Notification[]
+  inventoryItem               inventoryItem[]
 }
 
 model ProductCounter {
@@ -305,6 +308,7 @@ model Notification {
   userId    Int?        // Utilisateur destinataire (user.id)
   customerId     Int?        // Client destinataire (customer.id)
   saleId  String?     // Si la notif est liée à une commande
+  institutionId   String?
   productId      String?     // Si la notif est liée à un produit
   createdAt      DateTime    @default(now())
 
@@ -312,13 +316,38 @@ model Notification {
   customer       customer?   @relation(fields: [customerId], references: [id])
   saleInvoice    saleInvoice? @relation(fields: [saleId], references: [id])
   product        product?    @relation(fields: [productId], references: [id])
+  institution     institution? @relation(fields: [institutionId], references: [id])
 }
 
-enum NotificationType {
-  LOW_STOCK
-  NEW_ORDER
-  ORDER_READY
+model inventory {
+  id             String          @id @default(uuid())
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  titre          String         @default("Inventaire XX")
+  location       String?
+  institutionId  String
+  institution    institution     @relation(fields: [institutionId], references: [id])
+  performedById  Int
+  user    user            @relation(fields: [performedById], references: [id])
+  note           String?         // remarque optionnelle
+  
+  status         String          @default("PENDING") // "PENDING" | "COMPLETED"
+
+  inventoryItems inventoryItem[]
 }
+
+model inventoryItem {
+  id           String   @id @default(uuid())
+  inventoryId  String
+  productId    String 
+  countedQty   Int   @default(0)
+  systemQty    Int
+  difference   Int      // countedQty - systemQty
+  comment        String?
+  product      product  @relation(fields: [productId], references: [id])
+  inventory    inventory @relation(fields: [inventoryId], references: [id])
+}
+
 
 
 model appSetting {
@@ -557,8 +586,6 @@ model supplier {
 */
 
 
-
-
 model user {
   id                 Int                  @id @default(autoincrement())
   firstName          String?
@@ -598,6 +625,7 @@ model user {
 
   claim claim[]
   notification       Notification[]
+  inventory                    inventory[]
 }
 
 

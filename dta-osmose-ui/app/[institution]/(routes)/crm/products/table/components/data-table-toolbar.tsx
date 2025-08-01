@@ -1,7 +1,7 @@
 "use client"
 
 import { useReactTable, Table } from "@tanstack/react-table"
-import { X, Upload } from "lucide-react"
+import { X, ArrowDownToLine } from "lucide-react"
 import { useParams } from "next/navigation"
 import { useState } from "react"
 import * as XLSX from 'xlsx'
@@ -164,8 +164,8 @@ export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>)
         <Dialog>
           <DialogTrigger asChild>
             <Button variant="outline" className="px-2 lg:px-3">
-              <Upload className="mr-2 h-4 w-4" />
-              Importer CSV
+              Importer XLS
+              <ArrowDownToLine className="mr-2 h-4 w-4" />
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md space-y-4">
