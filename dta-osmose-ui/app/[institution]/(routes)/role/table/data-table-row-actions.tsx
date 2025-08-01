@@ -75,7 +75,7 @@ export function DataTableRowActions<TData>({
           Voir
         </DropdownMenuItem>
         <DropdownMenuItem onSelect={() => setOpen(true)} className="text-red-600">
-          Supprimer
+          Supprimer🗑
         </DropdownMenuItem>
         <DropdownMenuSeparator />
       </DropdownMenuContent>

@@ -46,8 +46,9 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar();
+  const userRole = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
   const userName = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
-  const { logout } = useAuth(); // Appel de la fonction logout depuis le contexte
+  const { user: authUser, logout } = useAuth(); // Appel de la fonction logout depuis le contexte
   const router = useRouter();
   const { institution } = useParams() as { institution: string }
   const handleLogout = async () => {
@@ -57,7 +58,29 @@ export function NavUser({
       console.error("Erreur lors de la déconnexion :", error);
     }
   };
+  const userName1 = authUser?.email?.split('@')[0] || user.name;
+  const userRole1 = authUser?.role || 'Utilisateur';
+  const userId = authUser?.id;
 
+   const getAccountRoute = () => {
+    if (!userId) return '/'; // Fallback si pas d'ID
+    
+    // Rôles qui vont vers /user
+    if (['admin', 'staff', 'manager'].includes(userRole1.toLowerCase())) {
+      return `/${institution}/user/${userId}`;
+    }
+    // Rôles qui vont vers /customer
+    else if (['particulier', 'grossiste'].includes(userRole1.toLowerCase())) {
+      return `/${institution}/crm/customers/${userId}`;
+    }
+    // Fallback par défaut
+    return `/${institution}/`;
+  };
+
+  const handleAccountClick = () => {
+    router.push(getAccountRoute());
+  };
+  
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -68,12 +91,13 @@ export function NavUser({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={user.avatar} alt={user.name} />
+                <AvatarImage src="https://images.unsplash.com/photo-1511485977113-f34c92461ad9?ixlib=rb-1.2.1&w=128&h=128&dpr=2&q=80"
+       alt="Pedro Duarte" />
                 <AvatarFallback className="rounded-lg">JD</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{userName}</span>
-                <span className="truncate text-xs">{user.email}</span>
+                <span className="truncate font-medium">{userName1}</span>
+                <span className="truncate text-xs">{userRole1}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -88,11 +112,11 @@ export function NavUser({
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">JD</AvatarFallback>
+                  <AvatarFallback className="rounded-lg">IA</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.name}</span>
-                  <span className="truncate text-xs">{user.email}</span>
+                  <span className="truncate font-medium">{userName1}</span>
+                  <span className="truncate text-xs">{userRole1}</span>
                 </div>
               </div>
             </DropdownMenuLabel>
@@ -102,7 +126,7 @@ export function NavUser({
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleAccountClick}>
                 <BadgeCheck />
                 Compte
               </DropdownMenuItem>

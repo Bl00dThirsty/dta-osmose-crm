@@ -29,7 +29,9 @@ import {
   DialogAction,
 } from "@/components/ui/dialog"
 import { useState } from "react" 
-import { useDeleteDesignationMutation } from "@/state/api"
+import { ToastContainer, toast } from 'react-toastify';
+import { useDeleteDepartmentsMutation, } from "@/state/api"
+import { useParams } from "next/navigation";
 import { labels } from "@/app/[institution]/(routes)/crm/products/table/data/data"
 
 interface DataTableRowActionsProps<TData> {
@@ -41,15 +43,25 @@ export function DataTableRowActions<TData>({
 }: DataTableRowActionsProps<TData>) {
   const router = useRouter();
   const designation = row.original as any
-  const [deleteDesignation] = useDeleteDesignationMutation()
+  const { institution } = useParams() as { institution: string }
+  const [deleteDesignation] = useDeleteDepartmentsMutation()
   const [open, setOpen] = useState(false);
 
   const handleDelete = async () => {
     try {
       await deleteDesignation(designation.id).unwrap()
-      console.log("Designation supprimé avec succès")
+      //console.log("Designation supprimé avec succès")
+      toast.success("Designation supprimé avec succès")
+      setOpen(false); // <-- Fermer la modale AVANT de rediriger
+      setTimeout(() => {
+        
+      router.push(`/${institution}/rh/department`);
+      router.refresh();
+    }, 500);
+      //router.push(`/${institution}/rh/department`);
     } catch (error) {
       console.log("Erreur lors de la suppression :")
+      toast.error("Erreur lors de la suppression")
     }
   }
   return (
@@ -65,10 +77,10 @@ export function DataTableRowActions<TData>({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[160px]">
-        <DropdownMenuItem>Modifier</DropdownMenuItem>
+        
         
             <DropdownMenuItem onSelect={() => setOpen(true)} className="text-red-600">
-              Supprimer
+              Supprimer🗑
             </DropdownMenuItem>
           
         <DropdownMenuSeparator />
@@ -80,7 +92,7 @@ export function DataTableRowActions<TData>({
        <DialogHeader>
          <DialogTitle>Confirmation</DialogTitle>
          <DialogDescription>
-           Voulez-vous vraiment supprimer ce poste ?
+           Voulez-vous vraiment supprimer ce department ?
          </DialogDescription>
        </DialogHeader>
        <DialogFooter>

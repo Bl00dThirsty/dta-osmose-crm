@@ -76,7 +76,11 @@ export function DataTableRowActions<TData>({
       await deleteDesignation(designation.id).unwrap()
       console.log("Designation supprimé avec succès")
       showToastMessage();
+      setOpen(false); // <-- Fermer la modale AVANT de rediriger
+      setTimeout(() => {
       router.push(`/${institution}/rh/designation`);
+    }, 500);
+      
     } catch (error) {
       console.log("Erreur lors de la suppression :");
       showErrorToast();
@@ -95,7 +99,7 @@ export function DataTableRowActions<TData>({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[160px]">
-        <DropdownMenuItem>Modifier</DropdownMenuItem>
+        {/* <DropdownMenuItem>Modifier</DropdownMenuItem> */}
         
             <DropdownMenuItem onSelect={() => setOpen(true)} className="text-red-600">
               Supprimer

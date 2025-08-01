@@ -86,71 +86,53 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   });
 
   // Intercepteur pour les réponses
-  api.interceptors.response.use(
-    (response) => response,
-    async (error) => {
-      const originalRequest = error.config;
+ 
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401) {
+      // Supprimer le token expiré et déconnecter
+      localStorage.removeItem('accessToken');
+      setUser(null);
       
-      // Si l'erreur est 401 et que ce n'est pas une requête de refresh token
-      if (error.response?.status === 401 && 
-        !originalRequest._retry && 
-        originalRequest.url !== '/auth/refresh-token') {
-        originalRequest._retry = true;
-        
-        // try {
-        //   // Tenter de rafraîchir le token
-        //   //
-        //   const { data } = await api.post('/auth/refresh-token');
-        //   localStorage.setItem('accessToken', data.accessToken);
-          
-        //   // Mettre à jour le header et renvoyer la requête
-        //   originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
-        //   return api(originalRequest);
-        // } catch (refreshError) {
-        //   // Si le refresh échoue, déconnecter l'utilisateur
-        //   setUser(null);
-        //   localStorage.removeItem('accessToken');
-        //   router.push('/');
-        //   return Promise.reject(refreshError);
-        // }
-        setUser(null);
-        localStorage.removeItem('accessToken');
-        router.push('/');
-        return Promise.reject(error);
+      // Rediriger vers la page de login si ce n'est pas déjà le cas
+      if (window.location.pathname !== '/') {
+        window.location.href = '/'; // Redirection forcée
       }
-      
-      return Promise.reject(error);
     }
-  );
+    return Promise.reject(error);
+  }
+);
 
-//Si tu ne fais pas encore de refresh token, remplace tout le bloc try/catch par :
-// Pas de refresh token => déconnecte immédiatement
-// setUser(null);
-// localStorage.removeItem('accessToken');
-// router.push('/');
-// return Promise.reject(error);
-
-
-  // Vérifier l'authentification au chargement
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const token = localStorage.getItem('accessToken');
-        
-        if (token) {
-          const { data } = await api.get('/auth/me');
-          console.log("User reçu depuis /auth/me :", data.user);
-          setUser(data.user);
+// Vérification de l'authentification
+useEffect(() => {
+  const checkAuth = async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      
+      if (!token) {
+        setUser(null);
+        if (window.location.pathname !== '/') {
+          router.push('/');
         }
-      } catch (err) {
-        // Si l'erreur est gérée par l'intercepteur, on ne fait rien ici
-      } finally {
-        setLoading(false);
+        return;
       }
-    };
-    
-    checkAuth();
-  }, []);
+
+      const { data } = await api.get('/auth/me');
+      setUser(data.user);
+    } catch (err) {
+      setUser(null);
+      localStorage.removeItem('accessToken');
+      if (window.location.pathname !== '/') {
+        router.push('/');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  checkAuth();
+}, []);
 
   // Fonction de connexion
   const login = async (email: string, password: string) => {
@@ -236,7 +218,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         clearError
       }}
     >
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
   // return (

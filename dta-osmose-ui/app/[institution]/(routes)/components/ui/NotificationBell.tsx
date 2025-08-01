@@ -11,6 +11,7 @@ import { useAuth } from "../../../(auth)/sign-in/context//authContext";
 import { useRouter, useParams } from 'next/navigation';
 import "./notification.css";
 
+
 // Connect to Socket.io server
 const socket = io(process.env.NEXT_PUBLIC_API_BASE_URL, {
     withCredentials: true,
@@ -20,7 +21,10 @@ const socket = io(process.env.NEXT_PUBLIC_API_BASE_URL, {
 
 function NotificationBell() {
     const { user, loading, clearError } = useAuth();
-    const userType = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
+    const [userType, setUserType] = useState<string | null>(null);
+    useEffect(() => {
+        setUserType(localStorage.getItem('role'));
+    }, []);
     let userId = null;
     if ((userType === "admin") || (userType === "manager")){
       userId = user?.id;  
@@ -31,6 +35,7 @@ function NotificationBell() {
   //const [open, setOpen] = useState(false);
 
   useEffect(() => {
+    //setUserType(localStorage.getItem('role'));
     // Identify the user when they connect
     if (userId) {
       console.log(`Customer ${userId} is identifying`);
@@ -137,7 +142,7 @@ function NotificationBell() {
           ))}
         </div>
       )}
-      <ToastContainer /> {/* Affiche les toasts */}
+      <ToastContainer /> 
     </div>
   );
 }

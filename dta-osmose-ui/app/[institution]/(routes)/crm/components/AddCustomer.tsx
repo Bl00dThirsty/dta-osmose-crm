@@ -11,10 +11,12 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { PlusIcon } from "lucide-react"
-import { ChangeEvent, FormEvent, useState } from "react"
+import { ChangeEvent, FormEvent, useState, useEffect } from "react"
 import { useGetRolesQuery } from "@/state/api"
-import { toast } from "sonner"
+// import { toast } from "sonner"
 import { useParams } from "next/navigation"
+import { Eye, EyeOff } from "lucide-react"
+import { ToastContainer, toast } from 'react-toastify';
 
 type CustomerFormData = {
     customId: string;
@@ -73,7 +75,27 @@ export const AddCustomerDialog = ({ onCreate }: AddCustomerDialogProps) => {
           region:"",
       });
      };
-  
+    
+  const [showPassword, setShowPassword] = useState(false)
+  const [passwordError, setPasswordError] = useState("")
+
+  useEffect(() => {
+    validatePassword(formData.password)
+  }, [formData.password])
+
+  const validatePassword = (password: string) => {
+    const errors = []
+    if (password.length < 8) errors.push("8 caractères minimum")
+    if (!/[A-Z]/.test(password)) errors.push("une majuscule")
+    if (!/[0-9]/.test(password)) errors.push("un chiffre")
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) errors.push("un caractère spécial")
+
+    if (errors.length > 0) {
+      setPasswordError(`Le mot de passe doit contenir ${errors.join(", ")}.`)
+    } else {
+      setPasswordError("")
+    }
+  }
     const { data: role = [] } = useGetRolesQuery();
   
     const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -86,11 +108,16 @@ export const AddCustomerDialog = ({ onCreate }: AddCustomerDialogProps) => {
   
     const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
+      if (passwordError) {
+            toast.error("Le mot de passe est invalide. Veuillez corriger les erreurs.");
+            return;
+          }
       if (!formData.customId) {
         toast.error("Veuillez générer l'identifiant du client avant de soumettre.");
         return;
       }
       onCreate(formData);
+      toast.success("Ajout du client reussi!")
       resetForm();
     };
   
@@ -141,7 +168,7 @@ export const AddCustomerDialog = ({ onCreate }: AddCustomerDialogProps) => {
               { label: "Désignation", name: "name" },
               { label: "Email", name: "email" },
               { label: "Téléphone", name: "phone" },
-              { label: "Mot de passe", name: "password", type: "password" },
+              //{ label: "Mot de passe", name: "password", type: "password" },
               { label: "Nom d'utilisateur", name: "userName" },
               { label: "Nom du responsable", name: "nameresponsable" },              
               { label: "Ville", name: "ville" },
@@ -161,6 +188,27 @@ export const AddCustomerDialog = ({ onCreate }: AddCustomerDialogProps) => {
                 />
               </div>
             ))}
+
+            <div className="relative">
+              <Label htmlFor="password">Mot de Passe</Label>
+             <Input
+               type={showPassword ? "text" : "password"}
+               name="password"
+               className="w-full border rounded-md p-2 mt-2"
+               value={formData.password}
+               onChange={handleChange}
+               required
+              />
+             <div
+               className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer mt-4"
+               onClick={() => setShowPassword(!showPassword)}
+              >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+             </div>
+               {passwordError && (
+                <p className="text-sm text-red-500 mt-3">{passwordError}</p>
+               )}
+             </div>
   
             {/* Sélecteurs */}
             <div>

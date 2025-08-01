@@ -42,12 +42,31 @@ const PaymentPage = () => {
     setdueAmount(newDue > 0 ? newDue : 0);
   };
 
-  const handleMontantDonneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = Number(e.target.value);
-    setpaidAmount(val);
-    const restant = (sale?.dueAmount ?? 0) - val;
-    setdueAmount(restant > 0 ? restant : 0);
-  };
+  // const handleMontantDonneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const val = Number(e.target.value);
+  //   setpaidAmount(val);
+  //   const restant = (sale?.dueAmount ?? 0) - val;
+  //   setdueAmount(restant > 0 ? restant : 0);
+  // };
+
+// const handleDiscountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+//   const newDiscount = Number(e.target.value) || 0;
+//   setDiscount(newDiscount);
+
+//   const finalAmount = sale?.finalAmount ?? 0;
+//   const newDue = finalAmount - newDiscount - paidAmount;
+//   setdueAmount(newDue > 0 ? newDue : 0);
+// };
+
+
+const handleMontantDonneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const val = Number(e.target.value);
+  setpaidAmount(val);
+
+  const restant = (sale?.dueAmount ?? 0) - (discount ?? 0) - val;
+  setdueAmount(restant > 0 ? restant : 0);
+};
+
 
   const handleSubmit = async () => {
     if (!id) return;

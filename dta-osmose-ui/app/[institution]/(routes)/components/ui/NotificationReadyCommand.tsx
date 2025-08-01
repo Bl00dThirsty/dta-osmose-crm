@@ -18,7 +18,10 @@ const socket = io(process.env.NEXT_PUBLIC_API_BASE_URL, {
 
 function ReadyCommandeNotification() {
     const { user, loading, clearError } = useAuth();
-    const userType = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
+    const [userType, setUserType] = useState<string | null>(null);
+        useEffect(() => {
+            setUserType(localStorage.getItem('role'));
+        }, []);
     let customerId = null;
     if (userType === "Particulier"){
       customerId = user?.id;  

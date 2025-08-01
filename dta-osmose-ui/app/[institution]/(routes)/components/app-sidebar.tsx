@@ -103,15 +103,15 @@ const data = {
         
       ],
     },
-    {
-      title: "Fournisseurs",
-      path: "#",
-      icon: () => <ArrowBigDownDash strokeWidth="1.5" className="w-5 h-5" />,
-      items: [
-        { title: "Liste des fournisseurs", path: "#" },
-        { title: "Commandes", path: "#" },
-      ],
-    },
+    // {
+    //   title: "Fournisseurs",
+    //   path: "#",
+    //   icon: () => <ArrowBigDownDash strokeWidth="1.5" className="w-5 h-5" />,
+    //   items: [
+    //     { title: "Liste des fournisseurs", path: "#" },
+    //     { title: "Commandes", path: "#" },
+    //   ],
+    // },
     {
       title: "Comptes clients",
       path: "customers",
@@ -130,6 +130,7 @@ const data = {
         { title: "Liste des utilisateurs", path: "user/all" },
         { title: "Role & Permissions", path: "role" },
         { title: "Designations", path: "rh/designation" },
+        { title: "Department", path: "rh/department" },
         
       ],
     },
@@ -140,9 +141,9 @@ const data = {
       path: "#",
       icon: () => <Settings2 strokeWidth="1.5" className="w-5 h-5" />,
       items: [
-        { title: "Compte", path: "#" },
+        { title: "Compte", path: `user/${id}` },
         { title: "Facturation", path: "crm/setting" },
-        { title: "Billing", path: "#" },
+        // { title: "Billing", path: "#" },
       ],
     },
     {
