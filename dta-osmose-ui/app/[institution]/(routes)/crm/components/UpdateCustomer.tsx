@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { useForm } from "react-hook-form"
-import { Customer } from "@/types"
+import { Customer } from "@/state/api"
 
 export function UpdateCustomerForm({
   customer,
@@ -30,13 +30,14 @@ export function UpdateCustomerForm({
   const fields = [
     { label: "Nom", name: "name", type: "text" },
     { label: "Email", name: "email", type: "email" },
+    { label: "Nom Utilisateur", name: "userName", type: "text" },
     { label: "Téléphone", name: "phone", type: "tel" },
-   { label: "password", name: "password", type: "password" },
+    { label: "password", name: "password", type: "password" },
     { label: "Responsable", name: "nameresponsable", type: "text" },
     { label: "Ville", name: "ville", type: "text" },
     { label: "Quartier", name: "quarter", type: "text" },
     { label: "Région", name: "region", type: "text" },
-    { label: "Site web", name: "website", type: "url" },
+    { label: "Site web", name: "website", type: "text" },
   ] as const
 
   return (

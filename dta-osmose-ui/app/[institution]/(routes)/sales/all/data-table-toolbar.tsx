@@ -49,7 +49,7 @@ export function DataTableToolbar<TData>({
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">
         <Input
-          placeholder="Filtrer les produits..."
+          placeholder="Filtrer les ventes par N° Facture..."
           value={(table.getColumn("invoiceNumber")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("invoiceNumber")?.setFilterValue(event.target.value)

@@ -47,11 +47,11 @@ export function DataTableRowActions<TData>({
       <DropdownMenuItem onClick={() => router.push(`/${institution}/crm/products/${productId}`)}>
           Voir
         </DropdownMenuItem>
-        <DropdownMenuItem>Supprimer</DropdownMenuItem>
-        <DropdownMenuItem>
+        <DropdownMenuItem>Supprimer🗑</DropdownMenuItem>
+        {/* <DropdownMenuItem>
           Delete
           <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
-        </DropdownMenuItem>
+        </DropdownMenuItem> */}
       </DropdownMenuContent>
     </DropdownMenu>
   )

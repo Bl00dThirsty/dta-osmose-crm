@@ -8,8 +8,9 @@ import { useEffect, useState } from 'react';
 import { UpdateCustomerForm } from "@/app/[institution]/(routes)/crm/components/UpdateCustomer";
 import { DataTable } from "./data-table";
 import { columns } from "./columns";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
+import { Customer } from "@/state/api"
 
 export default function DetailCustomerPage() {
   const [isMounted, setIsMounted] = useState(false);
@@ -63,6 +64,10 @@ export default function DetailCustomerPage() {
     (sum, credit) => sum + (credit.amount - credit.usedAmount),
     0
   ) || 0;
+  useEffect(() => {
+  console.log("Customer details from API:", customer);
+}, [customer]);
+
 
   // Gestion de la mise à jour
   const handleUpdate = async (updatedData: Partial<Customer>) => {

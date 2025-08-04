@@ -21,7 +21,7 @@ import { ChartAreaInteractive } from "./components/dasboard/chart-area-interacti
 
 
 const DashboardPage = () => {
-  //const token = localStorage.getItem("accessToken");
+  //const token = localStorage.getItem("accessToken");`/${institution}/sign-in`
   const { institution } = useParams() as { institution: string }
   const router = useRouter();
   const now = new Date();
@@ -37,6 +37,14 @@ const DashboardPage = () => {
       router.push(`/${institution}/sign-in`);
     }
   }, [token]);
+  // if (!token) {
+  //   return {
+  //     redirect: {
+  //       destination: `/${institution}/sign-in`, // Remplacez par la route de votre page de connexion
+  //       permanent: false,
+  //     },
+  //   };
+  // }
 
   const userType = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
   const {data: dashboardMetrics} = useGetDashboardMetricsQuery({ institution, startDate, endDate });
@@ -94,6 +102,7 @@ const totalInvoices = dashboardMetrics?.formattedData3
 export default DashboardPage;
 //const { institution } = useParams() as { institution: string }
 const AdminDashboard = ({ dashboardMetrics, totalSales, totalProfits, totalInvoices }: any) => (
+  
 <div className="@container/main flex flex-1 flex-col gap-2">
   <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
     <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">

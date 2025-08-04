@@ -10,6 +10,7 @@ import Container from "../../../components/ui/Container";
 export default function CreateClaimForm() {
   const [createClaim] = useCreateClaimMutation();
   const [form, setForm] = useState({ productId: '', quantity: 1, reason: '', description: '' });
+  const [quantityError, setQuantityError] = useState("");
   const router = useRouter();
   const { institution } = useParams<{ institution: string }>();
   const params = useParams();
@@ -18,13 +19,19 @@ export default function CreateClaimForm() {
   const { data: invoice, isLoading } = useGetSaleByIdQuery(id);
 
   const selectedItem = invoice?.items.find((item) => item.productId === form.productId);
-const unitPrice = selectedItem?.unitPrice ?? 0;
-const total = unitPrice * form.quantity;
+  const maxQuantity = selectedItem?.quantity ?? 1;
+  const unitPrice = selectedItem?.unitPrice ?? 0;
 
+  const total = unitPrice * form.quantity;
 
+  const isQuantityInvalid = form.quantity > maxQuantity;
   if (isLoading || !invoice) return <div>Chargement...</div>;
 
   const handleClaimSubmit = async () => {
+    if (isQuantityInvalid) {
+      setQuantityError("La quantité que vous avez entrée est supérieure à la quantité commandée.");
+      return;
+    }
     console.log("numero de facture:", invoice.id)
     await createClaim({
       institution,
@@ -38,6 +45,7 @@ const total = unitPrice * form.quantity;
     }).unwrap();
     alert("Réclamation créée !");
     setForm({ productId: '', quantity: 1, reason: '', description: '' });
+     setQuantityError("");
     router.push(`/${institution}/sales/${id}`);
   };
 
@@ -50,7 +58,13 @@ const total = unitPrice * form.quantity;
     <div className="max-w-4xl mx-auto p-4 bg-white-800 rounded border">
       <h3 className="text-xl mb-4 text-center">Créer une réclamation</h3>
       <Label className='mb-2'>Désignation Produits</Label>
-      <select value={form.productId} onChange={e => setForm({...form, productId: e.target.value})} className="w-full border rounded-md p-2 mb-5">
+      <select value={form.productId} onChange={e => {
+            const productId = e.target.value;
+            const item = invoice.items.find(i => i.productId === productId);
+            setForm({ ...form, productId, quantity: 1 });
+            setQuantityError(""); // reset
+          }}
+           className="w-full border rounded-md p-2 mb-5">
         <option value="">Sélectionnez un produit</option>
         {invoice.items.map(item => (
           <option key={item.productId} value={item.productId}>
@@ -64,9 +78,20 @@ const total = unitPrice * form.quantity;
         min="1"
         max={invoice.items.find(i => i.productId === form.productId)?.quantity || 1}
         value={form.quantity}
-        onChange={e => setForm({...form, quantity: Number(e.target.value)})}
+        onChange={e => {
+            const quantity = Number(e.target.value);
+            setForm({ ...form, quantity });
+            if (quantity > maxQuantity) {
+              setQuantityError("La quantité que vous avez entrée est supérieure à la quantité commandée.");
+            } else {
+              setQuantityError("");
+            }
+          }}
         className="w-full mb-5"
       />
+      {quantityError && (
+          <p className="text-red-600 text-sm mb-4">{quantityError}</p>
+        )}
 
        <Label className="mb-2">Prix unitaire</Label>
         <Input
@@ -102,7 +127,7 @@ const total = unitPrice * form.quantity;
         className="w-full mb-4 border rounded"
       />
       
-      <button onClick={handleClaimSubmit} className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-500">
+      <button onClick={handleClaimSubmit} className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-500" disabled={isQuantityInvalid || !form.productId || !form.reason}>
         Envoyer
       </button>
     </div>

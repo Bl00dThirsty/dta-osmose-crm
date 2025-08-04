@@ -57,7 +57,7 @@ const data = {
     {
       title: "Dashoard",
       path: "#",
-      icon: () => <LayoutDashboard stroke-width="1.5" className="w-5 h-5" />,
+      icon: () => <LayoutDashboard strokeWidth="1.5" className="w-5 h-5" />,
       isActive: true,
       items: [
         { title: "Mon dashboard", path: "" },
@@ -67,7 +67,7 @@ const data = {
     {
       title: "Produits",
       path: "products",
-      icon: () => <Package stroke-width="1.5" className="w-5 h-5" />,
+      icon: () => <Package strokeWidth="1.5" className="w-5 h-5" />,
       items: [
         { title: "Listes des produits", path: "crm/products" },
         { title: "Statistiques", path: "#" },
@@ -76,9 +76,10 @@ const data = {
     {
       title: "Stock de produits",
       path: "#",
-      icon: () => <TrendingUp stroke-width="1.5" className="w-5 h-5" />,
+      icon: () => <TrendingUp strokeWidth="1.5" className="w-5 h-5" />,
       items: [
         { title: "Tableau de rotation", path: "#" },
+        { title: "Inventaire", path: "inventory/all" },
         { title: "Tableau des Pertes", path: "perte" }
       ],
       
@@ -86,7 +87,7 @@ const data = {
     {
       title: "Ventes",
       path: "sales",
-      icon: () => <ShoppingBag stroke-width="1.5" className="w-5 h-5" />,
+      icon: () => <ShoppingBag strokeWidth="1.5" className="w-5 h-5" />,
       items: [
         { title: "Ventes", path: "sales" },
         { title: "Liste des ventes", path: "sales/all" },
@@ -96,25 +97,25 @@ const data = {
     {
       title: "Réclamations",
       path: "#",
-      icon: () => <BookAIcon stroke-width="1.5" className="w-5 h-5" />,
+      icon: () => <BookAIcon strokeWidth="1.5" className="w-5 h-5" />,
       items: [
         { title: "Liste des Réclamations", path: "claims/all" },
         
       ],
     },
-    {
-      title: "Fournisseurs",
-      path: "#",
-      icon: () => <ArrowBigDownDash stroke-width="1.5" className="w-5 h-5" />,
-      items: [
-        { title: "Liste des fournisseurs", path: "#" },
-        { title: "Commandes", path: "#" },
-      ],
-    },
+    // {
+    //   title: "Fournisseurs",
+    //   path: "#",
+    //   icon: () => <ArrowBigDownDash strokeWidth="1.5" className="w-5 h-5" />,
+    //   items: [
+    //     { title: "Liste des fournisseurs", path: "#" },
+    //     { title: "Commandes", path: "#" },
+    //   ],
+    // },
     {
       title: "Comptes clients",
       path: "customers",
-      icon: () => <Crown stroke-width="1.5" className="w-5 h-5" />,
+      icon: () => <Crown strokeWidth="1.5" className="w-5 h-5" />,
       items: [
         { title: "Liste des comptes clients", path: "crm/customers" },
         { title: "Facturation", path: "sales/all" },
@@ -123,12 +124,13 @@ const data = {
     {
       title: "Utilisateurs",
       url: "#",
-      icon: () => <User stroke-width="1.5" className="w-5 h-5" />,
+      icon: () => <User strokeWidth="1.5" className="w-5 h-5" />,
       items: [
         { title: "Ajouter un utilisateur", path: "user/add" },
         { title: "Liste des utilisateurs", path: "user/all" },
         { title: "Role & Permissions", path: "role" },
         { title: "Designations", path: "rh/designation" },
+        { title: "Department", path: "rh/department" },
         
       ],
     },
@@ -137,17 +139,17 @@ const data = {
 
       title: "Paramètres",
       path: "#",
-      icon: () => <Settings2 stroke-width="1.5" className="w-5 h-5" />,
+      icon: () => <Settings2 strokeWidth="1.5" className="w-5 h-5" />,
       items: [
-        { title: "Compte", path: "#" },
+        { title: "Compte", path: `user/${id}` },
         { title: "Facturation", path: "crm/setting" },
-        { title: "Billing", path: "#" },
+        // { title: "Billing", path: "#" },
       ],
     },
     {
       title: "Documentation",
       path: "#",
-      icon: () => <BookOpen stroke-width="1.5" className="w-5 h-5" />,
+      icon: () => <BookOpen strokeWidth="1.5" className="w-5 h-5" />,
       items: [
         { title: "Introduction", path: "#" },
         { title: "Commencer", path: "#" },
@@ -169,7 +171,7 @@ const data = {
     {
       title: "Achats",
       path: "sales",
-      icon: () => <ShoppingBag stroke-width="1.5" className="w-5 h-5" />,
+      icon: () => <ShoppingBag strokeWidth="1.5" className="w-5 h-5" />,
       isActive: true,
       items: [
         { title: "Boutiques", path: "sales" },

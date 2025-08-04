@@ -57,6 +57,11 @@ export interface User {
        name: string;
     };
 }
+export interface Department {
+  id:number;
+  name: string;
+}
+
 export interface Designation {
   id:number;
   name: string;
@@ -270,6 +275,7 @@ export interface Notification{
   title: string;
   message: string;
   type?: string;
+  institutionId: string
   isRead: boolean;
   userId: number;
   customerId: number;
@@ -296,6 +302,39 @@ export interface NewAppSetting{
   website: string;
   footer: string;
 }
+export interface InventoryItem {
+  productId: string;
+  designation: string;
+  systemQty: number;
+  countedQty: number;
+  difference: number;
+  comment?: string;
+  product?:{
+    designation: string;
+    quantity: number;
+    EANCode?: string;
+    sellingPriceTTC: number;
+  }
+};
+
+export interface Inventory {
+  id: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+  titre?: string;
+  note?: string;
+  location?: string;
+  institutionId?:   String;
+  performedById: number;
+  user?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+  } 
+  inventoryItems: InventoryItem[];
+};
+
+
 
 export interface DashboardMetrics {
     popularProducts: Product[];
@@ -340,7 +379,7 @@ export const api = createApi({
         return headers;
       }, }),
     reducerPath: "api",
-    tagTypes: ["DashboardMetrics", "Products", "Users", "Designations", "Roles", "Customers", "Sales", "AppSettings", "Claims", "Notifications"],
+    tagTypes: ["DashboardMetrics", "Products", "Users", "Departments", "Designations", "Roles", "Customers", "Sales", "AppSettings", "Claims", "Notifications", "Inventorys"],
     endpoints: (build) => ({
         getDashboardMetrics: build.query<DashboardMetrics, { institution: string, startDate?: string; endDate?: string  }>({
             query: ({ institution, startDate, endDate }) => {
@@ -370,6 +409,72 @@ export const api = createApi({
         getProductById: build.query<Product, string>({
           query: (id) => `/institutions/${id}`, // Construire l'URL avec l'ID de l'utilisateur
           providesTags: (result, error, id) => [{ type: "Products", id }], // Associer un tag pour l'invalidation
+        }),
+
+        //inventory
+        createInventory: build.mutation<Inventory, { 
+          titre: string;
+          location: string;
+          performedById: number;
+          inventoryItems: Array<{
+          productId: string;
+          systemQty: number;
+          countedQty: number;
+          comment?: string;
+          }>;
+          note?: string;
+          institution: string;
+         }>({
+          query: ({ institution, ...data }) => ({
+              url: `/inventory/${institution}/inventory`,
+              method: 'POST',
+              body: data
+          }),
+          invalidatesTags: ['Inventorys', 'Products']
+        }),
+
+        getInventory: build.query<Inventory[], { institution: string; search?: string }>({
+          query: ({ institution, search }) => ({
+              url: `/inventory/${institution}/all`,
+              params: search ? { search } : {}
+          }),
+          providesTags: ["Inventorys"]
+        }),
+
+        getInventoryId: build.query<Inventory, string>({
+          query: (id) => `/inventory/${id}`,
+          providesTags: (result, error, id) => [{ type: 'Inventorys', id }]
+        }),
+
+        updateInventory: build.mutation<Inventory, {
+          id: string;
+          institution: string;
+          titre: string;
+          location: string;
+          performedById: number;
+          note?: string;
+          inventoryItems: Array<{
+            productId: string;
+            systemQty: number;
+            countedQty: number;
+            comment?: string;
+          }>;
+        }>({
+          query: ({ institution, id, ...data }) => ({
+            url: `/inventory/${institution}/inventory/${id}`,
+            method: "PUT",
+            body: data
+          }),
+          invalidatesTags: ['Inventorys', 'Products']
+        }),
+        
+
+        deleteInventory: build.mutation<void, string>({
+          query: (id) => ({
+            url: `/inventory/${id}`, 
+            method: "DELETE",
+          }),
+          invalidatesTags: (result, error, id ) => [{ type: "Inventorys", id }],
         }),
 
         // Sales
@@ -491,7 +596,11 @@ export const api = createApi({
       
           return `/claim/${institution}/claims?${params.toString()}`;
         },
-        providesTags: ['Claims']
+        //providesTags: ['Claims']
+        providesTags: (result) =>
+            result
+              ? [...result.map(({ id }) => ({ type: 'Claims' as const, id })), { type: 'Claims', id: 'LIST' }]
+              : [{ type: 'Claims', id: 'LIST' }],
       }),
 
       getClaimById: build.query<Claim, string>({
@@ -508,7 +617,27 @@ export const api = createApi({
       }),
           getDepartments: build.query<{ id: number; name: string }[], void>({
             query: () => "/department",
+            providesTags: (result) =>
+            result
+              ? [...result.map(({ id }) => ({ type: 'Departments' as const, id })), { type: 'Departments', id: 'LIST' }]
+              : [{ type: 'Departments', id: 'LIST' }],
+            }),
+          createDepartments: build.mutation<Department, { name: string }>({
+            query: (data) => ({
+              url: "/department",
+              method: "POST",
+              body: data,
+            }),
+            invalidatesTags: ["Departments"],
+           }),
+           deleteDepartments: build.mutation<void, string>({
+            query: (id) => ({
+              url: `/department/${id}`,
+              method: 'DELETE',
+            }),
+            invalidatesTags: (result, error, id) => [{ type: 'Departments', id: 'LIST' }],
           }),
+
 
           //Designation
           getDesignations: build.query<{ id: number; name: string }[], void>({
@@ -588,6 +717,10 @@ export const api = createApi({
                 url: "/customer",
                 params: search ? { search } : {}
             }),
+            providesTags: (result) =>
+            result
+              ? [...result.map(({ id }) => ({ type: 'Departments' as const, id })), { type: 'Departments', id: 'LIST' }]
+              : [{ type: 'Departments', id: 'LIST' }],
             
           }),
           createCustomers: build.mutation<Customer, NewCustomer>({
@@ -616,7 +749,7 @@ export const api = createApi({
               url: `/customer/${id}`,
               method: 'DELETE',
             }),
-            invalidatesTags: ["Customers"],
+             invalidatesTags: (result, error, id) => [{ type: 'Customers', id }],
           }),
 
           sendTokenResetPassword: build.mutation<Customer, { email: string, institution: string }>({
@@ -666,16 +799,25 @@ export const api = createApi({
 
           //NOTIFICATIONS
           
-          getAllNotifications: build.query<Notification[], string | void>({  
+          getAllNotifications: build.query<Notification[], { institution: string }>({  
+            query: ({ institution }) => ({
+                url: `/notification/${institution}/all`,
+                //params: search ? { search } : {}
+            }),
+            providesTags: ["Notifications"]
+          }), 
+          
+          getCustomerNotifications: build.query<Notification[], string | void>({  
             query: (search) => ({
-                url: "/notification/all",
+                url: `/notification/customer`,
                 params: search ? { search } : {}
             }),
+            providesTags: ["Notifications"]
           }), 
           
           deleteNotifications: build.mutation<void, string>({
             query: (id) => ({
-              url: `/sale/${id}`, 
+              url: `/notification/${id}`, 
               method: "DELETE",
             }),
             invalidatesTags: (result, error, id) => [{ type: 'Notifications', id }],
@@ -684,11 +826,13 @@ export const api = createApi({
     }),
 });
 
-export const { useGetDashboardMetricsQuery, useGetProductsQuery, useCreateProductMutation, useGetProductByIdQuery, useCreateSaleMutation, useGetCustomerDebtStatusQuery, useGetSalesQuery,
+export const { useGetDashboardMetricsQuery, useGetProductsQuery, useCreateProductMutation, useGetProductByIdQuery, useCreateInventoryMutation, 
+  useGetInventoryQuery, useGetInventoryIdQuery, useUpdateInventoryMutation, useDeleteInventoryMutation, useCreateSaleMutation, useGetCustomerDebtStatusQuery, useGetSalesQuery,
     useGetSaleByIdQuery,useUpdateSaleStatusMutation, useUpdateSalePaymentMutation, useDeleteSaleInvoiceMutation, useCreateClaimMutation, 
-    useRespondToClaimMutation, useUpdateClaimResponseMutation, useGetClaimQuery, useGetClaimByIdQuery, useDeleteClaimMutation, useGetDepartmentsQuery,
+    useRespondToClaimMutation, useUpdateClaimResponseMutation, useGetClaimQuery, useGetClaimByIdQuery, useDeleteClaimMutation, useGetDepartmentsQuery, 
+    useCreateDepartmentsMutation, useDeleteDepartmentsMutation,
     useGetDesignationsQuery, useCreateDesignationsMutation, useDeleteDesignationMutation,useGetRolesQuery, useCreateRolesMutation, 
     useDeleteRoleMutation, useGetUsersQuery, useGetUserByIdQuery, useDeleteUserMutation,  useGetCustomersQuery, useCreateCustomersMutation,
     useGetCustomerByIdQuery, useDeleteCustomerMutation,useUpdateCustomerMutation, useSendTokenResetPasswordMutation, useResetPasswordMutation, 
-    useGetSettingsQuery, useUpdateSettingsMutation, useGetAllNotificationsQuery, useDeleteNotificationsMutation} = api;
+    useGetSettingsQuery, useUpdateSettingsMutation, useGetAllNotificationsQuery, useGetCustomerNotificationsQuery, useDeleteNotificationsMutation} = api;
 

@@ -10,7 +10,7 @@ router.post("/:institution/claims/:claimId/response", respondToClaim);
 router.get('/:institution/claims', getClaims);
 router.get('/:id', getClaimsById);
 router.put("/response/:responseId", updateClaimResponse);
-router.get('/:id', deleteSingleClaim)
+router.delete('/:id', deleteSingleClaim)
 
 
 export default router;

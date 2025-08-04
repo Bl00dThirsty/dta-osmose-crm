@@ -1,69 +1,150 @@
-"use client";
+"use client" 
 
-import { BellIcon, BellElectricIcon } from "lucide-react";
-import { useNotification } from "../../../(auth)/sign-in/context/NotificationContext";
-import { useState } from "react";
-import { Alert, Button } from "antd";
-
-import { useGetAllNotificationsQuery } from "@/state/api";
+import React, { useEffect, useState } from "react";
+import io from "socket.io-client";
 import Link from 'next/link';
+import { Alert } from "antd";
+import { BellIcon } from "lucide-react";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useAuth } from "../../../(auth)/sign-in/context//authContext";
 import { useRouter, useParams } from 'next/navigation';
+import "./notification.css";
 
-export default function NotificationBell() {
-  const { data: Notifications} = useGetAllNotificationsQuery();   
-  const { notifications, setNotifications } = useNotification();
-  const unreadCount = (Notifications?.filter((n:any) => (!n.isRead && n.type !== "stock_alert")).length) ?? 0;
-  const [open, setOpen] = useState(false);
+
+// Connect to Socket.io server
+const socket = io(process.env.NEXT_PUBLIC_API_BASE_URL, {
+    withCredentials: true,
+  });
+// const socket = io("http://192.168.1.176:5001");
+
+
+function NotificationBell() {
+    const { user, loading, clearError } = useAuth();
+    const [userType, setUserType] = useState<string | null>(null);
+    useEffect(() => {
+        setUserType(localStorage.getItem('role'));
+    }, []);
+    let userId = null;
+    if ((userType === "admin") || (userType === "manager")){
+      userId = user?.id;  
+    }
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [showNotifications, setShowNotifications] = useState(false);
   const { institution } = useParams<{ institution: string }>();
+  //const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    //setUserType(localStorage.getItem('role'));
+    // Identify the user when they connect
+    if (userId) {
+      console.log(`Customer ${userId} is identifying`);
+      socket.emit("identify", { userId });
+    }
+
+    // Handle incoming notifications
+    const handleCustomerNotification = (notification:any) => {
+      console.log("Received notification:", notification);
+
+      if (notification && notification.id && notification.type) {
+        setNotifications((prevNotifications) => [
+            ...prevNotifications,
+            notification
+          ]);
+
+        let toastType;
+        switch (notification.type) {
+          case "update_order":
+            toastType = "info";
+            break;
+          case "order":
+          case "new_by_commande":
+            toastType = "success";
+            break;
+          default:
+            toastType = "default";
+        }
+
+        toast(notification.message, {
+          type: notification.type === "general" ? "info" : "warning",
+          autoClose: 5000,
+        });
+      } else {
+        console.error(
+          "Notification data is missing or incomplete:",
+          notification
+        );
+      }
+    };
+
+    // Listen for customer notifications
+    socket.on("customer-notification", handleCustomerNotification);
+
+    // Clean up event listener on component unmount
+    return () => {
+      socket.off("customer-notification", handleCustomerNotification);
+    };
+  }, [userId]);
+
+  const handleNotificationClick = async () => {
+    // setShowNotifications(!showNotifications);
+    // if (!showNotifications) {
+      try {
+        await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/notification/mark-as-read`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ 
+              userId
+            }),
+          });
+    
+          // Mise à jour côté state local
+          setNotifications((prevNotifications) =>
+            prevNotifications.map((notif) => ({ ...notif, isRead: true }))
+          );
+      } catch (error) {
+        console.error("Error marking notifications as read:", error);
+      }
+    // }
+  };
+
+  // Filter unread notifications
+  const unreadNotifications = notifications.filter((notif) => !notif.isRead);
 
   return (
     <div className="relative">
-      <button onClick={() => setOpen(!open)}>
+      {/* Afficher le nombre de notifications non lues */}
+      
+      {/* Icône de cloche */}
+      <button onClick={() => setShowNotifications(!showNotifications)}>
         <BellIcon className="w-6 h-6" />
-        {unreadCount > 0 && (
+        {unreadNotifications.length >= 0 && (
           <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-1">
-            {unreadCount}
+            {unreadNotifications.length}
           </span>
         )}
       </button>
-
-      {open && (
-        <div className="absolute right-0 mt-2 w-72 bg-white shadow-md rounded-lg p-2 z-50">
-          {unreadCount === 0 ? (
-            <p className="text-sm text-gray-500">Aucune notification</p>
-          ) : (
-            [...(notifications || []), ...(Notifications || [])].filter((notif: any) => (!notif.isRead && notif.type !== "stock_alert")).map((notif:any, idx:any) => (
-               <Alert
-               key={idx}
-               message={<Link href={`/${institution}/sales/${notif.saleId}`}>{notif.message}</Link>}
-               showIcon
-               type={notif.type === "general" ? "info" : "warning"}
-               style={{ marginBottom: "16px" }}
-               closable
-               onClose={async () => {
-                try {
-                  await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/notification/mark-as-read`, {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                      userId: notif.userId,
-                      customerId: notif.customerId,
-                    }),
-                  });
-            
-                  // Mise à jour côté state local
-                  setNotifications((prev:any) => prev.filter((n:any) => n.id !== notif.id));
-                } catch (err) {
-                  console.error("Erreur lors du marquage comme lu :", err);
-                }
-              }}
-             />
-            ))
-          )}
+      {/* Liste des notifications lorsqu'on clique sur la cloche */}
+      {showNotifications && (
+        <div className="notification-list-container1">
+          {notifications.map((item) => (
+            <Alert
+              key={item.id}
+              message={<Link href={`/${institution}/sales/${item.saleId}`}>{item.message}</Link>}
+              showIcon
+              type={item.type === "info" ? "success" : "warning"}
+              style={{ marginBottom: "16px" }}
+              closable
+              onClose={handleNotificationClick}
+            />
+          ))}
         </div>
       )}
+      <ToastContainer /> 
     </div>
   );
 }
+
+export default NotificationBell;

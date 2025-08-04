@@ -39,6 +39,13 @@ export default function RegisterComponent() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const validatePassword = (password: string) => {
+  const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+{}\[\]:;<>,.?~\\/-]).{8,}$/;
+  return regex.test(password);
+  };
+
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormValues({ ...formValues, [e.target.name]: e.target.value });
   };
@@ -61,6 +68,13 @@ export default function RegisterComponent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    if (!validatePassword(formValues.password)) {
+    setPasswordError("Le mot de passe doit contenir au moins 8 caractères, une majuscule, un chiffre et un caractère spécial.");
+    setIsSubmitting(false);
+    return;
+  }
+
+  setPasswordError(null);
     try {
       const generatedId = handleGenerateCustomId();
       if (!generatedId) return;
@@ -139,6 +153,9 @@ export default function RegisterComponent() {
               >
                 <FingerprintIcon size={25} className="text-gray-400 cursor-pointer" />
               </span>
+              {passwordError && (
+                <p className="text-red-500 text-sm mt-1">{passwordError}</p>
+              )}
             </div>
             <Input
               name="userName"
@@ -166,7 +183,7 @@ export default function RegisterComponent() {
           </CardContent>
         </form>
 
-        <CardFooter className="flex flex-col space-y-5 mt-5">
+        <CardFooter className="flex flex-col space-y-5">
           <p className="text-sm text-gray-500">
             Vous avez déjà un compte ?{" "}
             <Link href={`/${institution}/sign-in`} className="text-blue-500">
