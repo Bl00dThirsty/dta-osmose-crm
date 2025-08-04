@@ -31,7 +31,7 @@ import {
   DialogCancel,
   DialogAction,
 } from "@/components/ui/dialog"
-
+import { ToastContainer, toast } from 'react-toastify';
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>
@@ -49,9 +49,17 @@ export function DataTableRowActions<TData>({
   const handleDelete = async () => {
     try {
       await deleteCustomer(cutomerId).unwrap()
+      toast.success("Supression du client reussi")
+      setOpen(false); // <-- Fermer la modale AVANT de rediriger
+      setTimeout(() => {
+        
+      router.push(`/${institution}/crm/customers`);
+      router.refresh();
+    }, 500);
       console.log("Designation supprimé avec succès")
     } catch (error) {
-      console.log("Erreur lors de la suppression :")
+      //console.log("Erreur lors de la suppression :")
+      toast.error("Erreur lors de la Suppression")
     }
   }
   return (
@@ -71,7 +79,7 @@ export function DataTableRowActions<TData>({
           Voir
         </DropdownMenuItem>
         <DropdownMenuItem onSelect={() => setOpen(true)} className="text-red-600">
-              Supprimer
+              Supprimer🗑
             
         </DropdownMenuItem>
       </DropdownMenuContent>

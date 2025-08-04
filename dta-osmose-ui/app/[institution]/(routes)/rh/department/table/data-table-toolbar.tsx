@@ -10,13 +10,14 @@ import { DataTableViewOptions } from "@/app/[institution]/(routes)/crm/products/
 
 import { quantityLevel, statuses } from "@/app/[institution]/(routes)/crm/products/table/data/data"
 import { DataTableFacetedFilter } from "../../../user/all/table/components/data-table-faceted-filter"
-import { AddDesignationDialog } from "../../../crm/components/AddDesignation"
-import { NewDesignation, useCreateDesignationsMutation } from "@/state/api"
+import { AddDepartmentDialog } from "../../../crm/components/AddDepartment"
+import { useCreateDepartmentsMutation, useCreateDesignationsMutation } from "@/state/api"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import Papa from "papaparse"
 import { useState } from "react"
 
-type DesignationFormData = {
+type DepartmentFormData = {
+ 
   name: string;
 }
 interface DataTableToolbarProps<TData> {
@@ -28,12 +29,12 @@ export function DataTableToolbar<TData>({
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
 
-  const handleCreateDesignation = async (designationData: DesignationFormData) => {
-    await createDesignation(designationData);
+  const handleCreateDesignation = async (departmentData: DepartmentFormData) => {
+    await createDepartment(departmentData);
   }
   
   const [file, setFile] = useState<File | null>(null)
-  const [createDesignation] = useCreateDesignationsMutation()
+  const [createDepartment] = useCreateDepartmentsMutation()
   
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const selectedFile = e.target.files?.[0]
@@ -49,12 +50,12 @@ export function DataTableToolbar<TData>({
         header: true,
         skipEmptyLines: true,
         complete: async (results) => {
-          const designations = results.data as any[]
+          const departments = results.data as any[]
   
-          for (const designation of designations) {
+          for (const department of departments) {
             try {
-              await createDesignation({
-                name: designation.name,
+              await createDepartment({
+                name: department.name,
               }).unwrap()
             } catch (error) {
               console.error("Erreur lors de l'ajout du produit :", error)
@@ -91,7 +92,7 @@ export function DataTableToolbar<TData>({
           </Button>
         )}
       </div>
-      <AddDesignationDialog onCreate={handleCreateDesignation} />
+      <AddDepartmentDialog onCreate={handleCreateDesignation} />
       <DataTableViewOptions table={table} />
     </div>
   )

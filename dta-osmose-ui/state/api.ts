@@ -57,6 +57,11 @@ export interface User {
        name: string;
     };
 }
+export interface Department {
+  id:number;
+  name: string;
+}
+
 export interface Designation {
   id:number;
   name: string;
@@ -374,7 +379,7 @@ export const api = createApi({
         return headers;
       }, }),
     reducerPath: "api",
-    tagTypes: ["DashboardMetrics", "Products", "Users", "Designations", "Roles", "Customers", "Sales", "AppSettings", "Claims", "Notifications", "Inventorys"],
+    tagTypes: ["DashboardMetrics", "Products", "Users", "Departments", "Designations", "Roles", "Customers", "Sales", "AppSettings", "Claims", "Notifications", "Inventorys"],
     endpoints: (build) => ({
         getDashboardMetrics: build.query<DashboardMetrics, { institution: string, startDate?: string; endDate?: string  }>({
             query: ({ institution, startDate, endDate }) => {
@@ -591,7 +596,11 @@ export const api = createApi({
       
           return `/claim/${institution}/claims?${params.toString()}`;
         },
-        providesTags: ['Claims']
+        //providesTags: ['Claims']
+        providesTags: (result) =>
+            result
+              ? [...result.map(({ id }) => ({ type: 'Claims' as const, id })), { type: 'Claims', id: 'LIST' }]
+              : [{ type: 'Claims', id: 'LIST' }],
       }),
 
       getClaimById: build.query<Claim, string>({
@@ -608,7 +617,27 @@ export const api = createApi({
       }),
           getDepartments: build.query<{ id: number; name: string }[], void>({
             query: () => "/department",
+            providesTags: (result) =>
+            result
+              ? [...result.map(({ id }) => ({ type: 'Departments' as const, id })), { type: 'Departments', id: 'LIST' }]
+              : [{ type: 'Departments', id: 'LIST' }],
+            }),
+          createDepartments: build.mutation<Department, { name: string }>({
+            query: (data) => ({
+              url: "/department",
+              method: "POST",
+              body: data,
+            }),
+            invalidatesTags: ["Departments"],
+           }),
+           deleteDepartments: build.mutation<void, string>({
+            query: (id) => ({
+              url: `/department/${id}`,
+              method: 'DELETE',
+            }),
+            invalidatesTags: (result, error, id) => [{ type: 'Departments', id: 'LIST' }],
           }),
+
 
           //Designation
           getDesignations: build.query<{ id: number; name: string }[], void>({
@@ -688,6 +717,10 @@ export const api = createApi({
                 url: "/customer",
                 params: search ? { search } : {}
             }),
+            providesTags: (result) =>
+            result
+              ? [...result.map(({ id }) => ({ type: 'Departments' as const, id })), { type: 'Departments', id: 'LIST' }]
+              : [{ type: 'Departments', id: 'LIST' }],
             
           }),
           createCustomers: build.mutation<Customer, NewCustomer>({
@@ -716,7 +749,7 @@ export const api = createApi({
               url: `/customer/${id}`,
               method: 'DELETE',
             }),
-            invalidatesTags: ["Customers"],
+             invalidatesTags: (result, error, id) => [{ type: 'Customers', id }],
           }),
 
           sendTokenResetPassword: build.mutation<Customer, { email: string, institution: string }>({
@@ -796,7 +829,8 @@ export const api = createApi({
 export const { useGetDashboardMetricsQuery, useGetProductsQuery, useCreateProductMutation, useGetProductByIdQuery, useCreateInventoryMutation, 
   useGetInventoryQuery, useGetInventoryIdQuery, useUpdateInventoryMutation, useDeleteInventoryMutation, useCreateSaleMutation, useGetCustomerDebtStatusQuery, useGetSalesQuery,
     useGetSaleByIdQuery,useUpdateSaleStatusMutation, useUpdateSalePaymentMutation, useDeleteSaleInvoiceMutation, useCreateClaimMutation, 
-    useRespondToClaimMutation, useUpdateClaimResponseMutation, useGetClaimQuery, useGetClaimByIdQuery, useDeleteClaimMutation, useGetDepartmentsQuery,
+    useRespondToClaimMutation, useUpdateClaimResponseMutation, useGetClaimQuery, useGetClaimByIdQuery, useDeleteClaimMutation, useGetDepartmentsQuery, 
+    useCreateDepartmentsMutation, useDeleteDepartmentsMutation,
     useGetDesignationsQuery, useCreateDesignationsMutation, useDeleteDesignationMutation,useGetRolesQuery, useCreateRolesMutation, 
     useDeleteRoleMutation, useGetUsersQuery, useGetUserByIdQuery, useDeleteUserMutation,  useGetCustomersQuery, useCreateCustomersMutation,
     useGetCustomerByIdQuery, useDeleteCustomerMutation,useUpdateCustomerMutation, useSendTokenResetPasswordMutation, useResetPasswordMutation, 

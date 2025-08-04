@@ -74,6 +74,9 @@ export function DataTableRowActions<TData>({
         <DropdownMenuItem onClick={() => router.push(`/${institution}/role/${roleId}`)}>
           Voir
         </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => setOpen(true)} className="text-red-600">
+          Supprimer🗑
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => setOpen(true)} className="flex items-center justify-between text-red-600">
           Supprimer <Trash2/>

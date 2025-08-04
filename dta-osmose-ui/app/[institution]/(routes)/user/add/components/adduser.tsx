@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/app/[institution]/(auth)/sign-in/context/authContext";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { useGetDepartmentsQuery, useGetDesignationsQuery, useGetRolesQuery } from "@/state/api"
 import Link from "next/link";
 import { ToastContainer, toast } from 'react-toastify';
+import { Eye, EyeOff } from "lucide-react"
+
 
 
 export default function RegisterComponent() {
@@ -66,7 +68,26 @@ export default function RegisterComponent() {
     });
   };
   
+  const [showPassword, setShowPassword] = useState(false)
+  const [passwordError, setPasswordError] = useState("")
 
+  useEffect(() => {
+    validatePassword(formValues.password)
+  }, [formValues.password])
+
+  const validatePassword = (password: string) => {
+    const errors = []
+    if (password.length < 8) errors.push("8 caractères minimum")
+    if (!/[A-Z]/.test(password)) errors.push("une majuscule")
+    if (!/[0-9]/.test(password)) errors.push("un chiffre")
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) errors.push("un caractère spécial")
+
+    if (errors.length > 0) {
+      setPasswordError(`Le mot de passe doit contenir ${errors.join(", ")}.`)
+    } else {
+      setPasswordError("")
+    }
+  }
   const { data: department = [] } = useGetDepartmentsQuery();
   const { data: designation = [] } = useGetDesignationsQuery();
   const { data: role = [] } = useGetRolesQuery();
@@ -84,7 +105,12 @@ export default function RegisterComponent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (passwordError) {
+      toast.error("Le mot de passe est invalide. Veuillez corriger les erreurs.");
+      return;
+    }
     setIsSubmitting(true);
+    
     try {
       // convert number fields
       const formattedValues = {
@@ -118,9 +144,9 @@ export default function RegisterComponent() {
               { label: "Prénom", name: "firstName" },
               { label: "Nom", name: "lastName" },
               { label: "Nom d'utilisateur", name: "userName" },
-              { label: "Mot de passe", name: "password", type: "password" },
-              { label: "Email ", name: "email", type: "email" },
-              { label: "Téléphone", name: "phone" },
+              // { label: "Mot de passe", name: "password", type: "password" },
+              { label: "Email 📩", name: "email", type: "email" },
+              { label: "Téléphone 📞", name: "phone" },
               { label: "Adresse", name: "street" },
               { label: "Ville", name: "city" },
               { label: "Code postal", name: "zipCode" },
@@ -147,6 +173,27 @@ export default function RegisterComponent() {
                 />
               </div>
             ))}
+
+            <div className="relative">
+              <Label htmlFor="password">Mot de Passe</Label>
+        <Input
+          type={showPassword ? "text" : "password"}
+          name="password"
+          className="w-full border rounded-md p-2 mt-2"
+          value={formValues.password}
+          onChange={handleChange}
+          required
+        />
+        <div
+          className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer mt-2"
+          onClick={() => setShowPassword(!showPassword)}
+        >
+          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+        </div>
+        {passwordError && (
+          <p className="text-sm text-red-500 mt-1">{passwordError}</p>
+        )}
+      </div>
 
             {/* Selects */}
             <div>

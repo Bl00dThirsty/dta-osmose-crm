@@ -283,8 +283,23 @@ export const createClaims = async (
         // Vérifier si le user existe
         if (!existingClaim) {
           res.status(404).json({ message: "Claim non trouvé" });
+          console.log("Pas trouver de cliam")
           return;
+        } 
+        const deleteClaimREsponse = await prisma.claimResponse.findUnique({
+             where: {
+            claimId: id,
+           },
+        })
+        if (!deleteClaimREsponse){
+          console.log("Reponse de reclamation pas trouver")
         }
+    // Supprimer d'abord claimResponse 
+        await prisma.claimResponse.deleteMany({
+           where: {
+            claimId: id,
+           },
+        });
         await prisma.claim.delete({
             where: {
               id

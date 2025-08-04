@@ -58,34 +58,63 @@ export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>)
     setFile(selectedFile)
   }
   const handleUpload = async () => {
-  if (!file) return;
+  if (!file) {
+    toast.error("Aucun fichier sélectionné.");
+    return;
+  }
 
   const reader = new FileReader();
-  reader.readAsArrayBuffer(file);
 
   reader.onload = async (e) => {
-    const data = new Uint8Array(e.target?.result as ArrayBuffer);
-    const workbook = XLSX.read(data, { type: "array" });
-    const sheetName = workbook.SheetNames[0];
-    const excelData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-    console.log("Données Excel :", excelData);
-
     try {
-      await fetch(`/api/institutions/${institution}/products/import`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(excelData),
-      });
+      const data = e.target?.result;
+      if (!data) {
+        toast.error("Aucune donnée lue dans le fichier.");
+        return;
+      }
 
-      toast.success("Produits importés avec succès.");
-    } catch (error) {
-      console.error("Erreur lors de l'import :", error);
-      toast.error("Erreur d'importation.");
+      // Lis les données Excel
+      const workbook = XLSX.read(data, { type: "binary" });
+      const sheetName = workbook.SheetNames[0];
+      const excelData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+      if (!excelData || excelData.length === 0) {
+        toast.error("Le fichier est vide ou mal formaté.");
+        return;
+      }
+
+      // Envoi vers l’API
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/institutions/${institution}/products/import`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(excelData),
+        }
+      );
+
+      if (!response.ok) {
+        const err = await response.json();
+        console.error("Réponse serveur :", err);
+        toast.error("Erreur d'importation côté serveur.");
+        return;
+      }
+
+      toast.success("Produits importés avec succès !");
+      setFile(null); // reset file input
+    } catch (err) {
+      console.error("Erreur lors de la lecture ou l'importation :", err);
+      toast.error("Erreur lors de la lecture ou de l'envoi du fichier.");
     }
   };
 
-  reader.onerror = (err) => console.error("Erreur de lecture du fichier :", err);
+  reader.onerror = (err) => {
+    console.error("Erreur de lecture du fichier :", err);
+    toast.error("Impossible de lire le fichier.");
+  };
+
+  // Lis en mode binaire pour éviter les erreurs de parsing
+  reader.readAsBinaryString(file);
 };
 
 
@@ -164,15 +193,15 @@ export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>)
         <Dialog>
           <DialogTrigger asChild>
             <Button variant="outline" className="px-2 lg:px-3">
-              Importer XLS
-              <ArrowDownToLine className="mr-2 h-4 w-4" />
+              <Upload className="mr-2 h-4 w-4" />
+              Importer CSV
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md space-y-4">
             <DialogHeader>
               <DialogTitle>Importer un fichier Excel</DialogTitle>
             </DialogHeader>
-            <Input type="file" accept=".xlsx, .xls" onChange={handleFileChange} />
+            <Input type="file" accept=".xlsx,.xls" onChange={handleFileChange} />
             <Button onClick={handleUpload} disabled={!file}>
               Envoyer
             </Button>
