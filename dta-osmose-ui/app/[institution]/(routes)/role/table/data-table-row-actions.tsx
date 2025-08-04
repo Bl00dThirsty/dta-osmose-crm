@@ -1,7 +1,7 @@
 "use client"
 
 import { Row } from "@tanstack/react-table"
-import { MoreHorizontal } from "lucide-react"
+import { MoreHorizontal, Trash2 } from "lucide-react"
 import { useDeleteRoleMutation } from "@/state/api"
 import { Button } from "@/components/ui/button"
 import { useRouter } from 'next/navigation';
@@ -74,10 +74,11 @@ export function DataTableRowActions<TData>({
         <DropdownMenuItem onClick={() => router.push(`/${institution}/role/${roleId}`)}>
           Voir
         </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => setOpen(true)} className="text-red-600">
-          Supprimer
-        </DropdownMenuItem>
         <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={() => setOpen(true)} className="flex items-center justify-between text-red-600">
+          Supprimer <Trash2/>
+        </DropdownMenuItem>
+        
       </DropdownMenuContent>
     </DropdownMenu>
     <ToastContainer />
