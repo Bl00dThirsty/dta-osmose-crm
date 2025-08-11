@@ -167,3 +167,47 @@
 .animate-fade-in {
   animation: fade-in 0.3s ease-out;
 }
+
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
+
+  /* Affiche tous les éléments masqués par .print:hidden */
+  .hide-on-print {
+    display: none !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .only-print {
+    display: block !important;
+  }
+
+  /* Réduit les marges et optimise la zone imprimée */
+  @page {
+    margin: 1cm;
+   /*size: landscape; impression en paysage*/
+  }
+
+  .card,
+  .chart {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .rounded,
+  .rounded-md,
+  .rounded-xl {
+    border-radius: 0 !important;
+  }
+
+  .bg-gradient-to-t,
+  .shadow-xs {
+    background: none !important;
+    box-shadow: none !important;
+  }
+}

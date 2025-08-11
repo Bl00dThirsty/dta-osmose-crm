@@ -283,35 +283,53 @@ export interface NewAppSetting{
   footer: string;
 }
 
+export type MetricItem = {
+  count: number;
+  type: string; // "Ventes" | "Profits" | "nombre de facture"
+  date?: string;
+  amount?: number;
+};
 export interface DashboardMetrics {
-    popularProducts: Product[];
-    salesByCity: Array<{
-      ville: string;
-      montant: number;
-      nombreVentes: number;
-    }>;
-    saleProfitCount: Array<{
-      type: string; // "Ventes" | "Profits" | "nombre de facture"
-      date: string;
-      amount: number;
-    }>;
-    totalUsers: User[];
-    totalAvailableCredit: Array<{
-      amount: number;
-      usedAmount: number
-    }>
-    formattedData3: Array<{
-      type: string; // "Ventes" | "Profits" | "nombre de facture"
-      date: string;
-      amount: number;
-    }>;
-    customerStats?: {
+  salesByCity: { ville: string; montant: number; nombreVentes: number; }[];
+  saleProfitCount: { type: string; amount?: number }[];
+  formattedData3: { type: string; count?: number }[];
+  /*previousMetrics?: {
+    saleProfitCount: { type: string; amount?: number }[];
+    formattedData3: { type: string; count?: number }[];
+  };*/
+  totalAvailableCredit?: number;
+  totalUsers?: number;
+  customerStats?: {
+    avoirDisponible?: number;
+    totalAchats?: number;
+    nombreCommandes?: number;
+    nombreCommandesImpaye?: number;
+  };
+    
+chartData?: {
+    date: string;
+    totalVentes: number;
+    nombreVentes: number;
+    [key: string]: any;
+  }[];
+
+  creditTrend?: {
+    trend: string;
+    trendDirection: string;
+  };
+    
+    /*customerStats?: {
       totalAchats: number;
       nombreCommandes: number;
       avoirDisponible: number;
       nombreCommandesImpaye: number;
-    };
-    
+    };*/
+    // ✅ Ajout : données de la période précédente
+  previousMetrics?: {
+    saleProfitCount: MetricItem[];
+    formattedData3: MetricItem[];
+    totalAvailableCredit?: number;
+  };
     
 }
 

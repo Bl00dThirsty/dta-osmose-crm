@@ -44,6 +44,8 @@ const chartConfig = {
 } satisfies ChartConfig
 
 
+
+
 // 🔧 Fonctions utilitaires pour manipuler les dates en UTC
 function toUTCStartOfDay(date: Date): Date {
   return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0));

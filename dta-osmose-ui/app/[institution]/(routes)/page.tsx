@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useRef } from "react";
 import {
   DollarSignIcon,
   ShoppingBag,
@@ -18,6 +18,8 @@ import { useRouter } from 'next/navigation';
 import { useParams } from "next/navigation"
 import { DashboardCard } from "./components/dasboard/dashboard-card";
 import { ChartAreaInteractive } from "./components/dasboard/chart-area-interactive";
+//import { getDynamicTrend } from "@/lib/utils";
+import { getDynamicTrend } from "@/lib/trendUtils";
 
 
 const DashboardPage = () => {
@@ -27,6 +29,21 @@ const DashboardPage = () => {
   const now = new Date();
   const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+//Calcul des périodes comparées
+  const [previousStartDate, setPreviousStartDate] = useState(() => {
+  const start = new Date(firstDayOfMonth);
+  start.setMonth(start.getMonth() - 1);
+  return start.toISOString().split("T")[0];
+});
+
+const [previousEndDate, setPreviousEndDate] = useState(() => {
+  const end = new Date(lastDayOfMonth);
+  end.setMonth(end.getMonth() - 1);
+  return end.toISOString().split("T")[0];
+});
+
+// Référencement du conteneur à imprimer
+  const printRef = useRef<HTMLDivElement>(null);
 
   const [startDate, setStartDate] = useState<string>(firstDayOfMonth.toISOString().split("T")[0]);
   const [endDate, setEndDate] = useState<string>(lastDayOfMonth.toISOString().split("T")[0]);
@@ -36,12 +53,14 @@ const DashboardPage = () => {
     if (!token) {
       router.push(`/${institution}/sign-in`);
     }
-  }, [token]);
+  }, [token, institution]);
 
   const userType = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
 
-const { data: dashboardMetrics } = useGetDashboardMetricsQuery({ institution, startDate, endDate });
+// Récupération des métriques depuis l'API
+  const { data: dashboardMetrics } = useGetDashboardMetricsQuery({ institution, startDate, endDate });
 
+  // ✅ Récupération des données actuelles
 const totalSales = Array.isArray(dashboardMetrics?.saleProfitCount)
   ? dashboardMetrics.saleProfitCount
       .filter(item => item.type === "Ventes")
@@ -57,20 +76,110 @@ const totalProfits = Array.isArray(dashboardMetrics?.saleProfitCount)
 const totalInvoices = Array.isArray(dashboardMetrics?.formattedData3)
   ? dashboardMetrics.formattedData3
       .filter(item => item.type === "nombre de facture")
+      .reduce((sum, item) => sum + (item.count || 0), 0)
+  : 0;
+
+
+// ✅ Récupération des données précédentes
+const previousSales = Array.isArray(dashboardMetrics?.previousMetrics?.saleProfitCount)
+  ? dashboardMetrics.previousMetrics.saleProfitCount
+      .filter(item => item.type === "Ventes")
       .reduce((sum, item) => sum + (item.amount || 0), 0)
   : 0;
+
+const previousProfits = Array.isArray(dashboardMetrics?.previousMetrics?.saleProfitCount)
+  ? dashboardMetrics.previousMetrics.saleProfitCount
+      .filter(item => item.type === "Profits")
+      .reduce((sum, item) => sum + (item.amount || 0), 0)
+  : 0;
+
+const previousInvoices = Array.isArray(dashboardMetrics?.previousMetrics?.formattedData3)
+  ? dashboardMetrics.previousMetrics.formattedData3
+      .filter(item => item.type === "nombre de facture")
+      .reduce((sum, item) => sum + (item.count || 0), 0)
+  : 0;
+
+
+  // --- Total des avoirs et total précédent (ajout)
+  const totalAvailableCredit = dashboardMetrics?.totalAvailableCredit ?? 0;
+  const previousAvailableCredit = dashboardMetrics?.previousMetrics?.totalAvailableCredit ?? 0;
+
+  // --- Extraction de l'objet tendance crédits (optionnel, utile si tu veux utiliser les tendances venant du backend)
+  const creditTrendObj = dashboardMetrics?.creditTrend ?? { trend: "", trendDirection: "" };
+
+// ✅ Calcul des tendances
+const { trend: salesTrend, trendDirection: salesTrendDirection } = getDynamicTrend(totalSales, previousSales);
+const { trend: profitTrend, trendDirection: profitTrendDirection } = getDynamicTrend(totalProfits, previousProfits);
+const { trend: invoiceTrend, trendDirection: invoiceTrendDirection } = getDynamicTrend(totalInvoices, previousInvoices);
+const { trend: totalAvailableCreditTrend, trendDirection: totalAvailableCreditTrendDirection } = getDynamicTrend(totalAvailableCredit, previousAvailableCredit);
+
+
+console.log("Factures actuelles:", totalInvoices, "Factures précédentes:", previousInvoices);
+console.log("Tendances calculées :");
+console.log(`Ventes : ${salesTrend} (${salesTrendDirection})`);
+console.log(`Bénéfices : ${profitTrend} (${profitTrendDirection})`);
+console.log(`Nombre de factures : ${invoiceTrend} (${invoiceTrendDirection})`);
+
+console.log("=== MÉTRIQUES DU DASHBOARD ===");
+console.log("🛒 Montant total des ventes");
+console.log("  - Actuel :", totalSales.toLocaleString("fr-FR"), "€");
+console.log("  - Précédent :", previousSales.toLocaleString("fr-FR"), "€");
+console.log(`  - Tendance : ${salesTrend} (${salesTrendDirection})`);
+console.log("🔍 totalAvailableCredit:", totalAvailableCredit);
+
+console.log("💰 Bénéfices");
+console.log("  - Actuel :", totalProfits.toLocaleString("fr-FR"), "€");
+console.log("  - Précédent :", previousProfits.toLocaleString("fr-FR"), "€");
+console.log(`  - Tendance : ${profitTrend} (${profitTrendDirection})`);
+
+// Fonction d’impression
+  const handlePrint = () => {
+    if (printRef.current) {
+      window.print();
+    }
+  };
+
+
   const renderDashboardByRole = () => {
     switch (userType) {
       case "admin":
-        return <AdminDashboard dashboardMetrics={dashboardMetrics} totalSales={totalSales} totalProfits={totalProfits} totalInvoices={totalInvoices} />;
+        return <AdminDashboard
+           dashboardMetrics={dashboardMetrics}
+            totalSales={totalSales}
+            totalProfits={totalProfits}
+            totalInvoices={totalInvoices}
+            salesTrend={salesTrend}
+            salesTrendDirection={salesTrendDirection}
+            profitTrend={profitTrend}
+            profitTrendDirection={profitTrendDirection}
+            invoiceTrend={invoiceTrend}
+            invoiceTrendDirection={invoiceTrendDirection}
+            totalAvailableCreditTrend={totalAvailableCreditTrend}
+          totalAvailableCreditTrendDirection={totalAvailableCreditTrendDirection}
+          chartData={dashboardMetrics?.chartData || []}
+          />;
       case "staff":
-        return <StaffDashboard dashboardMetrics={dashboardMetrics} totalSales={totalSales} totalInvoices={totalInvoices} />;
+        return <StaffDashboard
+          dashboardMetrics={dashboardMetrics}
+          totalSales={totalSales}
+          totalInvoices={totalInvoices}
+          salesTrend={salesTrend}
+          salesTrendDirection={salesTrendDirection}
+          invoiceTrend={invoiceTrend}
+          invoiceTrendDirection={invoiceTrendDirection}
+         totalAvailableCreditTrend={totalAvailableCreditTrend}
+          totalAvailableCreditTrendDirection={totalAvailableCreditTrendDirection}
+          chartData={dashboardMetrics?.chartData || []}
+        />;
       case "Particulier":
-        return <ClientDashboard dashboardMetrics={dashboardMetrics} totalSales={totalSales} totalProfits={totalProfits} totalInvoices={totalInvoices}  />;
+        return <ClientDashboard dashboardMetrics={dashboardMetrics} totalSales={totalSales} totalProfits={totalProfits} totalInvoices={totalInvoices} totalAvailableCreditTrend={totalAvailableCreditTrend}
+          totalAvailableCreditTrendDirection={totalAvailableCreditTrendDirection} />;
       default:
         return <p>Rôle non reconnu. Veuillez contacter l'administrateur.</p>;
     }
   };
+
+  
   
 
   return (
@@ -78,7 +187,7 @@ const totalInvoices = Array.isArray(dashboardMetrics?.formattedData3)
       title="Dashboard"
       description="Bienvenue sur le tableau de bord"
     >
-      <div className="flex space-x-4">
+      <div className="flex space-x-4 print:hidden mb-4">
           <input
             type="date"
             value={startDate || ""}
@@ -91,16 +200,85 @@ const totalInvoices = Array.isArray(dashboardMetrics?.formattedData3)
             onChange={(e) => setEndDate(e.target.value)}
             className="border-5 p-2 rounded"
           />
-        </div>
+        <button
+          onClick={handlePrint}
+          className="ml-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
+        >
+          Imprimer le dashboard
+        </button>
+      </div>
+      
+       <div className="hidden print:block p-4" ref={printRef}>
+  <h2 className="text-xl font-bold mb-4">Rapport du Dashboard</h2>
+
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    {/* Bénéfices */}
+    <div>
+      <strong>Bénéfices :</strong><br />
+      {(totalProfits ?? 0).toLocaleString("fr-FR", {
+        style: "currency",
+        currency: "EUR",
+      })} <br />
+      {(Math.round((totalProfits ?? 0) * 655.957)).toLocaleString("fr-FR")} F CFA
+    </div>
+
+    {/* Nombre de ventes (factures) */}
+    <div>
+      <strong>Nombre de ventes :</strong><br />
+      {totalInvoices?.toLocaleString() ?? "0"}
+    </div>
+
+    {/* Total des ventes */}
+    <div>
+      <strong>Total des ventes :</strong><br />
+      {(totalSales ?? 0).toLocaleString("fr-FR", {
+        style: "currency",
+        currency: "EUR",
+      })} <br />
+      {(Math.round((totalSales ?? 0) * 655.957)).toLocaleString("fr-FR")} F CFA
+    </div>
+
+    {/* Total des avoirs */}
+    <div>
+      <strong>Total des avoirs :</strong><br />
+      {(totalAvailableCredit ?? 0).toLocaleString("fr-FR", {
+        style: "currency",
+        currency: "EUR",
+      })} <br />
+      {(Math.round((totalAvailableCredit ?? 0) * 655.957)).toLocaleString("fr-FR")} F CFA
+    </div>
+
+    {/* Utilisateurs enregistrés */}
+    <div>
+      <strong>Utilisateurs enregistrés :</strong><br />
+      {dashboardMetrics?.totalUsers?.toLocaleString() ?? "0"}
+    </div>
+  </div>
+
+</div>
+
+      <div className="print:hidden">
         {renderDashboardByRole()}
-        
+      </div>
     </Container>
   );
 };
 
 export default DashboardPage;
 //const { institution } = useParams() as { institution: string }
-const AdminDashboard = ({ dashboardMetrics, totalSales, totalProfits, totalInvoices }: any) => (
+const AdminDashboard = ({ dashboardMetrics,
+  totalSales,
+  totalProfits,
+  totalInvoices,
+  salesTrend,
+  salesTrendDirection,
+  profitTrend,
+  profitTrendDirection,
+  invoiceTrend,
+  invoiceTrendDirection,
+  totalAvailableCreditTrend,
+  totalAvailableCreditTrendDirection,
+  }: any) => (
 <div className="@container/main flex flex-1 flex-col gap-2">
   <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
     <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
@@ -122,20 +300,20 @@ const AdminDashboard = ({ dashboardMetrics, totalSales, totalProfits, totalInvoi
       </span>
     </>
   }
-    trend="+5.78%"
-    trendDirection="up"
-    footerTop="Tendance positive"
-    footerBottom="Comparé au mois dernier"
+          trend={profitTrend}
+          trendDirection={profitTrendDirection}
+          footerTop="Comparaison dynamique"
+          footerBottom="Par rapport à la période précédente"
   />
 
   <DashboardCard
     title="Nombre de ventes"
     description="Factures générées"
     value={totalInvoices?.toLocaleString() ?? "0"}
-    trend="+3.1%"
-    trendDirection="up"
-    footerTop="Croissance stable"
-    footerBottom="30 derniers jours"
+          trend={invoiceTrend}
+          trendDirection={invoiceTrendDirection}
+          footerTop="Comparaison dynamique"
+          footerBottom="30 jours précédents"
   />
 
   <DashboardCard
@@ -155,10 +333,10 @@ const AdminDashboard = ({ dashboardMetrics, totalSales, totalProfits, totalInvoi
       </span>
     </>
   }
-  trend="+5.2%"
-  trendDirection="up"
-  footerTop="En hausse ce mois-ci"
-  footerBottom="Basé sur les ventes mensuelles"
+          trend={salesTrend}
+          trendDirection={salesTrendDirection}
+          footerTop="Comparaison dynamique"
+          footerBottom="Basé sur la période précédente"
 />
 
 
@@ -180,10 +358,10 @@ const AdminDashboard = ({ dashboardMetrics, totalSales, totalProfits, totalInvoi
       </span>
     </>
   }
-    trend="+1.8%"
-    trendDirection="up"
-    footerTop="Utilisation modérée"
-    footerBottom="Valeur cumulée"
+     trend={totalAvailableCreditTrend}  // ← tendance dynamique calculée
+     trendDirection={totalAvailableCreditTrendDirection}
+     footerTop="Comparaison dynamique"
+     footerBottom="Par rapport à la période précédente"
   />
 
   <DashboardCard
@@ -203,7 +381,13 @@ const AdminDashboard = ({ dashboardMetrics, totalSales, totalProfits, totalInvoi
 </div>
 );
 
-        const StaffDashboard = ({ dashboardMetrics, totalSales, totalInvoices }: any) => (
+        const StaffDashboard = ({ dashboardMetrics,
+  totalSales,
+  totalInvoices,
+  salesTrend,
+  salesTrendDirection,
+  invoiceTrend,
+  invoiceTrendDirection, }: any) => (
           <div className="@container/main flex flex-1 flex-col gap-2">
           <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
           <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
@@ -222,24 +406,22 @@ const AdminDashboard = ({ dashboardMetrics, totalSales, totalProfits, totalInvoi
                     <br />
                     <span className="text-sm">
                       {(Math.round((totalSales ?? 0) * 655.957)).toLocaleString("fr-FR")} F CFA
-                    </span>
-                  </>
-                }
-                  trend="+5.2%"
-                  trendDirection="up"
-                  footerTop="En hausse ce mois-ci"
-                  footerBottom="Basé sur les ventes mensuelles"
+              </span>
+            </>
+          }
+          trend={salesTrend}
+          trendDirection={salesTrendDirection}
+          footerTop="Comparaison dynamique"
+          footerBottom="Par rapport à la période précédente"
                 />
 
                 <DashboardCard
                   title="Nombre de ventes"
                   description="Factures générées"
-                  value={totalInvoices?.toLocaleString() ?? "0"}
-                  trend="+3.1%"
-                  trendDirection="up"
-                  footerTop="Croissance stable"
-                  footerBottom="30 derniers jours"
-                />
+                  trend={invoiceTrend}
+                  trendDirection={invoiceTrendDirection}
+                  footerTop="Comparaison dynamique"
+                  footerBottom="Par rapport à la période précédente" value={undefined}                />
           </div>
           </div>
           </div>
@@ -263,16 +445,15 @@ const AdminDashboard = ({ dashboardMetrics, totalSales, totalProfits, totalInvoi
                     </span>
                     <br />
                     <span className="text-sm">
-                      {(Math.round((dashboardMetrics?.customerStats?.avoirDisponible ?? 0) * 655.957)).toLocaleString("fr-FR")} F CFA
-                    </span>
-                  </>
-                }
-              // For example:
-              // trend="+5%"
-              // trendDirection="up"
-              // footerTop="Mis à jour le 09/07/2025"
-              // footerBottom="Crédit client"
-            />
+        {(Math.round((dashboardMetrics?.totalAvailableCredit ?? 0) * 655.957)).toLocaleString("fr-FR")} F CFA
+      </span>
+    </>
+  }
+     trend={totalAvailableCreditTrend}  // ← tendance dynamique calculée
+     trendDirection={totalAvailableCreditTrendDirection}
+     footerTop="Comparaison dynamique"
+     footerBottom="Par rapport à la période précédente"
+  />
 
             {/* Total des Achats */}
             <DashboardCard
