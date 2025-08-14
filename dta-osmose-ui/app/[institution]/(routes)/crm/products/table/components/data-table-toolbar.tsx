@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useReactTable, Table } from "@tanstack/react-table"
@@ -17,42 +18,54 @@ import { AddProductDialog } from "../../../components/AddProductDialog"
 
 import { useCreateProductMutation } from "@/state/api"
 import { quantityLevel, statuses } from "../data/data"
+
+
 import { toast } from "react-toastify";
 import { saveAs } from "file-saver";
 
+// Use the ProductFormData type from AddProductDialog to avoid type conflicts
+type ProductFormData = AddProductFormData;
 
+type ProductRow = {
+  id?: string;
+  EANCode?: string;
+  brand: string;
+  designation: string;
+  quantity: number;
+  purchase_price: number;
+  sellingPriceTTC: number;
+  restockingThreshold: number;
+  warehouse: string;
+  created_at?: Date;
+  updated_at?: Date;
+  institutionId?: string;
+  imageName?: string;
+  idSupplier?: number;
+  product_category_id?: number;
+  unit_measurement?: number;
+  unit_type?: string;
+  sku?: string;
+  reorder_quantity?: number;
+};
 
-type ProductFormData = {
-  quantity: number
-  EANCode: string
-  brand: string
-  designation: string
-  restockingThreshold: number
-  warehouse: string
-  sellingPriceTTC: number
-  purchase_price: number
+interface DataTableToolbarProps {
+  table: Table<ProductRow>;
 }
 
-interface DataTableToolbarProps<TData> {
-  table: Table<TData>
-}
+export function DataTableToolbar({ table }: DataTableToolbarProps) {
+  const isFiltered = table.getState().columnFilters.length > 0;
+  const { institution } = useParams() as { institution: string };
 
-export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>) {
-  const isFiltered = table.getState().columnFilters.length > 0
-  const { institution } = useParams() as { institution: string }
+  const [createProduct] = useCreateProductMutation();
+  const [importProducts] = useImportProductsMutation(); // Déplacé à l'intérieur du composant
+  const [file, setFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
-  const [createProduct] = useCreateProductMutation()
-  const [file, setFile] = useState<File | null>(null)
-
-  const handleCreateProduct = async (productData: ProductFormData) => {
-    try {
-      await createProduct({ data: productData, institution }).unwrap()
-      toast.success("Produit ajouté");
-    } catch (error: any) {
-        console.log("Erreur lors de la création :", error?.data || error.message || error)
-        toast.error("Erreur lors l'ajout d'un produit, essayez à nouveau");
-    }
+  if (!institution) {
+    toast.error("Institution non définie dans les paramètres URL.");
+    return null;
   }
+
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0] ?? null
@@ -116,6 +129,21 @@ const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
   }
 };
 
+  const handleCreateProduct = (productData: ProductFormData) => {
+    // Ensure institutionId is set
+    const dataWithInstitution = { ...productData, institutionId: institution };
+    createProduct({ data: dataWithInstitution, institution })
+      .unwrap()
+      .then(() => {
+        toast.success("Produit ajouté");
+      })
+      .catch((error: any) => {
+        console.error("Erreur lors de la création :", error?.data || error.message || error);
+        toast.error("Erreur lors de l'ajout d'un produit, essayez à nouveau");
+      });
+  };
+
+  
 
 
 
@@ -184,19 +212,16 @@ const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
 };
   
 
+
   return (
     <div className="flex items-center justify-between flex-wrap gap-2">
       <div className="flex items-center space-x-2">
         <Input
           placeholder="Rechercher un produit..."
           value={(table.getColumn("designation")?.getFilterValue() as string) ?? ""}
-          onChange={(e) =>
-            table.getColumn("designation")?.setFilterValue(e.target.value)
-          }
+          onChange={(e) => table.getColumn("designation")?.setFilterValue(e.target.value)}
           className="h-8 w-[150px] lg:w-[250px]"
         />
-
-
         {table.getColumn("quantity") && (
           <DataTableFacetedFilter
             column={table.getColumn("quantity")}
@@ -204,7 +229,6 @@ const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
             options={quantityLevel}
           />
         )}
-
         {isFiltered && (
           <Button
             variant="ghost"
@@ -216,11 +240,8 @@ const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
           </Button>
         )}
       </div>
-
       <div className="flex items-center gap-2">
-        <AddProductDialog onCreate={(productData) => handleCreateProduct(productData)} institution={institution}/>
-
-
+        <AddProductDialog onCreate={handleCreateProduct} institution={institution} />
         <Dialog>
           <DialogTrigger asChild>
             <Button variant="outline" className="px-2 lg:px-3">
@@ -246,12 +267,10 @@ const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         </Dialog>
         <Button variant="outline" className="px-2 lg:px-3" onClick={handleExport}>
            Exporter Excel
+
         </Button>
-
-
         <DataTableViewOptions table={table} />
       </div>
     </div>
-  )
+  );
 }
-{/* <AddProductDialog onCreate={handleCreateProduct} institution={institution} /> */}

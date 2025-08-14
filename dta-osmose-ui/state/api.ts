@@ -423,6 +423,7 @@ export const api = createApi({
           providesTags: (result, error, id) => [{ type: "Products", id }], // Associer un tag pour l'invalidation
         }),
 
+
         deleteProduct: build.mutation<void, string>({
             query: (id) => ({
               url: `/${id}`,
@@ -440,6 +441,16 @@ export const api = createApi({
             }),
             invalidatesTags: (result, error, { id }) => [{ type: 'Products' }],
           }),
+
+
+        importProducts: build.mutation<void, { data: NewProduct[]; institution: string }>({
+          query: ({ data, institution }) => ({
+            url: `/institutions/${institution}/products/import`,
+            method: "POST",
+            body: data,
+          }),
+          invalidatesTags: ["Products"],
+        }),
 
         //inventory
         createInventory: build.mutation<Inventory, { 
@@ -856,9 +867,9 @@ export const api = createApi({
     }),
 });
 
-export const { useGetDashboardMetricsQuery, useGetProductsQuery, useCreateProductMutation, useGetProductByIdQuery, useDeleteProductMutation,useUpdateProductMutation, 
-  useCreateInventoryMutation, 
-  useGetInventoryQuery, useGetInventoryIdQuery, useUpdateInventoryMutation, useDeleteInventoryMutation, useCreateSaleMutation, useGetCustomerDebtStatusQuery, useGetSalesQuery,
+
+export const { useGetDashboardMetricsQuery, useGetProductsQuery, useCreateProductMutation, useGetProductByIdQuery, useDeleteProductMutation,useUpdateProductMutation, useImportProductsMutation,
+  useCreateInventoryMutation, useGetInventoryQuery, useGetInventoryIdQuery, useUpdateInventoryMutation, useDeleteInventoryMutation, useCreateSaleMutation, useGetCustomerDebtStatusQuery, useGetSalesQuery,
     useGetSaleByIdQuery,useUpdateSaleStatusMutation, useUpdateSalePaymentMutation, useDeleteSaleInvoiceMutation, useCreateClaimMutation, 
     useRespondToClaimMutation, useUpdateClaimResponseMutation, useGetClaimQuery, useGetClaimByIdQuery, useDeleteClaimMutation, useGetDepartmentsQuery, 
     useCreateDepartmentsMutation, useDeleteDepartmentsMutation,
