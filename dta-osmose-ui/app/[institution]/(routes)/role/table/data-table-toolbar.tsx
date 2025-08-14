@@ -31,8 +31,8 @@ export function DataTableToolbar<TData>({
   const [createRole] = useCreateRolesMutation()
   
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex flex-1 items-center space-x-2">
+    <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-1 items-center space-x-2 ">
         <Input
           placeholder="rechercher un rôle..."
           value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}

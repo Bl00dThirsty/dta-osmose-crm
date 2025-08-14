@@ -140,14 +140,14 @@ export const AddCustomerDialog = ({ onCreate }: AddCustomerDialogProps) => {
           <DialogHeader>
             <DialogTitle>Ajouter un client</DialogTitle>
             <DialogDescription>
-              Remplissez les informations du client, puis cliquez sur <b>Ajouter</b>.
+              Remplissez les informations du client, puis cliquez sur <b>Ajouter.<br></br>* signifie champs obligatoire</b>.
             </DialogDescription>
           </DialogHeader>
   
           <form onSubmit={handleSubmit} className="grid gap-4 py-4">
             {/* ID Client + Génération */}
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="customId" className="text-right">Id client</Label>
+              <Label htmlFor="customId" className="text-right">Id client *</Label>
               <div className="col-span-3 flex gap-2">
                 <Input
                   id="customId"
@@ -165,13 +165,13 @@ export const AddCustomerDialog = ({ onCreate }: AddCustomerDialogProps) => {
   
             {/* Autres champs */}
             {[
-              { label: "Désignation", name: "name" },
-              { label: "Email", name: "email" },
-              { label: "Téléphone", name: "phone" },
+              { label: "Désignation *", name: "name" },
+              { label: "Email *", name: "email" },
+              { label: "Téléphone *", name: "phone" },
               //{ label: "Mot de passe", name: "password", type: "password" },
-              { label: "Nom d'utilisateur", name: "userName" },
-              { label: "Nom du responsable", name: "nameresponsable" },              
-              { label: "Ville", name: "ville" },
+              { label: "Nom d'utilisateur *", name: "userName" },
+              { label: "Nom du responsable *", name: "nameresponsable" },              
+              { label: "Ville *", name: "ville" },
               { label: "Site web", name: "website" },
               { label: "Quartier", name: "quarter" },
               { label: "Région", name: "region" },
@@ -190,7 +190,7 @@ export const AddCustomerDialog = ({ onCreate }: AddCustomerDialogProps) => {
             ))}
 
             <div className="relative">
-              <Label htmlFor="password">Mot de Passe</Label>
+              <Label htmlFor="password">Mot de Passe *</Label>
              <Input
                type={showPassword ? "text" : "password"}
                name="password"

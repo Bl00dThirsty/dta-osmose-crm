@@ -141,6 +141,7 @@ model customer {
   id              Int         @id @default(autoincrement())
   customId        String          @unique
   name            String
+  userId          Int?
   userName        String?               @unique
   phone           String        @unique
   email           String        @unique
@@ -162,6 +163,7 @@ model customer {
   institutionId                String?
   institution                  institution?    @relation(fields: [institutionId], references: [id])
   notification       Notification[]
+  user            user?        @relation(fields: [userId], references: [id])
   //claims    claim[]
 
   
@@ -619,7 +621,7 @@ model user {
   designation         designation?          @relation(fields: [designationId], references: [id])
   //salaryHistory      salaryHistory[]
   saleInvoice        saleInvoice[]
-  //salePromise        salePromise[]
+  customer        customer[]
   department         department?          @relation(fields: [departmentId], references: [id])
   //claims    claim[]
 

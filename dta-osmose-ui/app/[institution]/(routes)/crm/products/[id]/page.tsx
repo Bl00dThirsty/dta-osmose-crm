@@ -27,7 +27,7 @@ export default function DetailUserPage() {
   );
   useEffect(() => {
     if (!token) {
-      router.push('/sign-in');
+      router.push('/');
     }
   }, [token]);
   const { id } = useParams();

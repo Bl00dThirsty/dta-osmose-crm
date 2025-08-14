@@ -16,7 +16,7 @@ const DesignationsPage = () => {
 
   useEffect(() => {
     if (!token) {
-      router.push('/sign-in');
+      router.push('/');
     }
   }, [token]);
 const { data: designation, isLoading, isError } = useGetDesignationsQuery()

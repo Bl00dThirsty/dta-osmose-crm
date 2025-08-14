@@ -9,7 +9,7 @@ const router = express.Router();
 router.post("/:institution/sale", authorize("view-product"), createSaleInvoice);
 router.get('/:institution/sale', getSaleInvoices);
 router.get('/:id', getSaleInvoiceById);
-router.get('/:customerId/debt-status', checkCustomerDebtStatus)
+router.get('/:institution/:customerId/debt-status', checkCustomerDebtStatus)
 router.patch('/:institution/sale/:id/status',
     authorize("create-product"), 
     updateSaleStatus

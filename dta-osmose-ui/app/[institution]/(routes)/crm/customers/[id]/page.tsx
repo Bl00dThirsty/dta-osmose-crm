@@ -11,6 +11,8 @@ import { columns } from "./columns";
 import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import { Customer } from "@/state/api"
+import Link from "next/link";
+
 
 export default function DetailCustomerPage() {
   const [isMounted, setIsMounted] = useState(false);
@@ -20,7 +22,7 @@ export default function DetailCustomerPage() {
     startDate: '',
     endDate: ''
   });
-
+  const { institution } = useParams() as { institution: string }
   const router = useRouter();
   const { id } = useParams();
 
@@ -41,7 +43,7 @@ export default function DetailCustomerPage() {
   // Redirection si non authentifié
   useEffect(() => {
     if (isMounted && !token) {
-      router.push('/sign-in');
+      router.push(`/${institution}/sign-in`);
     }
   }, [token, isMounted, router]);
 
@@ -140,6 +142,13 @@ export default function DetailCustomerPage() {
             <p><strong>Ville :</strong> {customer.ville}</p>
             <p><strong>Type de client :</strong> {customer.type_customer}</p>
             <p><strong>Site web :</strong> {customer.website || "Non défini"}</p>
+            <p>
+               Créateur: <Link className="hover:text-blue-300" href={`/${institution}/user/${customer.user?.id}`}><b>
+               {customer.user 
+                 ? `${customer.user.firstName} ${customer.user.lastName}` 
+               : 'Inconnu'}
+              </b></Link>
+            </p>
           </div>
         </CardContent>
       </Card>
