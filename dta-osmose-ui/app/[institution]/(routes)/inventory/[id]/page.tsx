@@ -31,7 +31,7 @@ export default function DetailInventoryPage() {
 
   useEffect(() => {
     if (isMounted && !token) {
-      router.push("/sign-in");
+      router.push("/");
     }
   }, [token, isMounted, router]);
 

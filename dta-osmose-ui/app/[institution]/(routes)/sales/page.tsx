@@ -11,10 +11,12 @@ import { toast } from "react-toastify";
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
+
 export interface Product {
   id: string;
   designation: string;
   sellingPriceTTC: number;
+  quantity: number;
 }
 export interface SaleItemCreateInput {
   productId: string;
@@ -59,12 +61,29 @@ const CreateSalePage = () => {
   const userRole = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
   const isParticulier = userRole === "Particulier";
   const userId = typeof window !== 'undefined' ? localStorage.getItem('id') : null;
+ const { data: debtStatus } = useGetCustomerDebtStatusQuery(
+  { 
+    customerId: customerId!, 
+    institution: institution 
+  },
+  {
+    skip: !customerId // Ne s'exécute que si customerId est défini
+  }
+);
 
+   useEffect(() => {
+    if (customerId) {
+      //refetchDebtStatus();
+    }
+  }, [customerId]);
   useEffect(() => {
     // Accéder à localStorage uniquement côté client
     const idFromStorage = localStorage.getItem("id");
     setCurrentUserId(idFromStorage ? parseInt(idFromStorage) : null);
   }, []);
+   const handleCustomerChange = (selectedId: number) => {
+    setCustomerId(selectedId);
+  };
 
   const [createSale] = useCreateSaleMutation();
   const router = useRouter();
@@ -79,7 +98,7 @@ const CreateSalePage = () => {
     setCurrentUserId(numericId);
   
     if (userRole === "Particulier" && numericId) {
-      setCustomerId(numericId); // ✅ C’est ici que le customerId est défini automatiquement
+      setCustomerId(numericId); // C’est ici que le customerId est défini automatiquement
     }
   }, []);
   
@@ -90,9 +109,17 @@ const CreateSalePage = () => {
   const finalAmount = totalAmount - discount;
 
   const handleAddProduct = (product: Product) => {
+    if (product.quantity <= 0) {
+      toast.error(`Le produit "${product.designation}" est en rupture de stock !`);
+      return; // Empêche d'ajouter un produit avec un stock de 0
+    }
     setSelectedProducts(prev => {
       const existing = prev.find(p => p.id === product.id);
       if (existing) {
+        // if (existing.quantity + 1 > product.quantity) {
+        //         toast.error(`La quantité demandée pour "${product.designation}" dépasse le stock disponible !`);
+        //         return prev; // Retourne l'ancien état sans modification
+        // }
         return prev.map(p =>
           p.id === product.id 
             ? { ...p, quantity: p.quantity + 1, totalPrice: (p.quantity + 1) * p.unitPrice } 
@@ -111,7 +138,7 @@ const CreateSalePage = () => {
       ];
     });
   };
-
+  
   const handleQuantityChange = (id: string, quantity: number) => {
     if (quantity < 1) return;
     
@@ -158,12 +185,6 @@ const CreateSalePage = () => {
       toast.error("Échec de l'enregistrement");
     }
   };
-  
-
-  const { data: debtStatus, refetch: refetchDebtStatus } = useGetCustomerDebtStatusQuery(customerId!, {
-    skip: !customerId, // Ne pas appeler tant que pas de client sélectionné
-  });
-  
 
   return (
     <div className="container mx-auto p-4">
@@ -184,15 +205,24 @@ const CreateSalePage = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
              {currentProducts.map(product => (
-            <div 
-               key={product.id} 
-               className="border p-3 rounded cursor-pointer hover:bg-gray-50 hover:text-red-700"
-               onClick={() => handleAddProduct(product)}
-            >
-            <h3 className="font-bold">{product.designation}</h3>
-            <p >Prix: {product.sellingPriceTTC} €</p>
-            <p className="font-noraml text-gray-500">Stock: {product.quantity}</p>
-            </div>
+            <div
+  key={product.id}
+  className={`border p-3 rounded cursor-pointer ${
+    product.quantity <= 0
+      ? "bg-gray-200 text-gray-500 cursor-not-allowed" // Désactiver le style
+      : "hover:bg-gray-50 hover:text-red-700"
+  }`}
+  onClick={() => product.quantity > 0 && handleAddProduct(product)} // Empêche les clics si stock = 0
+>
+  <h3 className="font-bold">{product.designation}</h3>
+  <p>Prix: {product.sellingPriceTTC} €</p>
+  <p className="font-normal text-gray-500">
+    Stock: {product.quantity}{" "}
+    {product.quantity <= 0 && (
+      <span className="text-red-500 font-bold">(Épuisé)</span>
+    )}
+  </p>
+</div>
            ))}
           </div>
           <div className="flex justify-center mt-4 space-x-2">
@@ -260,11 +290,8 @@ const CreateSalePage = () => {
             <select 
                 className="w-full p-2 border rounded"
                 value={customerId || ''}
-                onChange={(e) => {
-                const selectedId = Number(e.target.value);
-                  setCustomerId(selectedId);
-                  refetchDebtStatus();
-                }}
+                onChange={(e) => handleCustomerChange(Number(e.target.value))}
+                // onChange={(e) => handleCustomerChange(Number(e.target.value))}
             >
            <option value="">Sélectionner un client</option>
             {customers.map(customer => (
@@ -293,7 +320,7 @@ const CreateSalePage = () => {
                   <tr key={item.id} className="border-b">
                     <td className="py-2">{item.designation}</td>
                     <td className="py-2">
-                      <input
+                      <Input
                         type="number"
                         min="1"
                         value={item.quantity}

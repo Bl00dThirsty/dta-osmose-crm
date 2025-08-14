@@ -4,7 +4,7 @@ import React, { forwardRef, useRef } from "react";
 import { useGetSaleByIdQuery, useGetSettingsQuery } from "@/state/api";
 import { useParams } from "next/navigation";
 import { useReactToPrint } from "react-to-print";
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 
 interface PrintToPdfProps {
   sale: any;
@@ -31,10 +31,10 @@ const PrintToPdf = forwardRef<HTMLDivElement, PrintToPdfProps>(({ sale }, ref) =
             <img
               src={logoSrc}
               alt="Logo"
-              //className="w-10 h-auto object-contain" // Ajustez la taille du logo
+              className="w-10 h-auto object-contain" // Ajustez la taille du logo
               style={{
                 maxWidth: "100px", // Limite la largeur à 100px
-                maxHeight: "100px", // Limite la hauteur à 100px
+                maxHeight: "100px",
                 objectFit: "cover"
               }}
             />

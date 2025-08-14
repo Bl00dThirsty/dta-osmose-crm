@@ -18,7 +18,7 @@ const InventoryPage = () => {
   const { institution } = useParams() as { institution: string }
   useEffect(() => {
     if (!token) {
-      router.push('/sign-in');
+      router.push('/');
     }
   }, [token]);
   const now = new Date();

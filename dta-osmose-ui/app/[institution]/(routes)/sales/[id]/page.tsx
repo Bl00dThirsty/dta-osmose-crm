@@ -49,6 +49,10 @@ const InvoicePage = () => {
       toast.error("ID de la commande introuvable.")
       return
     }
+    if((sale?.paymentStatus == "PARTIAL") || (sale?.paymentStatus == "PAID")){
+      toast.error("Impossible de supprimé la commande, paiement déja entamé")
+      return
+    }
     console.log("saleId :", id)
     try {
       await deleteSaleInvoice(id).unwrap()
@@ -150,7 +154,7 @@ const InvoicePage = () => {
   </div>
 )}
         
-        <div className="grid grid-cols-5 gap-5 mb-8 place-items-center">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8 place-items-center justify-between">
         {!isParticulier && (
           <div className="ml-2">
             <button 

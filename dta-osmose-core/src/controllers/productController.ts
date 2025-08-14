@@ -5,18 +5,7 @@ import { z } from 'zod';
 
 const prisma = new PrismaClient();
 
-const ProductSchema = z.object({
-  EANCode: z.string().min(1, "EANCode requis"),
-  brand: z.string().min(1, "Brand requis"),
-  designation: z.string().min(1, "Designation requis"),
-  quantity: z.number().int().min(0).default(0),
-  restockingThreshold: z.number().int().min(0).default(0),
-  warehouse: z.string().min(1, "Warehouse requis"),
-  sellingPriceTTC: z.number().min(0).default(0),
-  purchase_price: z.number().min(0).default(0),
-});
 
-type ProductData = z.infer<typeof ProductSchema>;
 
 export const getProducts = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -113,15 +102,77 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
 };
 
 export const importProducts = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const institutionSlug = req.params.institution;
-    const rawProducts: any[] = req.body;
 
-    if (!Array.isArray(rawProducts) || rawProducts.length === 0) {
-      res.status(400).json({ message: "Aucune donnée reçue." });
+  // try {
+  //   const institutionSlug = req.params.institution;
+  //   const products: any[] = req.body;
+
+  //   if (!Array.isArray(products) || products.length === 0) {
+  //     res.status(400).json({ message: "Aucune donnée reçue." });
+  //     return;
+  //   }
+
+  //   const institution = await prisma.institution.findUnique({
+  //     where: { slug: institutionSlug },
+  //   });
+
+  //   if (!institution) {
+  //     res.status(404).json({ message: "Institution introuvable." });
+  //     return;
+  //   }
+
+  //   const createdProducts = [];
+
+  //   for (const row of products) {
+  //     if (!row.EANCode) continue;
+     
+  //     const existing = await prisma.product.findUnique({
+  //       where: { EANCode: row.EANCode },
+  //     });
+
+  //     if (existing) continue;
+
+  //     const product = await prisma.product.create({
+  //       data: {
+  //         id: uuidv4(),
+  //         EANCode: row.EANCode,
+  //         brand: row.brand,
+  //         designation: row.designation,
+  //         quantity: Number(row.quantity) || 0,
+  //         purchase_price: Number(row.purchase_price) || 0,
+  //         sellingPriceTTC: Number(row.sellingPriceTTC) || 0,
+  //         restockingThreshold: Number(row.restockingThreshold) || 0,
+  //         warehouse: row.warehouse,
+  //         institution: {
+  //           connect: { id: institution.id },
+  //         },
+  //       },
+  //     });
+
+  //     createdProducts.push(product);
+  //   }
+
+  //   res.status(201).json({ message: `${createdProducts.length} produits importés.` });
+  // } catch (error) {
+  //   console.error(error);
+  //   res.status(500).json({ message: "Erreur lors de l'import." });
+  // }
+ try {
+    // ✅ Récupérer la liste de produits quelle que soit la structure reçue
+    const products = Array.isArray(req.body)
+      ? req.body
+      : Array.isArray(req.body.products)
+      ? req.body.products
+      : [];
+
+    if (!products.length) {
+      res.status(400).json({ message: "Aucune donnée à importer." });
+
+  
       return;
     }
 
+    const institutionSlug = req.params.institution;
     const institution = await prisma.institution.findUnique({
       where: { slug: institutionSlug },
     });
@@ -131,93 +182,88 @@ export const importProducts = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    const existingProducts = await prisma.product.findMany({
-      where: { institutionId: institution.id },
-      select: { id: true, EANCode: true, quantity: true },
-    });
-    const existingMap = new Map(existingProducts.map(p => [p.EANCode, { id: p.id, quantity: p.quantity }]));
-
-    const toCreate: ProductData[] = [];
-    const toUpdate: { id: string, additionalQuantity: number }[] = [];
-    const skipped: string[] = [];
-
-    for (const row of rawProducts) {
+    let importedCount = 0;
+    let updatedCount = 0;
+    let skippedCount = 0;
+    let errors: any[] = [];
+  // || (typeof item.EANCode !== "string" && typeof item.EANCode !== "number")
+    for (const [index, item] of products.entries()) {
       try {
-        const parsedRow = {
-          EANCode: row.EANCode,
-          brand: row.brand || "",
-          designation: row.designation || "",
-          quantity: Number(row.quantity) || 0,
-          purchase_price: Number(row.purchase_price) || 0,
-          sellingPriceTTC: Number(row.sellingPriceTTC) || 0,
-          restockingThreshold: Number(row.restockingThreshold) || 0,
-          warehouse: row.warehouse || "",
-        };
-
-        const validated = ProductSchema.parse(parsedRow);
-
-        const existing = existingMap.get(validated.EANCode);
-        if (existing) {
-          toUpdate.push({ id: existing.id, additionalQuantity: validated.quantity });
+        if (!item.EANCode || typeof item.EANCode !== "string") {
+          skippedCount++;
+          errors.push({ index, reason: "EANCode manquant ou invalide" });
           continue;
         }
 
-        toCreate.push(validated);
-      } catch (err) {
-        skipped.push(`Ligne invalide: ${JSON.stringify(row)}`);
-      }
-    }
+        const quantity = Number(item.quantity) || 0;
+        const purchase_price = Number(item.purchase_price) || 0;
+        const sellingPriceTTC = Number(item.sellingPriceTTC) || 0;
+        const restockingThreshold = Number(item.restockingThreshold) || 0;
 
-    if (toCreate.length === 0 && toUpdate.length === 0) {
-      res.status(400).json({ message: "Aucun produit valide à importer ou mettre à jour.", skipped });
-      return;
-    }
-
-    await prisma.$transaction(async (tx) => {
-      if (toCreate.length > 0) {
-        await tx.product.createMany({
-          data: toCreate.map(product => ({
-            id: uuidv4(),
-            ...product,
-            institutionId: institution.id,
-            created_at: new Date(),
-            updated_at: new Date(),
-            imageName: null,
-            idSupplier: null,
-            product_category_id: null,
-            unit_measurement: null,
-            unit_type: null,
-            sku: null,
-            reorder_quantity: null,
-          })) as Prisma.productCreateManyInput[],
+        const brand = (item.brand || "").trim();
+        const designation = (item.designation || "").trim();
+        const warehouse = (item.warehouse || "").trim();
+        
+        // ✅ Vérifier si le produit existe
+        const existing = await prisma.product.findUnique({
+          where: { EANCode: item.EANCode },
         });
-      }
 
-      for (const update of toUpdate) {
-        await tx.product.update({
-          where: { id: update.id },
-          data: { 
-            quantity: { increment: update.additionalQuantity },
-            updated_at: new Date(),
+        const result = await prisma.product.upsert({
+          where: { EANCode: item.EANCode },
+          update: {
+            brand,
+            designation,
+            quantity,
+            purchase_price,
+            sellingPriceTTC,
+            restockingThreshold,
+            warehouse,
+            institutionId: institution.id, // ✅ liaison directe
+          },
+          create: {
+            id: uuidv4(),
+            EANCode: item.EANCode,
+            brand,
+            designation,
+            quantity,
+            purchase_price,
+            sellingPriceTTC,
+            restockingThreshold,
+            warehouse,
+            institutionId: institution.id,
           },
         });
+
+        if (existing) {
+          updatedCount++;
+        } else {
+          importedCount++;
+        }
+      } catch (err: any) {
+        skippedCount++;
+        errors.push({ index, reason: err.message || "Erreur inconnue" });
       }
-    });
+    }
 
-    console.log("Produits sautés :", skipped);
-
-    res.status(201).json({ 
-      message: `${toCreate.length} produits créés, ${toUpdate.length} produits mis à jour.`,
-      skippedCount: skipped.length 
+    res.status(200).json({
+      message: "Import terminé",
+      imported: importedCount,
+      updated: updatedCount,
+      skipped: skippedCount,
+      errors,
     });
   } catch (error: any) {
-    console.error("Erreur lors de l'import :", error.stack || error.message);
-    if (error instanceof z.ZodError) {
-      res.status(400).json({ message: "Données invalides dans l'import", issues: error.issues });
-    } else {
-      res.status(500).json({ message: "Erreur lors de l'import." });
-    }
+    console.error("Erreur lors de l'import :", error);
+    res.status(500).json({
+      message: "Erreur lors de l'import",
+      details: error.message,
+      code: error.code || null,
+    });
+
+    
   }
+
 };
 
 export const getSingleProduct = async (req: Request, res: Response): Promise<void> => {
@@ -243,4 +289,52 @@ export const getSingleProduct = async (req: Request, res: Response): Promise<voi
     console.error("Erreur lors de la récupération du produit :", error.stack || error.message);
     res.status(500).json({ message: "Erreur serveur." });
   }
+
 };
+
+export const updateSingleProduct = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const updateData: any = {
+      EANCode: req.body.EANCode,
+      brand: req.body.brand,
+      designation: req.body.designation,
+      quantity: req.body.quantity,
+      purchase_price: req.body.purchase_price,
+      sellingPriceTTC: req.body.sellingPriceTTC,
+      restockingThreshold: req.body.restockingThreshold,
+      warehouse: req.body.warehouse,
+    };
+
+    const updateProduct = await prisma.product.update({
+      where: { id },
+      data: updateData,
+    });
+   
+    res.status(200).json(updateProduct);
+
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour du produit :", error);
+      res.status(500).json({ message: "Erreur interne du serveur." });
+    }
+  };
+
+export const deleteProduct = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+        const { id } = req.params;
+        const deletedProduct = await prisma.product.delete({
+            where: {
+              id,
+            },
+          });
+        res.status(200).json({message: "Product deleted successfully", deletedProduct});
+    } catch (error) {
+      res.status(500).json({ message: "Erreur lors de la recherche du produit" });
+    }
+  }
+
+
+

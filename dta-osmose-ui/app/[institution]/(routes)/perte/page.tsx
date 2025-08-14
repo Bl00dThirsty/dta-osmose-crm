@@ -18,7 +18,7 @@ const LostsPage = () => {
   const { institution } = useParams() as { institution: string }
   useEffect(() => {
     if (!token) {
-      router.push('/sign-in');
+      router.push('/');
     }
   }, [token]);
   const now = new Date();
@@ -41,7 +41,7 @@ if (isError) return <p>Erreur lors du chargement.</p>
     >
     <div className="h-full w-full overflow-x-auto">
       <section className="overflow-hidden rounded-[0.5rem] border bg-background shadow-zinc-50">
-      <div className="hidden h-full flex-1 flex-col space-y-8 p-8 md:flex">
+      <div className="h-full flex-1 flex-col space-y-8 p-8 md:flex">
       <div className="flex items-center justify-between space-y-2">
       <div>
   

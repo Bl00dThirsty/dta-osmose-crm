@@ -1,29 +1,27 @@
-"use client";
 
-import { Table } from "@tanstack/react-table";
-import { X, ArrowDownToLine } from "lucide-react";
-import { useParams } from "next/navigation";
-import { useState } from "react";
-import * as XLSX from "xlsx";
-import Papa from "papaparse";
+"use client"
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { useReactTable, Table } from "@tanstack/react-table"
+import { X, Upload } from "lucide-react"
+import { useParams } from "next/navigation"
+import { useState } from "react"
+import * as XLSX from 'xlsx'
+import Papa from "papaparse"
 
-import { DataTableViewOptions } from "./data-table-view-options";
-import { DataTableFacetedFilter } from "./data-table-faceted-filter";
-import { AddProductDialog, ProductFormData as AddProductFormData } from "../../../components/AddProductDialog";
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
-import { useCreateProductMutation, useImportProductsMutation } from "@/state/api";
-import { quantityLevel } from "../data/data";
+import { DataTableViewOptions } from "./data-table-view-options"
+import { DataTableFacetedFilter } from "./data-table-faceted-filter"
+import { AddProductDialog } from "../../../components/AddProductDialog"
+
+import { useCreateProductMutation } from "@/state/api"
+import { quantityLevel, statuses } from "../data/data"
+
+
 import { toast } from "react-toastify";
+import { saveAs } from "file-saver";
 
 // Use the ProductFormData type from AddProductDialog to avoid type conflicts
 type ProductFormData = AddProductFormData;
@@ -68,6 +66,69 @@ export function DataTableToolbar({ table }: DataTableToolbarProps) {
     return null;
   }
 
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0] ?? null
+    setFile(selectedFile)
+  }
+ 
+
+const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  try {
+    // Lire le fichier Excel
+    const data = await file.arrayBuffer();
+    const workbook = XLSX.read(data, { type: "array" });
+
+    // Récupérer la première feuille
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+
+    // Convertir en JSON
+    const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+    //  Adapter les clés pour correspondre à ton backend
+    const products = (jsonData as any[]).map(item => ({
+      EANCode: String(item.EANCode || item.EanCode || item.eancode || ""),
+      brand: item.brand || "",
+      designation: item.designation || "",
+      quantity: item.quantity || 0,
+      purchase_price: item.purchase_price || 0,
+      sellingPriceTTC: item.sellingPriceTTC || 0,
+      restockingThreshold: item.restockingThreshold || 0,
+      warehouse: item.warehouse || "",
+    }));
+
+    if (!products.length) {
+      alert("Aucun produit trouvé dans le fichier.");
+      return;
+    }
+    console.log(jsonData); // brut depuis XLSX
+    // Envoi au backend
+     // ou récupérer dynamiquement depuis l’URL
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/institutions/${institution}/products/import`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ products }),
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      throw new Error(result.message || "Erreur lors de l'import");
+    }
+
+    toast.success(`✅ Import terminé : ${result.imported} ajoutés, ${result.updated} mis à jour, ${result.skipped} ignorés`);
+  } catch (err: any) {
+    console.error("Erreur import Excel:", err);
+    toast.error("❌ Erreur lors de l'import : " + err.message);
+  }
+};
+
   const handleCreateProduct = (productData: ProductFormData) => {
     // Ensure institutionId is set
     const dataWithInstitution = { ...productData, institutionId: institution };
@@ -82,112 +143,75 @@ export function DataTableToolbar({ table }: DataTableToolbarProps) {
       });
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0] ?? null;
-    setFile(selectedFile);
-  };
+  
 
-  const handleUpload = async () => {
-    if (!file) {
-      toast.error("Aucun fichier sélectionné.");
-      return;
-    }
 
-    setIsUploading(true);
 
-    const reader = new FileReader();
-    reader.readAsArrayBuffer(file);
-
-    reader.onload = async (e) => {
-      try {
-        const data = new Uint8Array(e.target?.result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: "array" });
-        const sheetName = workbook.SheetNames[0];
-        if (!sheetName) throw new Error("Aucune feuille trouvée dans le fichier Excel.");
-
-        const excelData: any[] = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-        const validatedData = excelData.map((row) => {
-          const mappedRow = {
-            EANCode: row["EANCode"] || row["Code EAN"],
-            brand: row["brand"] || row["Marque"],
-            designation: row["designation"] || row["Désignation"],
-            quantity: Number(row["quantity"] || row["Quantité"]),
-            restockingThreshold: Number(row["restockingThreshold"] || row["Seuil de réapprovisionnement"]),
-            warehouse: row["warehouse"] || row["Entrepôt"],
-            sellingPriceTTC: Number(row["sellingPriceTTC"] || row["Prix de vente TTC"]),
-            purchase_price: Number(row["purchase_price"] || row["Prix d'achat"]),
-          };
-
-          // Validation complète des champs requis
-          if (
-            !mappedRow.EANCode ||
-            !mappedRow.brand ||
-            !mappedRow.designation ||
-            !mappedRow.warehouse ||
-            isNaN(mappedRow.quantity) ||
-            mappedRow.quantity < 0 ||
-            isNaN(mappedRow.restockingThreshold) ||
-            mappedRow.restockingThreshold < 0 ||
-            isNaN(mappedRow.sellingPriceTTC) ||
-            mappedRow.sellingPriceTTC < 0 ||
-            isNaN(mappedRow.purchase_price) ||
-            mappedRow.purchase_price < 0
-          ) {
-            throw new Error(`Données invalides dans la ligne : ${JSON.stringify(row)}. Vérifiez les champs requis.`);
-          }
-          return mappedRow;
-        });
-
-        const response = await importProducts({ data: validatedData, institution }).unwrap();
-        toast.success("Produits importés avec succès.");
-        setFile(null);
-      } catch (error: any) {
-        console.error("Erreur lors de l'import :", error);
-        toast.error(error.message || `Erreur d'importation: ${error.data?.message || error.status}`);
-      } finally {
-        setIsUploading(false);
-      }
-    };
-
-    reader.onerror = (err) => {
-      console.error("Erreur de lecture du fichier :", err);
-      toast.error("Erreur de lecture du fichier.");
-      setIsUploading(false);
-    };
-  };
-
+  // const handleExport = () => {
+  //   const rows = table.getFilteredRowModel().rows
+  
+  //   const exportData = rows.map(row => {
+  //     const original = row.original as any
+  //     return {
+  //       EANCode: original.EANCode,
+  //       brand: original.brand,
+  //       designation: original.designation,
+  //       quantity: original.quantity,
+  //       purchase_price: original.purchase_price,
+  //       sellingPriceTTC: original.sellingPriceTTC,
+  //       restockingThreshold: original.restockingThreshold,
+  //       warehouse: original.warehouse,
+  //     }
+  //   })
+  
+  //   const csv = Papa.unparse(exportData)
+  
+  //   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
+  //   const url = URL.createObjectURL(blob)
+  
+  //   const link = document.createElement("a")
+  //   link.href = url
+  //   link.setAttribute("download", "produits.csv")
+  //   document.body.appendChild(link)
+  //   link.click()
+  //   setTimeout(() => {
+  //     document.body.removeChild(link)
+  //     URL.revokeObjectURL(url)
+  //   }, 100)
+  // }
   const handleExport = () => {
-    const rows = table.getFilteredRowModel().rows;
+   const rows = table.getFilteredRowModel().rows;
 
-    const exportData = rows.map((row) => {
-      const original = row.original;
-      return {
-        EANCode: original.EANCode,
-        brand: original.brand,
-        designation: original.designation,
-        quantity: original.quantity,
-        purchase_price: original.purchase_price,
-        sellingPriceTTC: original.sellingPriceTTC,
-        restockingThreshold: original.restockingThreshold,
-        warehouse: original.warehouse,
-      };
-    });
+   const exportData = rows.map(row => {
+    const original = row.original as any;
+    return {
+      EANCode: original.EANCode,
+      Brand: original.brand,
+      Designation: original.designation,
+      Quantity: original.quantity,
+      Purchase_Price: original.purchase_price,
+      SellingPriceTTC: original.sellingPriceTTC,
+      RestockingThreshold: original.restockingThreshold,
+      Warehouse: original.warehouse,
+    };
+   });
 
-    const csv = Papa.unparse(exportData);
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
+  // Créer une feuille Excel depuis les données
+  const worksheet = XLSX.utils.json_to_sheet(exportData);
 
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", "produits.csv");
-    document.body.appendChild(link);
-    link.click();
-    setTimeout(() => {
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    }, 100);
-  };
+  // Créer un classeur (workbook) et y ajouter la feuille
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Produits");
+
+  // Générer le fichier Excel en mémoire
+  const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+
+  // Sauvegarder le fichier sur l’ordinateur
+  const data = new Blob([excelBuffer], { type: "application/octet-stream" });
+  saveAs(data, "produits.xlsx");
+};
+  
+
 
   return (
     <div className="flex items-center justify-between flex-wrap gap-2">
@@ -221,22 +245,29 @@ export function DataTableToolbar({ table }: DataTableToolbarProps) {
         <Dialog>
           <DialogTrigger asChild>
             <Button variant="outline" className="px-2 lg:px-3">
-              Importer XLS
-              <ArrowDownToLine className="mr-2 h-4 w-4" />
+              <Upload className="mr-2 h-4 w-4" />
+              Importer Excel
             </Button>
           </DialogTrigger>
-        <DialogContent className="sm:max-w-md space-y-4">
-          <DialogHeader>
-            <DialogTitle>Importer un fichier Excel</DialogTitle>
-          </DialogHeader>
-          <Input type="file" accept=".xlsx, .xls" onChange={handleFileChange} />
-          <Button onClick={handleUpload} disabled={!file || isUploading}>
-            {isUploading ? "Envoi en cours..." : "Envoyer"}
-          </Button>
-        </DialogContent>
+          <DialogContent className="sm:max-w-md space-y-4">
+            <DialogHeader>
+              <DialogTitle>Importer un fichier Excel</DialogTitle>
+            </DialogHeader>
+            {/* <Input type="file" accept=".xlsx,.xls" onChange={handleFileChange} /> */}
+            {/* <Button onClick={handleUpload} disabled={!file}>
+              Envoyer
+            </Button> */}
+            <Input
+  type="file"
+  accept=".xlsx, .xls"
+  onChange={handleUpload}
+/>
+
+          </DialogContent>
         </Dialog>
         <Button variant="outline" className="px-2 lg:px-3" onClick={handleExport}>
-          Exporter CSV
+           Exporter Excel
+
         </Button>
         <DataTableViewOptions table={table} />
       </div>

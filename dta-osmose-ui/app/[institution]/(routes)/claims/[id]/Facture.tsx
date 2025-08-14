@@ -4,7 +4,8 @@ import React, { forwardRef, useRef } from "react";
 import { useGetSaleByIdQuery, useGetSettingsQuery } from "@/state/api";
 import { useParams } from "next/navigation";
 import { useReactToPrint } from "react-to-print";
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
+import "./style.css";
 
 interface PrintToPdfProps {
    claim: any;
@@ -21,9 +22,9 @@ const PrintToPdf = forwardRef<HTMLDivElement, PrintToPdfProps>(({ claim }, ref) 
      ? "/logo/logo-iba.png"
      : institution === "asermpharma"
      ? "/logo/logo-asermpharma.png"
-     : "/logo/default-logo.png"; // Logo par défaut si aucune institution ne correspond
+     : "/logo/default-logo.png"; // Logo par défaut si aucune institution ne correspond style={{ width: '210mm', height: '297mm' }}
   return (
-    <div ref={ref} className="container mx-auto p-4 " style={{ width: '210mm', height: '297mm' }}>
+    <div ref={ref} className="wrapper" >
       <div className="p-6 rounded-lg shadow text-black print:shadow-none" style={{ fontSize: '12px' }}>
         {/* Header */}
         <div className="flex justify-between mb-8">
@@ -49,18 +50,18 @@ const PrintToPdf = forwardRef<HTMLDivElement, PrintToPdfProps>(({ claim }, ref) 
         </div>
         <p className="font-bold">Date: {new Date(claim.createdAt ).toLocaleDateString()}</p>
         {/* Table des produits */}
-        <table className="w-full mb-8 border border-collapse">
+        <table className="table1">
           <thead>
             <tr className="border bg-gray-50">
-              <th className="text-center p-2 border w-[15%]">DESIGNATION</th>
-              <th className="text-center p-2 border w-[8%]">Code produit</th>
-              <th className="text-center p-2 border w-[5%]">Qté</th>
-              <th className="text-center p-2 border w-[10%]">Prix Grossiste</th>
-              <th className="text-center p-2 border w-[12%]">Montant réclamation</th>
-              <th className="text-center p-2 border w-[10%]">N° Facture</th>
-              <th className="text-center p-2 border w-[12%]">Date de la commande</th>
-              <th className="text-center p-2 border w-[15%]">Nature de la réclamation</th>
-              <th className="text-center p-2 border w-[13%]">Réponse</th>
+              <th className="text-center p-2 border">DESIGNATION</th>
+              <th className="text-center p-2 border">Code produit</th>
+              <th className="text-center p-2 border">Qté</th>
+              <th className="text-center p-2 border">Prix Grossiste</th>
+              <th className="text-center p-2 border">Montant réclamation</th>
+              <th className="text-center p-2 border">N° Facture</th>
+              <th className="text-center p-2 border">Date de la commande</th>
+              <th className="text-center p-2 border">Nature de la réclamation</th>
+              <th className="text-center p-2 border">Réponse</th>
             </tr>
 
           </thead>
@@ -79,7 +80,9 @@ const PrintToPdf = forwardRef<HTMLDivElement, PrintToPdfProps>(({ claim }, ref) 
                 <td className="py-2 text-center border">{claim.invoice?.invoiceNumber}</td>
                 <td className="py-2  text-center border">{new Date(claim.invoice?.createdAt ).toLocaleDateString()}</td>
                 <td className="py-2  text-center border">{claim.reason}</td>
-                <td className="py-2  text-center border">RAS</td>
+                <td className="py-2  text-center border"><span className={`px-2 py-1 rounded text-white ml-2 ${claim.response?.status === 'ACCEPTED' ? 'bg-green-500' : claim.response?.status === 'REJECTED' ? 'bg-red-500' : 'bg-yellow-500'}`}>
+                    {claim.response?.status || "PENDING"}
+                </span></td>
               </tr>
           
           </tbody>
@@ -114,3 +117,13 @@ const PrintUserSheet = ({ claim }: any) => {
 };
 
 export default PrintUserSheet;
+
+{/* <th className="text-center p-2 border w-[15%]">DESIGNATION</th>
+              <th className="text-center p-2 border w-[8%]">Code produit</th>
+              <th className="text-center p-2 border w-[5%]">Qté</th>
+              <th className="text-center p-2 border w-[10%]">Prix Grossiste</th>
+              <th className="text-center p-2 border w-[12%]">Montant réclamation</th>
+              <th className="text-center p-2 border w-[10%]">N° Facture</th>
+              <th className="text-center p-2 border w-[12%]">Date de la commande</th>
+              <th className="text-center p-2 border w-[15%]">Nature de la réclamation</th>
+              <th className="text-center p-2 border w-[13%]">Réponse</th> */}

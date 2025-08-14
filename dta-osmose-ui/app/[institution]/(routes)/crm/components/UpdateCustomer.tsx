@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { useForm } from "react-hook-form"
 import { Customer } from "@/state/api"
+import { useEffect, useState } from 'react';
 
 export function UpdateCustomerForm({
   customer,
@@ -25,6 +26,8 @@ export function UpdateCustomerForm({
     await onUpdate(data)
     onOpenChange(false)
   }
+
+  const [showPassword, setShowPassword] = useState(false)
 
   // Liste des champs avec leur typage correct
   const fields = [

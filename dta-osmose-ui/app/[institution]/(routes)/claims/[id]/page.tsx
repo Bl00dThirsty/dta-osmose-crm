@@ -10,6 +10,7 @@ import { useRespondToClaimMutation, useDeleteClaimMutation, useUpdateClaimRespon
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import Container from "../../components/ui/Container";
 import { toast } from "react-toastify";
+import Link from "next/link";
 import {
   Dialog,
   DialogTrigger,
@@ -27,7 +28,7 @@ import {
   } from "lucide-react";
 
 
-const InvoicePage = () => {
+const ClaimPage = () => {
   const router = useRouter();
   const params = useParams();
   const id = params?.id as string;
@@ -115,8 +116,8 @@ const InvoicePage = () => {
           <ArrowLeft className="w-5 h-5" />
           <span>Retour</span>
         </button>
-      </div>
-    <div className="h-full w-full overflow-x-auto">
+    </div>
+    <div className="flex flex-col h-full">
       <section className="overflow-hidden rounded-[0.5rem] border bg-background shadow-zinc-50">
         <div className="flex justify-center mb-8 mt-3">
           
@@ -176,7 +177,7 @@ const InvoicePage = () => {
                 </span>
               </p>
               <p className="mb-5">Nature de la réclamation: <b>{claim.reason}</b></p>
-              <p className="mb-5">Numéro de commande: <b>{claim.invoice?.invoiceNumber}</b></p>
+              <p className="mb-5">Numéro de commande: <Link className="text-blue-500 hover:text-blue-300" href={`/${institution}/sales/${claim.invoice?.id}`}>{claim.invoice?.invoiceNumber}</Link></p>
               {claim.response?.description && (
              <p className="mb-2">Descriptif de la réponse: <b>{claim.response.description}</b></p>
              )}
@@ -284,4 +285,4 @@ const InvoicePage = () => {
   );
 };
 
-export default InvoicePage;
+export default ClaimPage;

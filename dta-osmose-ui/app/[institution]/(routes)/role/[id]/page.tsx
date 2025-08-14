@@ -18,7 +18,7 @@ export default function RolePermissionsPage() {
   
     useEffect(() => {
       if (!token) {
-        router.push('/sign-in');
+        router.push('/');
       }
     }, [token]);
   const { id } = useParams()

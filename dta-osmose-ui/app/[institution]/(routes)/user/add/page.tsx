@@ -13,7 +13,7 @@ const UsersPage = () => {
 
   useEffect(() => {
     if (!token) {
-      router.push('/sign-in');
+      router.push('/');
     }
   }, [token]);
 

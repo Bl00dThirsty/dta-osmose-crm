@@ -198,6 +198,7 @@ export interface Customer {
   customId: string;
   name: string;
   userName: string;
+  userId?:  number;
   phone: string;
   nameresponsable?: string;
   email: string;
@@ -211,12 +212,18 @@ export interface Customer {
   region?: string; 
   saleInvoice?: SaleInvoice[];
   credits?: Credit[];
+  user?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+  } 
 }
 
 export interface NewCustomer {
   customId: string;
   name: string;
   userName: string;
+  userId?:  number;
   phone: string;
   nameresponsable?: string;
   email: string;
@@ -230,6 +237,11 @@ export interface NewCustomer {
   region?: string; 
   saleInvoice?: SaleInvoice[];
   credits?: Credit[];
+  user?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+  } 
 }
 
 export interface ClaimResponse{
@@ -410,6 +422,27 @@ export const api = createApi({
           query: (id) => `/institutions/${id}`, // Construire l'URL avec l'ID de l'utilisateur
           providesTags: (result, error, id) => [{ type: "Products", id }], // Associer un tag pour l'invalidation
         }),
+
+
+        deleteProduct: build.mutation<void, string>({
+            query: (id) => ({
+              url: `/${id}`,
+              method: 'DELETE',
+            }),
+            invalidatesTags: (result, error, id ) => [{ type: "Products", id }]
+        }),
+
+         updateProduct: build.mutation<Product, { id: string; EANCode: string; quantity: number; brand: string; designation: string;
+  sellingPriceTTC: number; purchase_price: number; restockingThreshold: number; warehouse: string;}>({
+            query: ({ id, ...data }) => ({
+              url: `/${id}`,
+              method: "PUT",
+              body: data,
+            }),
+            invalidatesTags: (result, error, { id }) => [{ type: 'Products' }],
+          }),
+
+
         importProducts: build.mutation<void, { data: NewProduct[]; institution: string }>({
           query: ({ data, institution }) => ({
             url: `/institutions/${institution}/products/import`,
@@ -418,6 +451,7 @@ export const api = createApi({
           }),
           invalidatesTags: ["Products"],
         }),
+
         //inventory
         createInventory: build.mutation<Inventory, { 
           titre: string;
@@ -507,8 +541,8 @@ export const api = createApi({
           invalidatesTags: ['Sales', 'Products']
         }),
 
-        getCustomerDebtStatus: build.query<{ hasDebt: boolean }, number>({
-          query: (customerId) => `/sale/${customerId}/debt-status`,
+        getCustomerDebtStatus: build.query<{ hasDebt: boolean}, {customerId: number, institution: string}>({
+          query: ({customerId, institution}) => `/sale/${institution}/${customerId}/debt-status`,
         }),        
 
         getSales: build.query<SaleInvoice[], { institution: string, startDate?: string; endDate?: string }>({
@@ -833,9 +867,9 @@ export const api = createApi({
     }),
 });
 
-export const { 
-  useGetDashboardMetricsQuery, useGetProductsQuery, useCreateProductMutation, useGetProductByIdQuery, useImportProductsMutation, useCreateInventoryMutation, 
-  useGetInventoryQuery, useGetInventoryIdQuery, useUpdateInventoryMutation, useDeleteInventoryMutation, useCreateSaleMutation, useGetCustomerDebtStatusQuery, useGetSalesQuery,
+
+export const { useGetDashboardMetricsQuery, useGetProductsQuery, useCreateProductMutation, useGetProductByIdQuery, useDeleteProductMutation,useUpdateProductMutation, useImportProductsMutation,
+  useCreateInventoryMutation, useGetInventoryQuery, useGetInventoryIdQuery, useUpdateInventoryMutation, useDeleteInventoryMutation, useCreateSaleMutation, useGetCustomerDebtStatusQuery, useGetSalesQuery,
     useGetSaleByIdQuery,useUpdateSaleStatusMutation, useUpdateSalePaymentMutation, useDeleteSaleInvoiceMutation, useCreateClaimMutation, 
     useRespondToClaimMutation, useUpdateClaimResponseMutation, useGetClaimQuery, useGetClaimByIdQuery, useDeleteClaimMutation, useGetDepartmentsQuery, 
     useCreateDepartmentsMutation, useDeleteDepartmentsMutation,
