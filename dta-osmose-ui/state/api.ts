@@ -405,7 +405,14 @@ export const api = createApi({
           query: (id) => `/institutions/${id}`, // Construire l'URL avec l'ID de l'utilisateur
           providesTags: (result, error, id) => [{ type: "Products", id }], // Associer un tag pour l'invalidation
         }),
-
+        importProducts: build.mutation<void, { data: NewProduct[]; institution: string }>({
+          query: ({ data, institution }) => ({
+            url: `/institutions/${institution}/products/import`,
+            method: "POST",
+            body: data,
+          }),
+          invalidatesTags: ["Products"],
+        }),
         //inventory
         createInventory: build.mutation<Inventory, { 
           titre: string;
@@ -793,12 +800,14 @@ export const api = createApi({
     }),
 });
 
-export const { useGetDashboardMetricsQuery, useGetProductsQuery, useCreateProductMutation, useGetProductByIdQuery, useCreateInventoryMutation, 
+export const { 
+  useGetDashboardMetricsQuery, useGetProductsQuery, useCreateProductMutation, useGetProductByIdQuery, useImportProductsMutation, useCreateInventoryMutation, 
   useGetInventoryQuery, useGetInventoryIdQuery, useUpdateInventoryMutation, useDeleteInventoryMutation, useCreateSaleMutation, useGetCustomerDebtStatusQuery, useGetSalesQuery,
-    useGetSaleByIdQuery,useUpdateSaleStatusMutation, useUpdateSalePaymentMutation, useDeleteSaleInvoiceMutation, useCreateClaimMutation, 
-    useRespondToClaimMutation, useUpdateClaimResponseMutation, useGetClaimQuery, useGetClaimByIdQuery, useDeleteClaimMutation, useGetDepartmentsQuery,
-    useGetDesignationsQuery, useCreateDesignationsMutation, useDeleteDesignationMutation,useGetRolesQuery, useCreateRolesMutation, 
-    useDeleteRoleMutation, useGetUsersQuery, useGetUserByIdQuery, useDeleteUserMutation,  useGetCustomersQuery, useCreateCustomersMutation,
-    useGetCustomerByIdQuery, useDeleteCustomerMutation,useUpdateCustomerMutation, useSendTokenResetPasswordMutation, useResetPasswordMutation, 
-    useGetSettingsQuery, useUpdateSettingsMutation, useGetAllNotificationsQuery, useGetCustomerNotificationsQuery, useDeleteNotificationsMutation} = api;
+  useGetSaleByIdQuery, useUpdateSaleStatusMutation, useUpdateSalePaymentMutation, useDeleteSaleInvoiceMutation, useCreateClaimMutation, 
+  useRespondToClaimMutation, useUpdateClaimResponseMutation, useGetClaimQuery, useGetClaimByIdQuery, useDeleteClaimMutation, useGetDepartmentsQuery,
+  useGetDesignationsQuery, useCreateDesignationsMutation, useDeleteDesignationMutation, useGetRolesQuery, useCreateRolesMutation, 
+  useDeleteRoleMutation, useGetUsersQuery, useGetUserByIdQuery, useDeleteUserMutation, useGetCustomersQuery, useCreateCustomersMutation,
+  useGetCustomerByIdQuery, useDeleteCustomerMutation, useUpdateCustomerMutation, useSendTokenResetPasswordMutation, useResetPasswordMutation, 
+  useGetSettingsQuery, useUpdateSettingsMutation, useGetAllNotificationsQuery, useGetCustomerNotificationsQuery, useDeleteNotificationsMutation
+} = api;
 

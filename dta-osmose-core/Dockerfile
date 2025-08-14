@@ -1,28 +1,22 @@
-# Utilisation de l'image officielle Node.js Alpine
-FROM node:22-alpine
+# Utilisation de l'image Alpine explicite pour avoir apk
+FROM node:22.18.0-alpine
 
-# Création du dossier de travail
 WORKDIR /app
 
-# Copie des fichiers de dépendances...
+# Installer les outils de build nécessaires pour compiler bcrypt
+RUN apk add --no-cache python3 make g++
+
 COPY package*.json ./
 
-# Installation des dépendances...
-RUN npm install
+# Installer les dépendances et recompiler bcrypt pour l'arch du container
+RUN npm install && npm rebuild bcrypt --build-from-source
 
-# Copie du reste de l'application dans le conteneur
 COPY . .
-# Génère le client Prisma...
+
 RUN npx prisma generate
 
-# Ici c'est facultatif selon la platforme, consulter le README pour plus de détails :)
-RUN npx prisma migrate deploy
-
-# Compilation TypeScript en JavaScript
 RUN npm run build
 
-# Exposition du port de l’application
 EXPOSE 5003
 
-# Démarrage de l'application (version compilée dans le dossier `dist`)
-CMD ["npm", "start"]
+CMD ["sh", "-c", "npx prisma migrate deploy && npm run seed && npm start"]

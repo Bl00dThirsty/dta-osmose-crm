@@ -1,8 +1,22 @@
 import { Request, Response } from "express";
-const { PrismaClient } = require("@prisma/client");
+import { PrismaClient, Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from 'uuid';
+import { z } from 'zod';
 
 const prisma = new PrismaClient();
+
+const ProductSchema = z.object({
+  EANCode: z.string().min(1, "EANCode requis"),
+  brand: z.string().min(1, "Brand requis"),
+  designation: z.string().min(1, "Designation requis"),
+  quantity: z.number().int().min(0).default(0),
+  restockingThreshold: z.number().int().min(0).default(0),
+  warehouse: z.string().min(1, "Warehouse requis"),
+  sellingPriceTTC: z.number().min(0).default(0),
+  purchase_price: z.number().min(0).default(0),
+});
+
+type ProductData = z.infer<typeof ProductSchema>;
 
 export const getProducts = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -34,30 +48,18 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
         }),
       },
     });
-    
 
     res.json(products);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Erreur lors de la recherche du produit" });
+  } catch (error: any) {
+    console.error("Erreur lors de la recherche des produits :", error.stack || error.message);
+    res.status(500).json({ message: "Erreur lors de la recherche des produits." });
   }
 };
-
 
 export const createProduct = async (req: Request, res: Response): Promise<void> => {
   try {
     const institutionSlug = req.params.institution;
-
-    const {
-      quantity,
-      EANCode,
-      brand,
-      designation,
-      restockingThreshold,
-      warehouse,
-      sellingPriceTTC,
-      purchase_price,
-    } = req.body;
+    const rawData = req.body;
 
     if (!institutionSlug) {
       res.status(400).json({ message: "Institution manquante dans l'URL." });
@@ -73,36 +75,49 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    const product = await prisma.product.create({
-      data: {
-        id: uuidv4(),
-        quantity,
-        EANCode,
-        brand,
-        designation,
-        restockingThreshold,
-        warehouse,
-        sellingPriceTTC,
-        purchase_price,
-        institution: {
-          connect: { id: institution.id },
-        },
-      },
+    const validatedData = ProductSchema.parse({
+      ...rawData,
+      quantity: Number(rawData.quantity) || 0,
+      restockingThreshold: Number(rawData.restockingThreshold) || 0,
+      sellingPriceTTC: Number(rawData.sellingPriceTTC) || 0,
+      purchase_price: Number(rawData.purchase_price) || 0,
     });
 
+    const createData = {
+      id: uuidv4(),
+      ...validatedData,
+      institution: {
+        connect: { id: institution.id },
+      },
+      created_at: new Date(),
+      updated_at: new Date(),
+      imageName: null,
+      idSupplier: null,
+      product_category_id: null,
+      unit_measurement: null,
+      unit_type: null,
+      sku: null,
+      reorder_quantity: null,
+    } as Prisma.productCreateInput;
+    const product = await prisma.product.create({ data: createData });
+
     res.status(201).json(product);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Erreur lors de la création du produit." });
+  } catch (error: any) {
+    console.error("Erreur lors de la création du produit :", error.stack || error.message);
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ message: "Données invalides", issues: error.issues });
+    } else {
+      res.status(500).json({ message: "Erreur lors de la création du produit." });
+    }
   }
 };
 
 export const importProducts = async (req: Request, res: Response): Promise<void> => {
   try {
     const institutionSlug = req.params.institution;
-    const products: any[] = req.body;
+    const rawProducts: any[] = req.body;
 
-    if (!Array.isArray(products) || products.length === 0) {
+    if (!Array.isArray(rawProducts) || rawProducts.length === 0) {
       res.status(400).json({ message: "Aucune donnée reçue." });
       return;
     }
@@ -116,41 +131,92 @@ export const importProducts = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    const createdProducts = [];
+    const existingProducts = await prisma.product.findMany({
+      where: { institutionId: institution.id },
+      select: { id: true, EANCode: true, quantity: true },
+    });
+    const existingMap = new Map(existingProducts.map(p => [p.EANCode, { id: p.id, quantity: p.quantity }]));
 
-    for (const row of products) {
-      if (!row.EANCode) continue;
-     
-      const existing = await prisma.product.findUnique({
-        where: { EANCode: row.EANCode },
-      });
+    const toCreate: ProductData[] = [];
+    const toUpdate: { id: string, additionalQuantity: number }[] = [];
+    const skipped: string[] = [];
 
-      if (existing) continue;
-
-      const product = await prisma.product.create({
-        data: {
-          id: uuidv4(),
+    for (const row of rawProducts) {
+      try {
+        const parsedRow = {
           EANCode: row.EANCode,
-          brand: row.brand,
-          designation: row.designation,
+          brand: row.brand || "",
+          designation: row.designation || "",
           quantity: Number(row.quantity) || 0,
           purchase_price: Number(row.purchase_price) || 0,
           sellingPriceTTC: Number(row.sellingPriceTTC) || 0,
           restockingThreshold: Number(row.restockingThreshold) || 0,
-          warehouse: row.warehouse,
-          institution: {
-            connect: { id: institution.id },
-          },
-        },
-      });
+          warehouse: row.warehouse || "",
+        };
 
-      createdProducts.push(product);
+        const validated = ProductSchema.parse(parsedRow);
+
+        const existing = existingMap.get(validated.EANCode);
+        if (existing) {
+          toUpdate.push({ id: existing.id, additionalQuantity: validated.quantity });
+          continue;
+        }
+
+        toCreate.push(validated);
+      } catch (err) {
+        skipped.push(`Ligne invalide: ${JSON.stringify(row)}`);
+      }
     }
 
-    res.status(201).json({ message: `${createdProducts.length} produits importés.` });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Erreur lors de l'import." });
+    if (toCreate.length === 0 && toUpdate.length === 0) {
+      res.status(400).json({ message: "Aucun produit valide à importer ou mettre à jour.", skipped });
+      return;
+    }
+
+    await prisma.$transaction(async (tx) => {
+      if (toCreate.length > 0) {
+        await tx.product.createMany({
+          data: toCreate.map(product => ({
+            id: uuidv4(),
+            ...product,
+            institutionId: institution.id,
+            created_at: new Date(),
+            updated_at: new Date(),
+            imageName: null,
+            idSupplier: null,
+            product_category_id: null,
+            unit_measurement: null,
+            unit_type: null,
+            sku: null,
+            reorder_quantity: null,
+          })) as Prisma.productCreateManyInput[],
+        });
+      }
+
+      for (const update of toUpdate) {
+        await tx.product.update({
+          where: { id: update.id },
+          data: { 
+            quantity: { increment: update.additionalQuantity },
+            updated_at: new Date(),
+          },
+        });
+      }
+    });
+
+    console.log("Produits sautés :", skipped);
+
+    res.status(201).json({ 
+      message: `${toCreate.length} produits créés, ${toUpdate.length} produits mis à jour.`,
+      skippedCount: skipped.length 
+    });
+  } catch (error: any) {
+    console.error("Erreur lors de l'import :", error.stack || error.message);
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ message: "Données invalides dans l'import", issues: error.issues });
+    } else {
+      res.status(500).json({ message: "Erreur lors de l'import." });
+    }
   }
 };
 
@@ -173,9 +239,8 @@ export const getSingleProduct = async (req: Request, res: Response): Promise<voi
     }
 
     res.status(200).json(product);
-  } catch (error) {
-    console.error("Erreur lors de la récupération du produit :", error);
-    res.status(500).json({ message: "Erreur serveur" });
+  } catch (error: any) {
+    console.error("Erreur lors de la récupération du produit :", error.stack || error.message);
+    res.status(500).json({ message: "Erreur serveur." });
   }
 };
-

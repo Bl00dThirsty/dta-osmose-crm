@@ -14,7 +14,7 @@ import { PlusIcon } from "lucide-react"
 import { ChangeEvent, FormEvent, useState } from "react"
 import { v4 } from "uuid"
 
-type ProductFormData = {
+export type ProductFormData = {
   quantity: number;
   EANCode: string;
   brand: string;

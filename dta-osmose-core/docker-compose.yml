@@ -1,4 +1,3 @@
-version: '3.9'
 services:
   postgres:
     image: postgres:10.3
@@ -15,6 +14,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    platform: linux/amd64
     restart: always
     ports:
       - '5003:5003'
@@ -22,6 +22,9 @@ services:
       DATABASE_URL: "postgresql://postgres:admin@postgres:5432/ibacameroon?schema=public"
     depends_on:
       - postgres
+    volumes:
+      - .:/app
+      - /app/node_modules # Volume anonyme pour node_modules container-only
 
 volumes:
   postgres_data:
