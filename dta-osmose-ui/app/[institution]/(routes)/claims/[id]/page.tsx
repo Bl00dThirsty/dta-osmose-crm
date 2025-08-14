@@ -52,10 +52,17 @@ const InvoicePage = () => {
     console.log("saleId :", id)
     try {
       await deleteClaim(id).unwrap()
-      console.log("Réclamation supprimé avec succès")
+      toast.success("Réclamation supprimée avec succès")
+      setOpenDelete(false); // <-- Fermer la modale AVANT de rediriger
+      setTimeout(() => {
+        
       router.push(`/${institution}/claims/all`);
+      router.refresh();
+    }, 500);
+      // router.push(`/${institution}/claims/all`);
     } catch (error) {
       console.log("Erreur lors de la suppression :")
+      toast.error("Erreur lors de la suppression")
     }
   }
 

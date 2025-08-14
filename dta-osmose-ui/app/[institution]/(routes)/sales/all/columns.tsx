@@ -148,7 +148,9 @@ export const columns: ColumnDef<SaleInvoice>[] = [
     cell: ({ row }) => {
       const designation1 = row.original.user?.firstName ?? "aucun";
       const forename = row.original.user?.lastName ?? "aucun"
-      return <div className="w-[120px]">{designation1} {forename}</div>;
+      return <div className="w-[120px]">{row.original.user 
+                 ? `${row.original.user.firstName} ${row.original.user.lastName}` 
+               : row.original.customer?.name || 'Inconnu'}</div>;
     },
   },
   {

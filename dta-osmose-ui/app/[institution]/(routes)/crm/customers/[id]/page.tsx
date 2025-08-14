@@ -64,6 +64,10 @@ export default function DetailCustomerPage() {
     (sum, credit) => sum + (credit.amount - credit.usedAmount),
     0
   ) || 0;
+  useEffect(() => {
+  console.log("Customer details from API:", customer);
+}, [customer]);
+
 
   // Gestion de la mise à jour
   const handleUpdate = async (updatedData: Partial<Customer>) => {

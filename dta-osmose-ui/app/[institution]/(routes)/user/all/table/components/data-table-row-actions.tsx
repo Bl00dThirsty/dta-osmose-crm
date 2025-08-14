@@ -31,6 +31,7 @@ import {
   DialogCancel,
   DialogAction,
 } from "@/components/ui/dialog"
+import { ToastContainer, toast } from 'react-toastify';
 import { useParams } from "next/navigation"
 import { useState } from "react"
 import { labels } from "@/app/[institution]/(routes)/crm/products/table/data/data"
@@ -52,9 +53,17 @@ export function DataTableRowActions<TData>({
   const handleDelete = async () => {
     try {
       await deleteUser(userId).unwrap()
-      console.log("Utilisateur supprimé avec succès")
+      toast.success("Utilisateur supprimé avec succès")
+      setOpen(false); // <-- Fermer la modale AVANT de rediriger
+      setTimeout(() => {
+        
+      router.push(`/${institution}/user/all`);
+      router.refresh();
+    }, 500);
+      // console.log("Utilisateur supprimé avec succès")
     } catch (error) {
       console.error("Erreur lors de la suppression :", error)
+      toast.error("Erreur lors de la suppression")
     }
   }
 

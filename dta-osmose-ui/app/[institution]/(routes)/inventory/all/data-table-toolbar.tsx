@@ -47,16 +47,23 @@ export function DataTableToolbar<TData>({
   
   return (
     <div className="flex items-center justify-between">
-      <div className="flex flex-1 items-center space-x-2">
+       <div className="flex flex-1 items-center space-x-2">
         <Input
-          placeholder="Filtrer les inventaires..."
+          placeholder="Filtrer les inventaires par date..."
           value={(table.getColumn("createdAt")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("createdAt")?.setFilterValue(event.target.value)
           }
           className="h-8 w-[150px] lg:w-[250px]"
         />
-        
+        <Input
+          placeholder="Filtrer les inventaires par titre..."
+          value={(table.getColumn("titre")?.getFilterValue() as string) ?? ""}
+          onChange={(event) =>
+            table.getColumn("titre")?.setFilterValue(event.target.value)
+          }
+          className="h-8 w-[150px] lg:w-[250px]"
+        />
         {isFiltered && (
           <Button
             variant="ghost"

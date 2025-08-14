@@ -461,6 +461,25 @@ export const updateSaleStatus = async (req: Request, res: Response): Promise<voi
       }
     }
 
+    if (delivred === true) {
+      const clientId = updatedInvoice.customerId; // Utilisation de l'id du client associé à la commande
+
+      // Envoi de la notification au client
+      const client = await prisma.customer.findUnique({
+        where: { id: clientId }
+      });
+
+      if (client) {
+        // Assurez-vous que notifyUser accepte l'identifiant du client
+        await notifyUserOrCustomer({
+          saleId: updatedInvoice.id,
+          customerId: updatedInvoice.customerId,
+          message: `Votre commande N°: ${updatedInvoice.invoiceNumber} a été livrée.`,
+          type: "update_order"
+        });
+      }
+    }
+
 
     res.status(200).json(updatedInvoice);
   } catch (error) {

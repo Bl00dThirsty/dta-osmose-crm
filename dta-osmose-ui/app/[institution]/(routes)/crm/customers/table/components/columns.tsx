@@ -45,7 +45,7 @@ export const columns: ColumnDef<Customer>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="ID Client" />
     ),
-    cell: ({ row }) => <div className="w-[140px]">{row.getValue("customId")}</div>,
+    cell: ({ row }) => <div className="w-[140px] truncate whitespace-nowrap overflow-hidden text-ellipsis">{row.getValue("customId")}</div>,
   },
   {
     accessorKey: "name",

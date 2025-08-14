@@ -56,25 +56,25 @@ const CrmDashboardPage = () => {
     >
     <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
       <section className="overflow-hidden rounded-[0.5rem] border-5 bg-background shadow-zinc-50">
-      <ChartContainer config={chartConfig} className="h-[250px] w-full">
-        <BarChart accessibilityLayer data={chartData}>
-          <XAxis
-            dataKey="month"
-            tickLine={false}
-            tickMargin={10}
-            axisLine={false}
-            tickFormatter={(value) => value.slice(0, 3)}
-          />
-          <ChartTooltip content={<ChartTooltipContent />} />
-          <ChartLegend content={<ChartLegendContent />} />
-          <Bar dataKey="vente" fill="var(--color-vente)" radius={4} />
-          <Bar dataKey="client" fill="var(--color-client)" radius={4} />
+        {/* <ChartContainer config={chartConfig} className="h-[250px] w-full">
+          <BarChart accessibilityLayer data={chartData}>
+            <XAxis
+             dataKey="month"
+             tickLine={false}
+             tickMargin={10}
+             axisLine={false}
+             tickFormatter={(value) => value.slice(0, 3)}
+            />
+            <ChartTooltip content={<ChartTooltipContent />} />
+            <ChartLegend content={<ChartLegendContent />} />
+            <Bar dataKey="vente" fill="var(--color-vente)" radius={4} />
+            <Bar dataKey="client" fill="var(--color-client)" radius={4} />
           </BarChart>
-        </ChartContainer>
+        </ChartContainer> */}
         </section>
       </div>
       <div className="grid gap-4 grid-cols-1">
-        <section className="p-4 overflow-hidden rounded-[0.5rem] border-5 bg-background shadow">
+        <section className="p-4 overflow-hidden rounded-[0.5rem] border-3 bg-background shadow">
           <h2 className="text-xl font-semibold mb-4">Ventes par ville</h2>
           {dashboardData?.salesByCity ? (
             <SalesByCityChart data={dashboardData.salesByCity} />
