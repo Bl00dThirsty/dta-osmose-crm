@@ -330,7 +330,30 @@ chartData?: {
     formattedData3: MetricItem[];
     totalAvailableCredit?: number;
   };
-    
+}
+ export interface DashboardSales {
+  salesByProduct: {
+    totalSales: any;
+    productId: string;
+    productName: string;
+    totalQuantity: number;
+    totalAmount: number;
+  }[];
+
+  salesByPharmacy: {
+    totalSales: any;
+    pharmacyId: string;
+    pharmacyName: string;
+    totalQuantity: number;
+    totalAmount: number;
+  }[];
+
+  salesByCity: {
+    totalSales: any;
+    cityName: string;
+    totalQuantity: number;
+    totalAmount: number;
+  }[];
 }
 
 export const api = createApi({
@@ -344,7 +367,7 @@ export const api = createApi({
         return headers;
       }, }),
     reducerPath: "api",
-    tagTypes: ["DashboardMetrics", "Products", "Users", "Designations", "Roles", "Customers", "Sales", "AppSettings", "Claims"],
+    tagTypes: ["DashboardMetrics","DashboardSales", "Products", "Users", "Designations", "Roles", "Customers", "Sales", "AppSettings", "Claims"],
     endpoints: (build) => ({
         getDashboardMetrics: build.query<DashboardMetrics, { institution: string, startDate?: string; endDate?: string  }>({
             query: ({ institution, startDate, endDate }) => {
@@ -356,6 +379,18 @@ export const api = createApi({
             },
             providesTags: ["DashboardMetrics"]
         }),
+
+         getDashboardSales: build.query<DashboardSales, { institution: string, startDate?: string; endDate?: string  }>({
+            query: ({ institution, startDate, endDate }) => {
+              const params = new URLSearchParams();
+              if (startDate) params.append("startDate", startDate);
+              if (endDate) params.append("endDate", endDate);
+          
+              return `/dashboard/${institution}/sales?${params.toString()}`;
+            },
+            providesTags: ["DashboardSales"]
+        }),
+        
         getProducts: build.query<Product[], { institution: string; search?: string }>({
             query: ({ institution, search }) => ({
                 url: `/institutions/${institution}/products`,
@@ -396,7 +431,7 @@ export const api = createApi({
               method: 'POST',
               body: data
           }),
-          invalidatesTags: ['Sales', 'Products']
+          invalidatesTags: ['DashboardSales','Sales', 'Products']
         }),
 
         getCustomerDebtStatus: build.query<{ hasDebt: boolean }, number>({
@@ -416,7 +451,7 @@ export const api = createApi({
 
         getSaleById: build.query<SaleInvoice, string>({
           query: (id) => `/sale/${id}`,
-          providesTags: (result, error, id) => [{ type: 'Sales', id }]
+          providesTags: (result, error, id) => [{ type: 'Sales', id },{ type: 'DashboardSales' }]
         }),
 
        updateSaleStatus: build.mutation<SaleInvoice, {
@@ -430,7 +465,7 @@ export const api = createApi({
            method: 'PATCH',
            body: status
         }),
-        invalidatesTags: (result, error, { id }) => [{ type: 'Sales', id }]
+        invalidatesTags: (result, error, { id }) => [{ type: 'Sales', id},{ type: 'DashboardSales' }] ,
        }),
 
        updateSalePayment: build.mutation<SaleInvoice, { id: string; paymentMethod: string; paidAmount: number; dueAmount:number; discount?:number }>({
@@ -672,7 +707,7 @@ export const api = createApi({
     }),
 });
 
-export const { useGetDashboardMetricsQuery, useGetProductsQuery, useCreateProductMutation, useGetProductByIdQuery, useCreateSaleMutation, useGetCustomerDebtStatusQuery, useGetSalesQuery,
+export const { useGetDashboardMetricsQuery,useGetDashboardSalesQuery, useGetProductsQuery, useCreateProductMutation, useGetProductByIdQuery, useCreateSaleMutation, useGetCustomerDebtStatusQuery, useGetSalesQuery,
     useGetSaleByIdQuery,useUpdateSaleStatusMutation, useUpdateSalePaymentMutation, useDeleteSaleInvoiceMutation, useCreateClaimMutation, 
     useRespondToClaimMutation, useUpdateClaimResponseMutation, useGetClaimQuery, useGetClaimByIdQuery, useDeleteClaimMutation, useGetDepartmentsQuery,
     useGetDesignationsQuery, useCreateDesignationsMutation, useDeleteDesignationMutation,useGetRolesQuery, useCreateRolesMutation, 

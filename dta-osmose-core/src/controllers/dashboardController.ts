@@ -253,3 +253,107 @@ const previousAvailableCredit = (previousCredits._sum.amount ?? 0) - (previousCr
     res.status(500).json({ error: "Erreur lors du chargement des données du dashboard" });
   }
 };
+
+// --------------------- DASHBOARD VENTES ---------------------
+export const getSalesDashboard = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { startDate, endDate } = req.query;
+    const institutionSlug = req.params.institution;
+
+    if (!startDate || !endDate || typeof startDate !== "string" || typeof endDate !== "string") {
+      res.status(400).json({ error: "Invalid or missing startDate or endDate" });
+      return;
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    const institution = await prisma.institution.findUnique({ where: { slug: institutionSlug } });
+    if (!institution) {
+      res.status(404).json({ error: "Institution not found" });
+      return;
+    }
+
+    // --- Ventes par produit ---
+    const saleItems = await prisma.saleItem.findMany({
+      where: { invoice: { institutionId: institution.id, createdAt: { gte: start, lte: end }, paymentStatus: "PAID", delivred: true } },
+      select: { productId: true, quantity: true, totalPrice: true },
+    });
+
+    const salesByProductMap: Record<string, { totalQuantity: number; totalSales: number }> = {};
+    saleItems.forEach(item => {
+      if (!salesByProductMap[item.productId]) salesByProductMap[item.productId] = { totalQuantity: 0, totalSales: 0 };
+      salesByProductMap[item.productId].totalQuantity += item.quantity;
+      salesByProductMap[item.productId].totalSales += item.totalPrice;
+    });
+
+    const productIds = Object.keys(salesByProductMap);
+    const products = await prisma.product.findMany({ where: { id: { in: productIds } }, select: { id: true, designation: true } });
+    const productMap = products.reduce<Record<string, string>>((acc, prod) => { acc[prod.id] = prod.designation; return acc; }, {});
+    const salesByProduct = productIds.map(pid => ({
+      productId: pid,
+      productName: productMap[pid] || "Produit inconnu",
+      totalQuantity: salesByProductMap[pid].totalQuantity,
+      totalSales: salesByProductMap[pid].totalSales,
+    }));
+
+    // --- Ventes par pharmacie ---
+   /* const invoices = await prisma.saleInvoice.findMany({
+      where: { institutionId: institution.id, paymentStatus: "PAID", delivred: true, createdAt: { gte: start, lte: end } },
+      include: { pharmacy: true, items: true },
+    });
+
+    const salesByPharmacyMap: Record<number, { invoiceCount: number; totalSales: number; totalQuantity: number; pharmacyName: string; city: string }> = {};
+    invoices.forEach(inv => {
+      if (!inv.pharmacyId || !inv.pharmacy) return;
+      const id = inv.pharmacy.id;
+      const name = inv.pharmacy.name;
+      const city = inv.pharmacy.city || "Ville inconnue";
+      if (!salesByPharmacyMap[id]) salesByPharmacyMap[id] = { invoiceCount: 0, totalSales: 0, totalQuantity: 0, pharmacyName: name, city };
+      salesByPharmacyMap[id].invoiceCount += 1;
+      salesByPharmacyMap[id].totalSales += inv.finalAmount ?? 0;
+      salesByPharmacyMap[id].totalQuantity += inv.items.reduce((sum, it) => sum + it.quantity, 0);
+    });
+    const salesByPharmacy = Object.values(salesByPharmacyMap);*/
+     const invoices = await prisma.saleInvoice.findMany({
+      where: {
+        institutionId: institution.id,
+        paymentStatus: "PAID",
+        delivred: true,
+        createdAt: { gte: start, lte: end },
+        customer: { type_customer: "Pharmacie" } // filtre seulement les pharmacies
+      },
+      include: { customer: true, items: true },
+    });
+
+    const salesByPharmacyMap: Record<number, { invoiceCount: number; totalSales: number; totalQuantity: number; pharmacyName: string; city: string }> = {};
+    invoices.forEach(inv => {
+      if (!inv.customer) return;
+      const id = inv.customer.id;
+      const name = inv.customer.name;
+      const city = inv.customer.ville || "Ville inconnue";
+      if (!salesByPharmacyMap[id]) salesByPharmacyMap[id] = { invoiceCount: 0, totalSales: 0, totalQuantity: 0, pharmacyName: name, city };
+      salesByPharmacyMap[id].invoiceCount += 1;
+      salesByPharmacyMap[id].totalSales += inv.finalAmount ?? 0;
+      salesByPharmacyMap[id].totalQuantity += inv.items.reduce((sum, it) => sum + it.quantity, 0);
+    });
+    const salesByPharmacy = Object.values(salesByPharmacyMap);
+
+   // ---------------------- Ventes par ville ----------------------
+    const salesByCityMap: Record<string, { invoiceCount: number; totalSales: number; totalQuantity: number }> = {};
+    salesByPharmacy.forEach(ph => {
+      if (!salesByCityMap[ph.city]) salesByCityMap[ph.city] = { invoiceCount: 0, totalSales: 0, totalQuantity: 0 };
+      salesByCityMap[ph.city].invoiceCount += ph.invoiceCount;
+      salesByCityMap[ph.city].totalSales += ph.totalSales;
+      salesByCityMap[ph.city].totalQuantity += ph.totalQuantity;
+    });
+    const salesByCity = Object.entries(salesByCityMap).map(([city, data]) => ({ cityName: city, ...data }));
+
+
+
+    res.json({ salesByProduct, salesByPharmacy, salesByCity });
+  } catch (error) {
+    console.error("Dashboard ventes error:", error);
+    res.status(500).json({ error: "Erreur lors du chargement des données de ventes" });
+  }
+};

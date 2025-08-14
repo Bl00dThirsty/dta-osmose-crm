@@ -251,6 +251,20 @@ model ProductCounter {
   @@unique([institution, month, year])
 }
 
+/*model Pharmacy {
+  id           Int           @id @default(autoincrement())
+  name         String
+  address      String?
+  city         String?
+  phone        String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  // Relation avec les factures
+  saleInvoices saleInvoice[]
+
+  @@map("pharmacy") // nom de la table en DB
+}*/
 //vente given_amount       Float?
  // amount_refunded    Float?
 model saleInvoice {

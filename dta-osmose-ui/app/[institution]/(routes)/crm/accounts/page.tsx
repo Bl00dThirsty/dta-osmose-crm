@@ -1,6 +1,6 @@
 import React, { Suspense } from "react";
 
-import AccountsView from "../components/AccountsView";
+
 import Container from "../../components/ui/Container";
 import SuspenseLoading from "@/components/loadings/suspense";
 
