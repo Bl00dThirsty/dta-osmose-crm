@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { PrismaClient, Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from 'uuid';
-import { z } from 'zod';
+//import { z } from 'zod';
 
 const prisma = new PrismaClient();
 
@@ -48,7 +48,17 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
 export const createProduct = async (req: Request, res: Response): Promise<void> => {
   try {
     const institutionSlug = req.params.institution;
-    const rawData = req.body;
+
+    const {
+      quantity,
+      EANCode,
+      brand,
+      designation,
+      restockingThreshold,
+      warehouse,
+      sellingPriceTTC,
+      purchase_price,
+    } = req.body;
 
     if (!institutionSlug) {
       res.status(400).json({ message: "Institution manquante dans l'URL." });
@@ -64,40 +74,27 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    const validatedData = ProductSchema.parse({
-      ...rawData,
-      quantity: Number(rawData.quantity) || 0,
-      restockingThreshold: Number(rawData.restockingThreshold) || 0,
-      sellingPriceTTC: Number(rawData.sellingPriceTTC) || 0,
-      purchase_price: Number(rawData.purchase_price) || 0,
+    const product = await prisma.product.create({
+      data: {
+        id: uuidv4(),
+        quantity,
+        EANCode,
+        brand,
+        designation,
+        restockingThreshold,
+        warehouse,
+        sellingPriceTTC,
+        purchase_price,
+        institution: {
+          connect: { id: institution.id },
+        },
+      },
     });
 
-    const createData = {
-      id: uuidv4(),
-      ...validatedData,
-      institution: {
-        connect: { id: institution.id },
-      },
-      created_at: new Date(),
-      updated_at: new Date(),
-      imageName: null,
-      idSupplier: null,
-      product_category_id: null,
-      unit_measurement: null,
-      unit_type: null,
-      sku: null,
-      reorder_quantity: null,
-    } as Prisma.productCreateInput;
-    const product = await prisma.product.create({ data: createData });
-
     res.status(201).json(product);
-  } catch (error: any) {
-    console.error("Erreur lors de la création du produit :", error.stack || error.message);
-    if (error instanceof z.ZodError) {
-      res.status(400).json({ message: "Données invalides", issues: error.issues });
-    } else {
-      res.status(500).json({ message: "Erreur lors de la création du produit." });
-    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Erreur lors de la création du produit." });
   }
 };
 
