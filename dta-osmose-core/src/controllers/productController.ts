@@ -74,7 +74,6 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-
     const product = await prisma.product.create({
       data: {
         id: uuidv4(),
