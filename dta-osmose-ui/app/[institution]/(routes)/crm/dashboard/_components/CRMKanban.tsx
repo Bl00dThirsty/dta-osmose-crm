@@ -7,6 +7,8 @@ import { ThumbsDown, ThumbsUp } from "lucide-react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 import { DotsHorizontalIcon, PlusCircledIcon } from "@radix-ui/react-icons";
+import { crm_Opportunities_Sales_Stages, crm_Opportunities } from "@/types";
+
 
 import {
   DropdownMenu,

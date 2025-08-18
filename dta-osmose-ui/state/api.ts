@@ -348,36 +348,77 @@ export interface Inventory {
 
 
 
+export type MetricItem = {
+  count: number;
+  type: string; // "Ventes" | "Profits" | "nombre de facture"
+  date?: string;
+  amount?: number;
+};
 export interface DashboardMetrics {
-    popularProducts: Product[];
-    salesByCity: Array<{
-      ville: string;
-      montant: number;
-      nombreVentes: number;
-    }>;
-    saleProfitCount: Array<{
-      type: string; // "Ventes" | "Profits" | "nombre de facture"
-      date: string;
-      amount: number;
-    }>;
-    totalUsers: User[];
-    totalAvailableCredit: Array<{
-      amount: number;
-      usedAmount: number
-    }>
-    formattedData3: Array<{
-      type: string; // "Ventes" | "Profits" | "nombre de facture"
-      date: string;
-      amount: number;
-    }>;
-    customerStats?: {
+  salesByCity: { ville: string; montant: number; nombreVentes: number; }[];
+  saleProfitCount: { type: string; amount?: number }[];
+  formattedData3: { type: string; count?: number }[];
+  /*previousMetrics?: {
+    saleProfitCount: { type: string; amount?: number }[];
+    formattedData3: { type: string; count?: number }[];
+  };*/
+  totalAvailableCredit?: number;
+  totalUsers?: number;
+  customerStats?: {
+    avoirDisponible?: number;
+    totalAchats?: number;
+    nombreCommandes?: number;
+    nombreCommandesImpaye?: number;
+  };
+    
+chartData?: {
+    date: string;
+    totalVentes: number;
+    nombreVentes: number;
+    [key: string]: any;
+  }[];
+
+  creditTrend?: {
+    trend: string;
+    trendDirection: string;
+  };
+    
+    /*customerStats?: {
       totalAchats: number;
       nombreCommandes: number;
       avoirDisponible: number;
       nombreCommandesImpaye: number;
-    };
-    
-    
+    };*/
+    // ✅ Ajout : données de la période précédente
+  previousMetrics?: {
+    saleProfitCount: MetricItem[];
+    formattedData3: MetricItem[];
+    totalAvailableCredit?: number;
+  };
+}
+ export interface DashboardSales {
+  salesByProduct: {
+    totalSales: any;
+    productId: string;
+    productName: string;
+    totalQuantity: number;
+    totalAmount: number;
+  }[];
+
+  salesByPharmacy: {
+    totalSales: any;
+    pharmacyId: string;
+    pharmacyName: string;
+    totalQuantity: number;
+    totalAmount: number;
+  }[];
+
+  salesByCity: {
+    totalSales: any;
+    cityName: string;
+    totalQuantity: number;
+    totalAmount: number;
+  }[];
 }
 
 export const api = createApi({
@@ -391,7 +432,7 @@ export const api = createApi({
         return headers;
       }, }),
     reducerPath: "api",
-    tagTypes: ["DashboardMetrics", "Products", "Users", "Departments", "Designations", "Roles", "Customers", "Sales", "AppSettings", "Claims", "Notifications", "Inventorys"],
+    tagTypes: ["DashboardMetrics", "DashboardSales", "Products", "Users", "Departments", "Designations", "Roles", "Customers", "Sales", "AppSettings", "Claims", "Notifications", "Inventorys"],
     endpoints: (build) => ({
         getDashboardMetrics: build.query<DashboardMetrics, { institution: string, startDate?: string; endDate?: string  }>({
             query: ({ institution, startDate, endDate }) => {
@@ -403,6 +444,18 @@ export const api = createApi({
             },
             providesTags: ["DashboardMetrics"]
         }),
+
+         getDashboardSales: build.query<DashboardSales, { institution: string, startDate?: string; endDate?: string  }>({
+            query: ({ institution, startDate, endDate }) => {
+              const params = new URLSearchParams();
+              if (startDate) params.append("startDate", startDate);
+              if (endDate) params.append("endDate", endDate);
+          
+              return `/dashboard/${institution}/sales?${params.toString()}`;
+            },
+            providesTags: ["DashboardSales"]
+        }),
+        
         getProducts: build.query<Product[], { institution: string; search?: string }>({
             query: ({ institution, search }) => ({
                 url: `/institutions/${institution}/products`,
@@ -538,7 +591,7 @@ export const api = createApi({
               method: 'POST',
               body: data
           }),
-          invalidatesTags: ['Sales', 'Products']
+          invalidatesTags: ['DashboardSales','Sales', 'Products']
         }),
 
         getCustomerDebtStatus: build.query<{ hasDebt: boolean}, {customerId: number, institution: string}>({
@@ -558,7 +611,7 @@ export const api = createApi({
 
         getSaleById: build.query<SaleInvoice, string>({
           query: (id) => `/sale/${id}`,
-          providesTags: (result, error, id) => [{ type: 'Sales', id }]
+          providesTags: (result, error, id) => [{ type: 'Sales', id },{ type: 'DashboardSales' }]
         }),
 
        updateSaleStatus: build.mutation<SaleInvoice, {
@@ -572,7 +625,7 @@ export const api = createApi({
            method: 'PATCH',
            body: status
         }),
-        invalidatesTags: (result, error, { id }) => [{ type: 'Sales', id }]
+        invalidatesTags: (result, error, { id }) => [{ type: 'Sales', id},{ type: 'DashboardSales' }] ,
        }),
 
        updateSalePayment: build.mutation<SaleInvoice, { id: string; paymentMethod: string; paidAmount: number; dueAmount:number; discount?:number }>({
@@ -868,7 +921,7 @@ export const api = createApi({
 });
 
 
-export const { useGetDashboardMetricsQuery, useGetProductsQuery, useCreateProductMutation, useGetProductByIdQuery, useDeleteProductMutation,useUpdateProductMutation, useImportProductsMutation,
+export const { useGetDashboardMetricsQuery,useGetDashboardSalesQuery, useGetProductsQuery, useCreateProductMutation, useGetProductByIdQuery, useDeleteProductMutation,useUpdateProductMutation, useImportProductsMutation,
   useCreateInventoryMutation, useGetInventoryQuery, useGetInventoryIdQuery, useUpdateInventoryMutation, useDeleteInventoryMutation, useCreateSaleMutation, useGetCustomerDebtStatusQuery, useGetSalesQuery,
     useGetSaleByIdQuery,useUpdateSaleStatusMutation, useUpdateSalePaymentMutation, useDeleteSaleInvoiceMutation, useCreateClaimMutation, 
     useRespondToClaimMutation, useUpdateClaimResponseMutation, useGetClaimQuery, useGetClaimByIdQuery, useDeleteClaimMutation, useGetDepartmentsQuery, 

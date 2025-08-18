@@ -168,6 +168,7 @@ CREATE TABLE "saleInvoice" (
     "userId" INTEGER,
     "institutionId" TEXT NOT NULL,
     "customerCreatorId" INTEGER,
+     "pharmacyId" INTEGER,
     "totalAmount" DOUBLE PRECISION NOT NULL,
     "discount" DOUBLE PRECISION NOT NULL,
     "finalAmount" DOUBLE PRECISION NOT NULL,
@@ -182,6 +183,20 @@ CREATE TABLE "saleInvoice" (
     "ready" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "saleInvoice_pkey" PRIMARY KEY ("id")
+);
+
+
+CREATE TABLE pharmacy (
+    id SERIAL PRIMARY KEY,
+    institutionId TEXT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    address TEXT,
+    city VARCHAR(255),  
+    phoneNumber VARCHAR(50),
+    email VARCHAR(255),
+    createdAt TIMESTAMP DEFAULT NOW(),
+    updatedAt TIMESTAMP DEFAULT NOW(),
+    FOREIGN KEY (institutionId) REFERENCES institution(id) ON DELETE CASCADE
 );
 
 -- CreateTable

@@ -107,15 +107,15 @@ const data = {
         
       ],
     },
-    // {
-    //   title: "Fournisseurs",
-    //   path: "#",
-    //   icon: () => <ArrowBigDownDash strokeWidth="1.5" className="w-5 h-5" />,
-    //   items: [
-    //     { title: "Liste des fournisseurs", path: "#" },
-    //     { title: "Commandes", path: "#" },
-    //   ],
-    // },
+    {
+      title: "Fournisseurs",
+      path: "#",
+      icon: () => <ArrowBigDownDash strokeWidth="1.5" className="w-5 h-5" />,
+      items: [
+        { title: "Liste des fournisseurs", path: "#" },
+        { title: "Commandes", path: "#" },
+      ],
+    },
     {
       title: "Comptes clients",
       path: "customers",
