@@ -63,32 +63,20 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
       res.status(404).json({ message: "Institution introuvable." });
       return;
     }
-
-    const validatedData = ProductSchema.parse({
-      ...rawData,
-      quantity: Number(rawData.quantity) || 0,
-      restockingThreshold: Number(rawData.restockingThreshold) || 0,
-      sellingPriceTTC: Number(rawData.sellingPriceTTC) || 0,
-      purchase_price: Number(rawData.purchase_price) || 0,
-    });
-
-    const createData = {
-      id: uuidv4(),
-      ...validatedData,
-      institution: {
-        connect: { id: institution.id },
+    const product = await prisma.product.create({
+      data: {
+        id: uuidv4(),
+        EANCode: rawData.EANCode,
+        brand: rawData.brand,
+        designation: rawData.designation,
+        quantity: Number(rawData.quantity) || 0,
+        purchase_price: Number(rawData.purchase_price) || 0,
+        sellingPriceTTC: Number(rawData.sellingPriceTTC) || 0,
+        restockingThreshold: Number(rawData.restockingThreshold) || 0,
+        warehouse: rawData.warehouse,
+        institutionId: institution.id,
       },
-      created_at: new Date(),
-      updated_at: new Date(),
-      imageName: null,
-      idSupplier: null,
-      product_category_id: null,
-      unit_measurement: null,
-      unit_type: null,
-      sku: null,
-      reorder_quantity: null,
-    } as Prisma.productCreateInput;
-    const product = await prisma.product.create({ data: createData });
+    });
 
     res.status(201).json(product);
   } catch (error: any) {
@@ -158,7 +146,6 @@ export const importProducts = async (req: Request, res: Response): Promise<void>
   //   res.status(500).json({ message: "Erreur lors de l'import." });
   // }
  try {
-    // ✅ Récupérer la liste de produits quelle que soit la structure reçue
     const products = Array.isArray(req.body)
       ? req.body
       : Array.isArray(req.body.products)
@@ -203,9 +190,7 @@ export const importProducts = async (req: Request, res: Response): Promise<void>
         const brand = (item.brand || "").trim();
         const designation = (item.designation || "").trim();
         const warehouse = (item.warehouse || "").trim();
-        
-        // ✅ Vérifier si le produit existe
-        const existing = await prisma.product.findUnique({
+                const existing = await prisma.product.findUnique({
           where: { EANCode: item.EANCode },
         });
 
@@ -219,7 +204,7 @@ export const importProducts = async (req: Request, res: Response): Promise<void>
             sellingPriceTTC,
             restockingThreshold,
             warehouse,
-            institutionId: institution.id, // ✅ liaison directe
+            institutionId: institution.id,
           },
           create: {
             id: uuidv4(),

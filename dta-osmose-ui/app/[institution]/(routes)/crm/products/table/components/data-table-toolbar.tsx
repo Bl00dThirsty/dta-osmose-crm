@@ -23,8 +23,6 @@ import { quantityLevel, statuses } from "../data/data"
 import { toast } from "react-toastify";
 import { saveAs } from "file-saver";
 
-// Use the ProductFormData type from AddProductDialog to avoid type conflicts
-type ProductFormData = AddProductFormData;
 
 type ProductRow = {
   id?: string;
@@ -57,7 +55,6 @@ export function DataTableToolbar({ table }: DataTableToolbarProps) {
   const { institution } = useParams() as { institution: string };
 
   const [createProduct] = useCreateProductMutation();
-  const [importProducts] = useImportProductsMutation(); // Déplacé à l'intérieur du composant
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -122,30 +119,12 @@ const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
       throw new Error(result.message || "Erreur lors de l'import");
     }
 
-    toast.success(`✅ Import terminé : ${result.imported} ajoutés, ${result.updated} mis à jour, ${result.skipped} ignorés`);
+    toast.success(`Import terminé : ${result.imported} ajoutés, ${result.updated} mis à jour, ${result.skipped} ignorés`);
   } catch (err: any) {
     console.error("Erreur import Excel:", err);
-    toast.error("❌ Erreur lors de l'import : " + err.message);
+    toast.error("Erreur lors de l'import : " + err.message);
   }
 };
-
-  const handleCreateProduct = (productData: ProductFormData) => {
-    // Ensure institutionId is set
-    const dataWithInstitution = { ...productData, institutionId: institution };
-    createProduct({ data: dataWithInstitution, institution })
-      .unwrap()
-      .then(() => {
-        toast.success("Produit ajouté");
-      })
-      .catch((error: any) => {
-        console.error("Erreur lors de la création :", error?.data || error.message || error);
-        toast.error("Erreur lors de l'ajout d'un produit, essayez à nouveau");
-      });
-  };
-
-  
-
-
 
   // const handleExport = () => {
   //   const rows = table.getFilteredRowModel().rows
@@ -241,7 +220,10 @@ const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         )}
       </div>
       <div className="flex items-center gap-2">
-        <AddProductDialog onCreate={handleCreateProduct} institution={institution} />
+        <AddProductDialog
+          onCreate={(productData) => createProduct({ data: productData, institution })}
+          institution={institution}
+        />
         <Dialog>
           <DialogTrigger asChild>
             <Button variant="outline" className="px-2 lg:px-3">
@@ -258,10 +240,10 @@ const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
               Envoyer
             </Button> */}
             <Input
-  type="file"
-  accept=".xlsx, .xls"
-  onChange={handleUpload}
-/>
+              type="file"
+              accept=".xlsx, .xls"
+              onChange={handleUpload}
+            />
 
           </DialogContent>
         </Dialog>
