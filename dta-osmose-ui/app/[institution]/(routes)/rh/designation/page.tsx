@@ -16,7 +16,7 @@ const DesignationsPage = () => {
 
   useEffect(() => {
     if (!token) {
-      router.push('/sign-in');
+      router.push('/');
     }
   }, [token]);
 const { data: designation, isLoading, isError } = useGetDesignationsQuery()
@@ -28,7 +28,7 @@ if (isError) return <p>Erreur lors du chargement.</p>
   return (
     <Container
       title="Tableau des différents postes"
-      description="Ce composant affiche une vue d'ensemble des postes définis et enregistrés de l'entreprise."
+      description="Vue d'ensemble des postes définis et enregistrés de l'entreprise."
     >
     <div className="h-full w-full overflow-x-auto">
       <section className="overflow-hidden rounded-[0.5rem] border bg-background shadow-zinc-50">

@@ -16,7 +16,8 @@ const initWebSocketServer = (server: HttpServer) => {
       origin: [
         "http://localhost:3000", // Frontend local
         "http://127.0.0.1:3000", // Alias localhost
-        "https://dta-osmose-ui.vercel.app", // Frontend déployé
+        "https://dta-osmose-ui.vercel.app",
+        "http://192.168.1.106:3000" // Frontend déployé
       ],
       methods: ["GET", "POST"], // Méthodes autorisées
       credentials: true // Autorise l'envoi des cookies

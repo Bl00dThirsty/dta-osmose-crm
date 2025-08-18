@@ -66,7 +66,7 @@ const UsersPage = () => {
 
   useEffect(() => {
     if (!token) {
-      router.push('/sign-in');
+      router.push('/');
     }
   }, [token]);
 
@@ -74,7 +74,7 @@ const UsersPage = () => {
   return (
     <Container
       title="Tableau des différents utilisateurs"
-      description="En cours de développement... Ce composant affiche une vue d'ensemble des utilisateurs et employés définis et enregistrés."
+      description="Vue d'ensemble des utilisateurs et employés définis et enregistrés."
     >
     <div className="h-full w-full overflow-x-auto">
       <section className="overflow-hidden rounded-[0.5rem] border bg-background shadow-zinc-50">

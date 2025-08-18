@@ -1,7 +1,7 @@
 import "./globals.css";
 import { Inter } from "next/font/google";
 import { ReactNode } from "react";
-import { Toaster as SonnerToaster } from "@/components/ui/sonner";
+// import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/app/providers/ThemeProvider";
 import { AuthProvider } from "./[institution]/(auth)/sign-in/context/authContext";
 import store from "@/redux/store";
@@ -22,9 +22,10 @@ export default function RootLayout({ children }: Props) {
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <Providers>
           {children}
+          <ToastProvider />
         </Providers>
         </ThemeProvider>
-        <SonnerToaster />
+        {/* <SonnerToaster /> */}
         <ToastProvider />
       </body>
     </html>

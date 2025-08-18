@@ -71,11 +71,15 @@ export const columns: ColumnDef<Customer>[] = [
     cell: ({ row }) => <div className="w-[100px]">{row.getValue("nameresponsable")}</div>,
   },
   {
-    accessorKey: "type_customer",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="type" />
-    ),
-    cell: ({ row }) => <div className="w-[100px]">{row.getValue("type_customer")}</div>,
+      accessorKey: "user.firstName",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Créateur" />
+      ),
+      cell: ({ row }) => {
+        const designation1 = row.original.user?.firstName ?? "aucun";
+        const forename = row.original.user?.lastName ?? "aucun"
+        return <div className="w-[120px]">{designation1} {forename}</div>;
+      },
   },
   {
     accessorKey: "quarter",

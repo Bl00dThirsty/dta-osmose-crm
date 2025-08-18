@@ -274,14 +274,14 @@ export const createClaims = async (
   ): Promise<void> => {
     try {
         const { id } = req.params; // Récupération de l'ID depuis les paramètres de la requête
-  
+        const { status, description } = req.body;
         const existingClaim = await prisma.claim.findUnique({
           where: { 
             id 
           }
         });
         // Vérifier si le user existe
-        if (!existingClaim) {
+        if (!existingClaim || status === "ACCEPTED") {
           res.status(404).json({ message: "Claim non trouvé" });
           console.log("Pas trouver de cliam")
           return;

@@ -13,7 +13,7 @@ const UsersPage = () => {
 
   useEffect(() => {
     if (!token) {
-      router.push('/sign-in');
+      router.push('/');
     }
   }, [token]);
 
@@ -21,12 +21,12 @@ const UsersPage = () => {
   return (
     <Container
       title="Ajout des utilisateurs"
-      description="En cours de développement... Ce composant affiche le formulaire d'ajout des utilisateurs."
+      description="Formulaire d'ajout des utilisateurs."
     >
     <div className="h-full w-full overflow-x-auto">
       <section className="overflow-hidden rounded-[0.5rem] border bg-background shadow-zinc-50">
       <RegisterComponent/>
-        </section>
+      </section>
       </div>
     </Container>
   );

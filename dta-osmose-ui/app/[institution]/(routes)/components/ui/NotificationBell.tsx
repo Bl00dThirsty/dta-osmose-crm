@@ -38,12 +38,12 @@ function NotificationBell() {
     //setUserType(localStorage.getItem('role'));
     // Identify the user when they connect
     if (userId) {
-      console.log(`Customer ${userId} is identifying`);
+      console.log(`User ${userId} is identifying`);
       socket.emit("identify", { userId });
     }
 
     // Handle incoming notifications
-    const handleCustomerNotification = (notification:any) => {
+    const handleUserNotification = (notification:any) => {
       console.log("Received notification:", notification);
 
       if (notification && notification.id && notification.type) {
@@ -78,11 +78,11 @@ function NotificationBell() {
     };
 
     // Listen for customer notifications
-    socket.on("customer-notification", handleCustomerNotification);
+    socket.on("user-notification", handleUserNotification);
 
     // Clean up event listener on component unmount
     return () => {
-      socket.off("customer-notification", handleCustomerNotification);
+      socket.off("user-notification", handleUserNotification);
     };
   }, [userId]);
 

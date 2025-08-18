@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import {
   ArrowLeft,
 } from "lucide-react";
+import { toast } from 'react-toastify';
 
 const PaymentPage = () => {
     const params = useParams();
@@ -62,7 +63,10 @@ const PaymentPage = () => {
 const handleMontantDonneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   const val = Number(e.target.value);
   setpaidAmount(val);
-
+  // if(val > dueAmount){
+  //   toast.error("le montant donné est superieur au montant a donner")
+  //   return
+  // }
   const restant = (sale?.dueAmount ?? 0) - (discount ?? 0) - val;
   setdueAmount(restant > 0 ? restant : 0);
 };

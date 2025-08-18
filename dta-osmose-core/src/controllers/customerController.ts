@@ -27,6 +27,10 @@ export const getCustomers = async (
             contains: search,
           },
         },
+        include: {
+          credits: true,        
+          user: true,          
+        },
       });
       res.json(customers);
     } catch (error) {
@@ -39,11 +43,16 @@ export const getCustomers = async (
     console.log("Received payload:", req.body);
     try {
     // 2. Nettoyage des données
+    const userAuth = req.auth as { sub?: number };
+    if (!userAuth?.sub) {
+      res.status(401).json({ error: "Utilisateur non authentifié" });
+      return;
+    }
     
     const hash = await bcrypt.hash(req.body.password, saltRounds);
     const payload = {
       ...req.body,
-      //id: uuidv4(),
+      userId: userAuth.sub,
       password: hash, // Force l'utilisation de l'UUID auto-généré
       created_at: undefined,
       updated_at: undefined
@@ -51,6 +60,7 @@ export const getCustomers = async (
         // 3. Création avec gestion explicite des erreurs Prisma
         const customer = await prisma.customer.create({
           data: payload
+          
         });
 
         const { password: _pw, ...customerWithoutPassword } = customer;
@@ -103,7 +113,7 @@ export const sendTokenResetPassword = async (req: Request, res: Response): Promi
           <p>Bonjour ${customer.name},</p>
           <p>Veuillez cliquer sur ce lien pour réinitialiser votre mot de passe :</p>
             <a href="${resetUrl}">${resetUrl}</a>
-          <p>Ce lien n'est valable pour qu'une (1h) heure uniquement.</p>
+          <p>Ce lien n'est valable que pour une (1h) heure uniquement.</p>
           <p>Si vous n'avez pas demandé cette réinitialisation, veuillez ignorer cet e-mail.</p>
         </div>
       `
@@ -171,7 +181,9 @@ export const getSingleCustomer = async (
             createdAt: "desc", 
           },
         },
-        credits: true
+        credits: true,        
+        user: true,
+          
       },
     });
 

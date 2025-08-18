@@ -1,7 +1,7 @@
 "use client"
 
 import { Row } from "@tanstack/react-table"
-import { MoreHorizontal } from "lucide-react"
+import { MoreHorizontal, Trash2 } from "lucide-react"
 import { useDeleteRoleMutation } from "@/state/api"
 import { Button } from "@/components/ui/button"
 import { useRouter } from 'next/navigation';
@@ -77,7 +77,8 @@ export function DataTableRowActions<TData>({
         <DropdownMenuItem onSelect={() => setOpen(true)} className="text-red-600">
           Supprimer🗑
         </DropdownMenuItem>
-        <DropdownMenuSeparator />
+      <DropdownMenuSeparator />
+        
       </DropdownMenuContent>
     </DropdownMenu>
     <ToastContainer />

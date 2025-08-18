@@ -133,7 +133,7 @@ export default function RegisterComponent() {
 
   return (
     <div className="flex justify-center items-start pt-8 px-4">
-      <Card className="shadow-lg w-full max-w-3xl mx-auto">
+      <Card className="shadow-lg w-full max-w-3xl mx-auto bg-background">
         <form onSubmit={handleSubmit}>
           <CardHeader>
             <CardTitle className="text-2xl">Créer un compte utilisateur</CardTitle>
@@ -156,7 +156,7 @@ export default function RegisterComponent() {
               { label: "Matricule CNPS", name: "CnpsId" }, 
             //   { label: "Groupe sanguin", name: "bloodGroup" },
               //{ label: "Lien vers l'image", name: "image" },
-              { label: "Salaire 💰", name: "salary", type: "number" },
+              { label: "Salaire", name: "salary", type: "number" },
             //   { label: "ID Poste", name: "designationId", type: "number" }, 
               { label: "Numero à contacter en cas d'urgence", name: "emergencyPhone1" },
               { label: "Nom de la personne", name: "emergencyname1"},
@@ -271,7 +271,7 @@ export default function RegisterComponent() {
            </div>
 
             <div>
-              <Label htmlFor="bloodGroup">Groupe Sanguin🩸</Label>
+              <Label htmlFor="bloodGroup">Groupe Sanguin</Label>
               <select
                 name="bloodGroup"
                 className="w-full border rounded-md p-2 mt-2"
