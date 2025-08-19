@@ -289,8 +289,8 @@ const AdminDashboard = ({ dashboardMetrics,
     <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
 
   <DashboardCard
-    title="B n fices"
-    description="B n fices nets"
+    title="Bénéfices"
+    description="Bénéfices nets"
   value={
     <>
       <span className="text-sm">
@@ -308,12 +308,12 @@ const AdminDashboard = ({ dashboardMetrics,
           trend={profitTrend}
           trendDirection={profitTrendDirection}
           footerTop="Comparaison dynamique"
-          footerBottom="Par rapport   la p riode pr c dente"
+          footerBottom="Par rapport   la période précédente"
   />
 
   <DashboardCard
     title="Nombre de ventes"
-    description="Factures g n r es"
+    description="Factures généres"
     value={totalInvoices?.toLocaleString() ?? "0"}
           trend={invoiceTrend}
           trendDirection={invoiceTrendDirection}
@@ -366,16 +366,16 @@ const AdminDashboard = ({ dashboardMetrics,
      trend={totalAvailableCreditTrend}  // ? tendance dynamique calcul e
      trendDirection={totalAvailableCreditTrendDirection}
      footerTop="Comparaison dynamique"
-     footerBottom="Par rapport   la p riode pr c dente"
+     footerBottom="Par rapport   la période précédente"
   />
 
   <DashboardCard
     title="Employ s"
-    description="Utilisateurs enregistr s"
+    description="Utilisateurs enregistrés"
     value={dashboardMetrics?.totalUsers?.toLocaleString() ?? "0"}
     trend="+2.4%"
     trendDirection="up"
-    footerTop="Recrutements r cents"
+    footerTop="Recrutements récents"
     footerBottom="Inclut les utilisateurs actifs"
   />
     </div>
@@ -458,7 +458,7 @@ const AdminDashboard = ({ dashboardMetrics,
      trend={totalAvailableCreditTrend}  // ? tendance dynamique calcul e
      trendDirection={totalAvailableCreditTrendDirection}
      footerTop="Comparaison dynamique"
-     footerBottom="Par rapport   la p riode pr c dente"
+     footerBottom="Par rapport   la période précédente"
   />
 
             {/* Total des Achats */}

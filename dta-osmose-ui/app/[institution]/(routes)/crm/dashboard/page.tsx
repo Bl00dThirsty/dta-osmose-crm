@@ -5,6 +5,7 @@ import Container from "../../components/ui/Container";
 import { useRouter, useParams } from 'next/navigation';
 import { useGetDashboardSalesQuery } from "@/state/api";
 import { SalesBarChart } from "./_components/SalesByCityChart";
+import TopProductsChart  from "./_components/TopProductsChart";
 
 const CrmDashboardPage = () => {
   const router = useRouter();
@@ -111,6 +112,10 @@ const CrmDashboardPage = () => {
 
       {/* --- Contenu à imprimer --- */}
       <div ref={printRef}>
+        {/* Top Produits */}
+        <section className="p-4 overflow-hidden rounded-[0.5rem] border-5 bg-background shadow mb-6">
+          <TopProductsChart institution={institution} />
+        </section>
         {/* --- Ventes par Produit --- */}
         <section className="p-4 overflow-hidden rounded-[0.5rem] border-5 bg-background shadow mb-6">
           <h2 className="text-xl font-semibold mb-4">Ventes par produit</h2>

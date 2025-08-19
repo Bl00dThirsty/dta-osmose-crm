@@ -357,3 +357,35 @@ export const getSalesDashboard = async (req: Request, res: Response): Promise<vo
     res.status(500).json({ error: "Erreur lors du chargement des données de ventes" });
   }
 };
+
+// ---------------------- TOP PRODUITS ----------------------
+export const getTopProducts = async (req: Request, res: Response) => {
+  try {
+    const sales = await prisma.saleItem.groupBy({
+      by: ["productId"],
+      _sum: { quantity: true },
+    });
+
+    const products = await Promise.all(
+      sales.map(async (sale) => {
+        const product = await prisma.product.findUnique({
+          where: { id: sale.productId! },
+          select: { designation: true },
+        });
+
+        return {
+          name: product?.designation ?? "Inconnu",
+          value: sale._sum.quantity ?? 0,
+        };
+      })
+    );
+
+    // Tri décroissant : du plus vendu au moins vendu
+    const sorted = products.sort((a, b) => b.value - a.value);
+
+    res.json(sorted);
+  } catch (error) {
+    console.error("Erreur récupération produits:", error);
+    res.status(500).json({ error: "Impossible de charger les produits" });
+  }
+};
