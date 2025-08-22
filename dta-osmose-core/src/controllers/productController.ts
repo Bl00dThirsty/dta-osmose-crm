@@ -36,6 +36,9 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
           },
         }),
       },
+      include: {
+        Promotion: true, 
+      },
     });
 
     res.json(products);
@@ -271,6 +274,9 @@ export const getSingleProduct = async (req: Request, res: Response): Promise<voi
 
     const product = await prisma.product.findUnique({
       where: { id },
+      include: {
+        Promotion: true, 
+      },
     });
 
     if (!product) {
