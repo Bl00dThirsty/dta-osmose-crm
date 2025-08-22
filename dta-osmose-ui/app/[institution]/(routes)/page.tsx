@@ -373,8 +373,6 @@ const AdminDashboard = ({ dashboardMetrics,
     title="Employ s"
     description="Utilisateurs enregistrés"
     value={dashboardMetrics?.totalUsers?.toLocaleString() ?? "0"}
-    trend="+2.4%"
-    trendDirection="up"
     footerTop="Recrutements récents"
     footerBottom="Inclut les utilisateurs actifs"
   />

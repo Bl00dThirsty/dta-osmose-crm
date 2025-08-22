@@ -257,7 +257,7 @@ const previousAvailableCredit = (previousCredits._sum.amount ?? 0) - (previousCr
 // --------------------- DASHBOARD VENTES ---------------------
 export const getSalesDashboard = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { startDate, endDate } = req.query;
+    const { startDate, endDate,customerId,customerIds } = req.query;
     const institutionSlug = req.params.institution;
 
     if (!startDate || !endDate || typeof startDate !== "string" || typeof endDate !== "string") {
@@ -274,9 +274,30 @@ export const getSalesDashboard = async (req: Request, res: Response): Promise<vo
       return;
     }
 
+
+    // --- Filtre client ---
+    let customerFilter: any = {};
+    if (customerIds && typeof customerIds === "string") {
+      const ids = customerIds
+        .split(",")
+        .map(id => Number(id))
+        .filter(id => !isNaN(id));
+      if (ids.length > 0) customerFilter.customerId = { in: ids };
+    } else if (customerId && typeof customerId === "string") {
+      const id = Number(customerId);
+      if (!isNaN(id)) customerFilter.customerId = id;
+    }
+
+    // Récupérer tous les clients de type "Pharmacie"
+const customers = await prisma.customer.findMany({
+  where: { institutionId: institution.id, type_customer: "Pharmacie" },
+  select: { id: true, name: true },
+});
+
+
     // --- Ventes par produit ---
     const saleItems = await prisma.saleItem.findMany({
-      where: { invoice: { institutionId: institution.id, createdAt: { gte: start, lte: end }, paymentStatus: "PAID", delivred: true } },
+      where: { invoice: { institutionId: institution.id, createdAt: { gte: start, lte: end }, paymentStatus: "PAID", delivred: true, ...customerFilter, } },
       select: { productId: true, quantity: true, totalPrice: true },
     });
 
@@ -298,30 +319,13 @@ export const getSalesDashboard = async (req: Request, res: Response): Promise<vo
     }));
 
     // --- Ventes par pharmacie ---
-   /* const invoices = await prisma.saleInvoice.findMany({
-      where: { institutionId: institution.id, paymentStatus: "PAID", delivred: true, createdAt: { gte: start, lte: end } },
-      include: { pharmacy: true, items: true },
-    });
-
-    const salesByPharmacyMap: Record<number, { invoiceCount: number; totalSales: number; totalQuantity: number; pharmacyName: string; city: string }> = {};
-    invoices.forEach(inv => {
-      if (!inv.pharmacyId || !inv.pharmacy) return;
-      const id = inv.pharmacy.id;
-      const name = inv.pharmacy.name;
-      const city = inv.pharmacy.city || "Ville inconnue";
-      if (!salesByPharmacyMap[id]) salesByPharmacyMap[id] = { invoiceCount: 0, totalSales: 0, totalQuantity: 0, pharmacyName: name, city };
-      salesByPharmacyMap[id].invoiceCount += 1;
-      salesByPharmacyMap[id].totalSales += inv.finalAmount ?? 0;
-      salesByPharmacyMap[id].totalQuantity += inv.items.reduce((sum, it) => sum + it.quantity, 0);
-    });
-    const salesByPharmacy = Object.values(salesByPharmacyMap);*/
      const invoices = await prisma.saleInvoice.findMany({
       where: {
         institutionId: institution.id,
         paymentStatus: "PAID",
         delivred: true,
         createdAt: { gte: start, lte: end },
-        customer: { type_customer: "Pharmacie" } // filtre seulement les pharmacies
+        customer: { type_customer: "Pharmacie" }, ...customerFilter, // filtre seulement les pharmacies
       },
       include: { customer: true, items: true },
     });
@@ -350,29 +354,20 @@ export const getSalesDashboard = async (req: Request, res: Response): Promise<vo
     const salesByCity = Object.entries(salesByCityMap).map(([city, data]) => ({ cityName: city, ...data }));
 
 
+// ------------------ TOP PRODUITS ------------------
+    const productSales = await prisma.saleItem.groupBy({
+    by: ["productId"],
+    _sum: { quantity: true },
+    orderBy: { _sum: { quantity: "desc" } },
+    take: 10, // top 10 produits
+  });
 
-    res.json({ salesByProduct, salesByPharmacy, salesByCity });
-  } catch (error) {
-    console.error("Dashboard ventes error:", error);
-    res.status(500).json({ error: "Erreur lors du chargement des données de ventes" });
-  }
-};
-
-// ---------------------- TOP PRODUITS ----------------------
-export const getTopProducts = async (req: Request, res: Response) => {
-  try {
-    const sales = await prisma.saleItem.groupBy({
-      by: ["productId"],
-      _sum: { quantity: true },
-    });
-
-    const products = await Promise.all(
-      sales.map(async (sale) => {
+    const topProducts = await Promise.all(
+      productSales.map(async (sale) => {
         const product = await prisma.product.findUnique({
           where: { id: sale.productId! },
           select: { designation: true },
         });
-
         return {
           name: product?.designation ?? "Inconnu",
           value: sale._sum.quantity ?? 0,
@@ -380,12 +375,133 @@ export const getTopProducts = async (req: Request, res: Response) => {
       })
     );
 
-    // Tri décroissant : du plus vendu au moins vendu
-    const sorted = products.sort((a, b) => b.value - a.value);
+    const sortedTopProducts = topProducts.sort((a, b) => b.value - a.value);
 
-    res.json(sorted);
+    // ------------------ TOP CLIENTS ------------------
+    const groupedCustomers = await prisma.saleInvoice.groupBy({
+      by: ["customerId"],
+      _sum: { totalAmount: true },
+      _count: { id: true },
+      orderBy: { _sum: { totalAmount: "desc" } },
+      take: 10,
+    });
+
+    const customersWithData = await Promise.all(
+      groupedCustomers.map(async (sale) => {
+        const customer = await prisma.customer.findUnique({
+          where: { id: sale.customerId },
+          select: { id: true, name: true, email: true },
+        });
+        return {
+          customerId: sale.customerId,
+          customerName: customer?.name ?? "Inconnu",
+          customerEmail: customer?.email ?? "",
+          totalAmount: sale._sum?.totalAmount ?? 0,
+          invoiceCount: sale._count?.id ?? 0,
+        };
+      })
+    );
+
+    const sixMonthsAgo = subMonths(new Date(), 6);
+    const salesHistory = await prisma.saleInvoice.groupBy({
+      by: ["customerId", "createdAt"],
+      where: { createdAt: { gte: sixMonthsAgo } },
+      _sum: { totalAmount: true },
+    });
+
+    const historyByCustomer: Record<string, { month: string; total: number }[]> = {};
+    salesHistory.forEach((sale) => {
+      const monthKey = new Date(sale.createdAt).toLocaleString("default", { month: "short", year: "numeric" });
+      if (!historyByCustomer[sale.customerId]) historyByCustomer[sale.customerId] = [];
+      historyByCustomer[sale.customerId].push({ month: monthKey, total: sale._sum?.totalAmount ?? 0 });
+    });
+
+    const topCustomers = customersWithData.map((c) => ({
+      ...c,
+      history: historyByCustomer[c.customerId] ?? [],
+    }));
+
+   // ---------------------- Produits préférés par client ----------------------
+   const withCustomer = await prisma.saleItem.findMany({
+  where: {
+    invoice: {
+      institutionId: institution.id,
+      createdAt: { gte: start, lte: end },
+      paymentStatus: "PAID",
+      delivred: true, ...customerFilter,
+    },
+  },
+  select: {
+    productId: true,
+    quantity: true,
+    invoice: { select: { customerId: true } },
+  },
+});
+
+// 1️⃣ Regrouper les produits préférés par client
+const preferredByCustomer: Record<string, { productId: string; total: number }> = {};
+withCustomer.forEach((row) => {
+  const customerId = row.invoice?.customerId;
+  if (!customerId) return;
+
+  const current = preferredByCustomer[customerId];
+  if (!current || row.quantity > current.total) {
+    preferredByCustomer[customerId] = { productId: row.productId, total: row.quantity };
+  }
+});
+
+// 2️⃣ Récupérer les IDs
+const preferredCustomerIds = Object.keys(preferredByCustomer).map(id => Number(id)); // convertir en number
+const favoriteProductIds = Object.values(preferredByCustomer).map((d) => d.productId);
+
+// 3️⃣ Récupérer les données clients et produits
+const [favCustomers, favProducts] = await Promise.all([
+  prisma.customer.findMany({
+    where: { id: { in: preferredCustomerIds } },
+    select: { id: true, name: true },
+  }),
+  prisma.product.findMany({
+    where: { id: { in: favoriteProductIds } },
+    select: { id: true, designation: true },
+  }),
+]);
+
+// 4️⃣ Créer des maps pour un accès rapide
+const favCustomersMap = favCustomers.reduce<Record<string, string>>((acc, c) => {
+  acc[c.id] = c.name;
+  return acc;
+}, {});
+
+const favProductsMap = favProducts.reduce<Record<string, string>>((acc, p) => {
+  acc[p.id] = p.designation;
+  return acc;
+}, {});
+
+// 5️⃣ Construire le tableau final
+const favoriteProductsByCustomer = Object.entries(preferredByCustomer).map(([customerId, data]) => ({
+  customerId,
+  customerName: favCustomersMap[customerId] ?? "Inconnu",
+  favoriteProduct: favProductsMap[data.productId] ?? "Inconnu",
+  totalBought: data.total,
+}));
+
+console.log(favoriteProductsByCustomer);
+
+
+
+    // ------------------ RÉPONSE ------------------
+    res.json({
+      salesByProduct,
+      salesByPharmacy,
+      salesByCity,
+      topProducts: sortedTopProducts,
+      topCustomers,
+      favoriteProductsByCustomer,
+      customers,
+    });
   } catch (error) {
-    console.error("Erreur récupération produits:", error);
-    res.status(500).json({ error: "Impossible de charger les produits" });
+    console.error("Dashboard ventes error:", error);
+    res.status(500).json({ error: "Erreur lors du chargement des données de ventes" });
   }
 };
+

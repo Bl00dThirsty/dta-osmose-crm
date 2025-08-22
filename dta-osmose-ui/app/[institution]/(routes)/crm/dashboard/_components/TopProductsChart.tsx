@@ -1,26 +1,34 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import { useGetTopProductsQuery } from "@/state/api";
 
-export default function TopProductsChart({ institution }: { institution: string }) {
-  const { data = [], isLoading } = useGetTopProductsQuery({ institution });
 
-  const COLORS_TOP = ["#3b45d1ff", "#60a5fa"]; // top vendus
-  const COLORS_LOW = ["#f472b6", "#34d399"]; // moins vendus
+interface TopProductsChartProps {
+  data: { designation: string; totalQuantity: number }[];
+  isLoading: boolean;
+}
+
+export default function TopProductsChart({ data, isLoading }: TopProductsChartProps) {
+  const COLORS_TOP = ["#3b45d1", "#60a5fa"];
+  const COLORS_LOW = ["#f472b6", "#34d399"];
 
   if (isLoading) return <div>Chargement...</div>;
-  if (!data.length) return <div>Aucune donnée disponible</div>;
+  if (!data?.length) return <div>Aucune donnée disponible</div>;
 
-  // Séparer top et low produits (par exemple top 5 et bottom 5)
-  const topProducts = data.slice(0, 5);
-  const lowProducts = data.slice(-5);
+  // top 5 et bottom 5
+  const topProducts = data.slice(0, Math.min(5, data.length));
+  const lowProducts = data.slice(-Math.min(5, data.length));
+
+  /*const pieData = [
+    ...topProducts.map((p) => ({ name: p.productName, value: p.totalQuantity })),
+    ...lowProducts.map((p) => ({ name: p.productName, value: p.totalQuantity })),
+  ];*/
 
   const pieData = [...topProducts, ...lowProducts];
 
   return (
     <Card className="w-full h-80">
       <CardHeader>
-        <CardTitle>Top Produits</CardTitle>
+        <CardTitle className="text-xl font-semibold mb-4">Top Produits</CardTitle>
       </CardHeader>
       <CardContent className="h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
