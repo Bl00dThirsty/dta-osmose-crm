@@ -9,6 +9,20 @@ require("dotenv").config();
 const prisma = new PrismaClient();
 const saltRounds = 10;
 
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  @Author:    John MANGA | Digit-Tech-Innov solutions and services
+  @Creation:  23.08.2025
+  ----------------------------------------------------------------
+  @Function Description: Deletes all data from specified Prisma models in 
+  right order to respect foreign key constraints.
+  ----------------------------------------------------------------
+  @parameter: orderedFileNames: string[] 
+  - Array of JSON file names corresponding to Prisma models
+  ----------------------------------------------------------------
+  @Returnvalue: Promise<void> 
+  - Resolves when all data deletion operations are complete, 
+  or throws an error if a model is not found or a database operation fails.
+  +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
 async function deleteAllData(orderedFileNames: string[]) {
   const modelNames = orderedFileNames.map((fileName) => {
@@ -16,6 +30,8 @@ async function deleteAllData(orderedFileNames: string[]) {
     return modelName.charAt(0) + modelName.slice(1);
   });
   // await prisma.institution.deleteMany({})
+  const reversedModelNames = [...modelNames].reverse();
+
   for (const modelName of modelNames) {
     const model: any = prisma[modelName as keyof typeof prisma];
     if (model) {

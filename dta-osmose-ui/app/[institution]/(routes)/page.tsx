@@ -113,7 +113,7 @@ const { trend: profitTrend, trendDirection: profitTrendDirection } = getDynamicT
 const { trend: invoiceTrend, trendDirection: invoiceTrendDirection } = getDynamicTrend(totalInvoices, previousInvoices);
 const { trend: totalAvailableCreditTrend, trendDirection: totalAvailableCreditTrendDirection } = getDynamicTrend(totalAvailableCredit, previousAvailableCredit);
 
-
+/*
 console.log("Factures actuelles:", totalInvoices, "Factures pr c dentes:", previousInvoices);
 console.log("Tendances calcul es :");
 console.log(`Ventes : ${salesTrend} (${salesTrendDirection})`);
@@ -130,7 +130,7 @@ console.log("?? totalAvailableCredit:", totalAvailableCredit);
 console.log("?? B n fices");
 console.log("  - Actuel :", totalProfits.toLocaleString("fr-FR"), " ");
 console.log("  - Pr c dent :", previousProfits.toLocaleString("fr-FR"), " ");
-console.log(`  - Tendance : ${profitTrend} (${profitTrendDirection})`);
+console.log(`  - Tendance : ${profitTrend} (${profitTrendDirection})`);*/
 
 // Fonction d impression
   const handlePrint = () => {
