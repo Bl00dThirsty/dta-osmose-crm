@@ -99,8 +99,60 @@ export const columns: ColumnDef<Product>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Entrepôt de stockage" />
     ),
-    cell: ({ row }) => <div>{row.getValue("warehouse")}</div>,
+    cell: ({ row }) => <div className="w-[100px]">{row.getValue("warehouse")}</div>,
   },
+//   {
+//   accessorKey: "Promotion",
+//   header: ({ column }) => (
+//     <DataTableColumnHeader column={column} title="Promotion" />
+//   ),
+//   cell: ({ row }) => {
+//     const promotions = row.original.Promotion;
+//     const activePromo = promotions?.find(p => p.status === true);
+
+//     return (
+//       <button
+//         className={`px-2 py-1 rounded text-white ${
+//           activePromo ? "bg-green-500" : "bg-red-500"
+//         }`}
+//       >
+//         {activePromo ? "En cours" : "Aucune"}
+//       </button>
+//     );
+//   },
+// },
+{
+  accessorKey: "Promotion",
+  header: ({ column }) => (
+    <DataTableColumnHeader column={column} title="Promotions" />
+  ),
+  cell: ({ row }) => {
+    const promotions = row.original.Promotion || [];
+
+    if (promotions.length === 0) {
+      return (
+        <span className="px-2 py-1 rounded bg-red-500 text-white">Aucune</span>
+      );
+    }
+
+    return (
+      <div className="flex flex-wrap gap-1">
+        {promotions.map((promo, i) => (
+          <span
+            key={i}
+            className={`px-2 py-1 rounded text-white ${
+              promo.status ? "bg-green-500" : "bg-gray-400"
+            }`}
+          >
+            {promo.title || "Promo"} {promo.status ? "✓" : "✗"}
+          </span>
+        ))}
+      </div>
+    );
+  },
+},
+
+
   {
     id: "actions",
     header: ({ column }) => (

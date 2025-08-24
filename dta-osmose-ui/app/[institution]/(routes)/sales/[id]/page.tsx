@@ -6,7 +6,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useState } from "react"
 import PrintUserSheet from "./Facture"
 import { Row } from "@tanstack/react-table"
-import { useDeleteSaleInvoiceMutation, useUpdateSaleStatusMutation } from '@/state/api';
+import { useDeleteSaleInvoiceMutation, useUpdateSaleStatusMutation, useGetActivePromotionsQuery } from '@/state/api';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import Container from "../../components/ui/Container";
 import { toast } from "react-toastify";

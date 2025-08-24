@@ -23,44 +23,66 @@ import { quantityLevel, statuses } from "../data/data"
 import { toast } from "react-toastify";
 import { saveAs } from "file-saver";
 
+// Use the ProductFormData type from AddProductDialog to avoid type conflicts
+// type ProductFormData = AddProductFormData;
 
-type ProductRow = {
-  id?: string;
-  EANCode?: string;
-  brand: string;
-  designation: string;
-  quantity: number;
-  purchase_price: number;
-  sellingPriceTTC: number;
-  restockingThreshold: number;
-  warehouse: string;
-  created_at?: Date;
-  updated_at?: Date;
-  institutionId?: string;
-  imageName?: string;
-  idSupplier?: number;
-  product_category_id?: number;
-  unit_measurement?: number;
-  unit_type?: string;
-  sku?: string;
-  reorder_quantity?: number;
-};
+// type ProductRow = {
+//   id?: string;
+//   EANCode?: string;
+//   brand: string;
+//   designation: string;
+//   quantity: number;
+//   purchase_price: number;
+//   sellingPriceTTC: number;
+//   restockingThreshold: number;
+//   warehouse: string;
+//   created_at?: Date;
+//   updated_at?: Date;
+//   institutionId?: string;
+//   imageName?: string;
+//   idSupplier?: number;
+//   product_category_id?: number;
+//   unit_measurement?: number;
+//   unit_type?: string;
+//   sku?: string;
+//   reorder_quantity?: number;
+// };
 
-interface DataTableToolbarProps {
-  table: Table<ProductRow>;
+// interface DataTableToolbarProps {
+//   table: Table<ProductRow>;
+// }
+
+type ProductFormData = {
+  quantity: number
+  EANCode: string
+  brand: string
+  designation: string
+  restockingThreshold: number
+  warehouse: string
+  sellingPriceTTC: number
+  purchase_price: number
 }
 
-export function DataTableToolbar({ table }: DataTableToolbarProps) {
+interface DataTableToolbarProps<TData> {
+  table: Table<TData>
+}
+
+export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
   const { institution } = useParams() as { institution: string };
 
   const [createProduct] = useCreateProductMutation();
+  // Déplacé à l'intérieur du composant
   const [file, setFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
 
-  if (!institution) {
-    toast.error("Institution non définie dans les paramètres URL.");
-    return null;
+  const handleCreateProduct = async (productData: ProductFormData) => {
+    try {
+      await createProduct({ data: productData, institution }).unwrap()
+      toast.success("Produit ajouté");
+    } catch (error: any) {
+        console.log("Erreur lors de la création :", error?.data || error.message || error)
+        toast.error("Erreur lors l'ajout d'un produit, essayez à nouveau");
+    }
   }
 
 
@@ -125,6 +147,22 @@ const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     toast.error("Erreur lors de l'import : " + err.message);
   }
 };
+
+  // const handleCreateProduct = (productData: ProductFormData) => {
+  //   // Ensure institutionId is set
+  //   const dataWithInstitution = { ...productData, institutionId: institution };
+  //   createProduct({ data: dataWithInstitution, institution })
+  //     .unwrap()
+  //     .then(() => {
+  //       toast.success("Produit ajouté");
+  //     })
+  //     .catch((error: any) => {
+  //       console.error("Erreur lors de la création :", error?.data || error.message || error);
+  //       toast.error("Erreur lors de l'ajout d'un produit, essayez à nouveau");
+  //     });
+  // };
+
+
 
   // const handleExport = () => {
   //   const rows = table.getFilteredRowModel().rows

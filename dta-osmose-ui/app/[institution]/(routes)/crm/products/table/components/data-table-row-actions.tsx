@@ -151,7 +151,7 @@ const handleUpdate = async () => {
       <DialogTitle>Modifier le produit</DialogTitle>
     </DialogHeader>
     <div className="grid gap-4 py-4">
-      <Label htmlFor="role">EAN Code</Label>
+      <Label htmlFor="EANCode">EAN Code</Label>
       <input
         type="text"
         placeholder="EAN Code"
@@ -159,7 +159,7 @@ const handleUpdate = async () => {
         onChange={(e) => setFormData({ ...formData, EANCode: e.target.value })}
         className="border p-2 rounded"
       />
-      <Label htmlFor="role">Marque</Label>
+      <Label htmlFor="brand">Marque</Label>
       <input
         type="text"
         placeholder="Marque"
@@ -167,7 +167,7 @@ const handleUpdate = async () => {
         onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
         className="border p-2 rounded"
       />
-      <Label htmlFor="role">Désignation</Label>
+      <Label htmlFor="designation">Désignation</Label>
       <input
         type="text"
         placeholder="Désignation"
@@ -175,7 +175,7 @@ const handleUpdate = async () => {
         onChange={(e) => setFormData({ ...formData, designation: e.target.value })}
         className="border p-2 rounded"
       />
-      <Label htmlFor="role">Quantité</Label>
+      <Label htmlFor="quantity">Quantité</Label>
       <input
         type="number"
         placeholder="Quantité"
@@ -183,7 +183,7 @@ const handleUpdate = async () => {
         onChange={(e) => setFormData({ ...formData, quantity: Number(e.target.value) })}
         className="border p-2 rounded"
       />
-      <Label htmlFor="role">Prix d'achat</Label>
+      <Label htmlFor="purchase_price">Prix d'achat</Label>
       <input
         type="number"
         placeholder="Prix achat"
@@ -191,7 +191,7 @@ const handleUpdate = async () => {
         onChange={(e) => setFormData({ ...formData, purchase_price: Number(e.target.value) })}
         className="border p-2 rounded"
       />
-      <Label htmlFor="role">Prix vente TTC</Label>
+      <Label htmlFor="sellingPriceTTC">Prix vente TTC</Label>
       <input
         type="number"
         placeholder="Prix vente TTC"
@@ -199,7 +199,7 @@ const handleUpdate = async () => {
         onChange={(e) => setFormData({ ...formData, sellingPriceTTC: Number(e.target.value) })}
         className="border p-2 rounded"
       />
-      <Label htmlFor="role">Seuil de réapprovisionnement</Label>
+      <Label htmlFor="restockingThreshold">Seuil de réapprovisionnement</Label>
       <input
         type="number"
         placeholder="Seuil réapprovisionnement"
@@ -207,7 +207,7 @@ const handleUpdate = async () => {
         onChange={(e) => setFormData({ ...formData, restockingThreshold: Number(e.target.value) })}
         className="border p-2 rounded"
       />
-      <Label htmlFor="role">Entrepôt</Label>
+      <Label htmlFor="warehouse">Entrepôt</Label>
       <input
         type="text"
         placeholder="Entrepôt"

@@ -31,12 +31,12 @@ const PrintToPdf = forwardRef<HTMLDivElement, PrintToPdfProps>(({ sale }, ref) =
             <img
               src={logoSrc}
               alt="Logo"
-              className="w-10 h-auto object-contain" // Ajustez la taille du logo
-              style={{
-                maxWidth: "100px", // Limite la largeur à 100px
-                maxHeight: "100px",
-                objectFit: "cover"
-              }}
+              className="w-full h-20 object-cover rounded-lg" // Ajustez la taille du logo
+              // style={{
+              //   maxWidth: "100px", // Limite la largeur à 100px
+              //   maxHeight: "100px",
+              //   objectFit: "cover"
+              // }}
             />
           </div>
           {setting && (
