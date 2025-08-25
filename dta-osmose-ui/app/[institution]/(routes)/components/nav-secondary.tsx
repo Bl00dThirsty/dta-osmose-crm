@@ -23,6 +23,7 @@ export function NavSecondary({
     title: string
     url: string
     icon: Icon
+    comingSoon?: boolean
   }[]
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
   const { resolvedTheme, setTheme } = useTheme()
