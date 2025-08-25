@@ -1,7 +1,8 @@
 // websocketNotification.ts
 import { Server as HttpServer } from "http";
 import { Server as IOServer } from "socket.io";
-const { PrismaClient } = require("@prisma/client");
+import { PrismaClient } from "@prisma/client";
+//const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
 
@@ -33,7 +34,7 @@ const initWebSocketServer = (server: HttpServer) => {
       if (userId) {
         userSockets[userId] = socket.id;
 
-        const notifications = await prisma.Notification.findMany({
+        const notifications = await prisma.notification.findMany({
           where: { userId, isRead: false }
         });
         notifications.forEach((notif: any) => {
@@ -44,7 +45,7 @@ const initWebSocketServer = (server: HttpServer) => {
       if (customerId) {
         customerSockets[customerId] = socket.id;
 
-        const notifications = await prisma.Notification.findMany({
+        const notifications = await prisma.notification.findMany({
           where: { customerId, isRead: false }
         });
         notifications.forEach((notif: any) => {
@@ -84,7 +85,7 @@ const notifyUserOrCustomer = async ({
   type: string;
 }) => {
   if (userId) {
-    const notif = await prisma.Notification.create({
+    const notif = await prisma.notification.create({
       data: {
         saleId,
         userId,
@@ -100,7 +101,7 @@ const notifyUserOrCustomer = async ({
   }
 
   if (customerId) {
-    const notif = await prisma.Notification.create({
+    const notif = await prisma.notification.create({
       data: {
         saleId,
         customerId,
@@ -126,7 +127,7 @@ const notifyAllUsers = async (saleId: string, message: string, institutionId?: s
   });
 
   for (const user of users) {
-    const notif = await prisma.Notification.create({
+    const notif = await prisma.notification.create({
       data: {
         saleId,
         userId: user.id,

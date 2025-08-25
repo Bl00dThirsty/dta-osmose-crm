@@ -439,6 +439,9 @@ chartData?: {
   };
 }
  export interface DashboardSales {
+  favoriteProductsByCustomer: any;
+  topCustomers: any;
+  topProducts: any;
   salesByProduct: {
     totalSales: any;
     productId: string;
@@ -461,6 +464,10 @@ chartData?: {
     totalQuantity: number;
     totalAmount: number;
   }[];
+  customers?: Array<{
+    id: string;
+    name: string;
+  }>;
 }
 
 export const api = createApi({
@@ -474,7 +481,8 @@ export const api = createApi({
         return headers;
       }, }),
     reducerPath: "api",
-    tagTypes: ["DashboardMetrics", "DashboardSales", "Products", "Users", "Departments", "Designations", "Roles", "Customers", "Sales", "AppSettings", "Claims", "Notifications", "Inventorys", "Promotions"],
+    tagTypes: ["DashboardMetrics", "DashboardSales","getTopProducts","getTopCustomers", "Products", "Users", "Departments", "Designations", "Roles", "Customers", "Sales", "AppSettings", "Claims", "Notifications", "Inventorys", "Promotions"],
+
     endpoints: (build) => ({
         getDashboardMetrics: build.query<DashboardMetrics, { institution: string, startDate?: string; endDate?: string  }>({
             query: ({ institution, startDate, endDate }) => {
@@ -487,16 +495,36 @@ export const api = createApi({
             providesTags: ["DashboardMetrics"]
         }),
 
-         getDashboardSales: build.query<DashboardSales, { institution: string, startDate?: string; endDate?: string  }>({
-            query: ({ institution, startDate, endDate }) => {
+         getDashboardSales: build.query<DashboardSales, { institution: string, startDate?: string; endDate?: string,customerId?: string  }>({
+            query: ({ institution, startDate, endDate,customerId }) => {
               const params = new URLSearchParams();
               if (startDate) params.append("startDate", startDate);
               if (endDate) params.append("endDate", endDate);
+              if (customerId) params.append("customerId", customerId);
           
               return `/dashboard/${institution}/sales?${params.toString()}`;
             },
             providesTags: ["DashboardSales"]
         }),
+
+        /*getTopProducts: build.query<{ name: string; value: number }[], { institution: string }>({
+        query: ({ institution }) => `/dashboard/${institution}/top-products`,
+        providesTags: ["getTopProducts"],
+      }),
+
+      getTopCustomers: build.query<{
+        history: never[];
+        totalAmount: any;
+        invoicesCount: ReactNode;
+        customerEmail: string;
+        customerName: DataKey<any>;
+        customerId: Key | null | undefined; name: string; value: number 
+}[], { institution: string }>({
+        query: ({ institution }) => `/dashboard/${institution}/top-customers`,
+        providesTags: ["getTopCustomers"],
+      }),*/
+        
+
         //Promotion
         createPromotions: build.mutation<Promotion, { institution: string; title?: string;
   discount: number; startDate: Date; endDate: Date; status: boolean; creatorId?: number; productId: string }>({
@@ -550,6 +578,7 @@ export const api = createApi({
         }),
 
         //product
+
         getProducts: build.query<Product[], { institution: string; search?: string }>({
             query: ({ institution, search }) => ({
                 url: `/institutions/${institution}/products`,
@@ -906,8 +935,8 @@ export const api = createApi({
             }),
             providesTags: (result) =>
             result
-              ? [...result.map(({ id }) => ({ type: 'Departments' as const, id })), { type: 'Departments', id: 'LIST' }]
-              : [{ type: 'Departments', id: 'LIST' }],
+              ? [...result.map(({ id }) => ({ type: 'Customers' as const, id })), { type: 'Customers', id: 'LIST' }]
+    : [{ type: 'Customers', id: 'LIST' }],
             
           }),
           createCustomers: build.mutation<Customer, NewCustomer>({
