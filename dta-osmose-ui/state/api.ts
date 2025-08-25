@@ -11,6 +11,7 @@ export interface Product {
   purchase_price: number;
   restockingThreshold: number;
   warehouse: string;
+  Promotion?: Promotion[];
 }
 
 export interface NewProduct {
@@ -346,7 +347,48 @@ export interface Inventory {
   inventoryItems: InventoryItem[];
 };
 
+export interface Promotion {
+  id: string
+  title: string
+  discount: number    // remise en pourcentage
+  startDate: Date
+  endDate: Date
+  status: boolean 
+  creatorId?: number
+  productId?: string 
+  user?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+  }
+  product?:{
+    designation: string;
+    quantity: number;
+    EANCode?: string;
+    sellingPriceTTC: number;
+  }  
+}
 
+export interface NewPromotion {
+  title: string
+  discount: number    // remise en pourcentage
+  startDate: Date
+  endDate: Date
+  status: boolean
+  creatorId?: number
+  productId: string  
+  user: {
+    id: number;
+    firstName: string;
+    lastName: string;
+  } 
+  product?:{
+    designation: string;
+    quantity: number;
+    EANCode?: string;
+    sellingPriceTTC: number;
+  }
+}
 
 export type MetricItem = {
   count: number;
@@ -439,7 +481,8 @@ export const api = createApi({
         return headers;
       }, }),
     reducerPath: "api",
-    tagTypes: ["DashboardMetrics", "DashboardSales","getTopProducts","getTopCustomers", "Products", "Users", "Departments", "Designations", "Roles", "Customers", "Sales", "AppSettings", "Claims", "Notifications", "Inventorys"],
+    tagTypes: ["DashboardMetrics", "DashboardSales","getTopProducts","getTopCustomers", "Products", "Users", "Departments", "Designations", "Roles", "Customers", "Sales", "AppSettings", "Claims", "Notifications", "Inventorys", "Promotions"],
+
     endpoints: (build) => ({
         getDashboardMetrics: build.query<DashboardMetrics, { institution: string, startDate?: string; endDate?: string  }>({
             query: ({ institution, startDate, endDate }) => {
@@ -481,6 +524,61 @@ export const api = createApi({
         providesTags: ["getTopCustomers"],
       }),*/
         
+
+        //Promotion
+        createPromotions: build.mutation<Promotion, { institution: string; title?: string;
+  discount: number; startDate: Date; endDate: Date; status: boolean; creatorId?: number; productId: string }>({
+            query: ({ institution, ...data }) => ({
+              url: `/promotions/${institution}/`,
+              method: "POST",
+              body: data,
+            }),
+            invalidatesTags: ["Promotions"],
+        }), 
+        getActivePromotions: build.query<Promotion[], { institution: string; search?: string }>({
+            query: ({ institution, search }) => ({
+                url: `/promotions/${institution}/active`,
+                params: search ? { search } : {}
+            }),
+            providesTags: ["Promotions"]
+        }),
+        updatePromotionStatus: build.mutation<Promotion, { id: string; status: boolean; }>({
+          query: ({ id, status }) => ({
+            url: `/promotions/${id}/status`,
+            method: 'PATCH',
+            body: { status }
+          }),
+         invalidatesTags: (result, error, { id }) => [{ type: 'Promotions', id }]
+        }),
+        getAllPromotions: build.query<Promotion[], { institution: string; search?: string }>({
+            query: ({ institution, search }) => ({
+                url: `/promotions/${institution}/promo`,
+                params: search ? { search } : {}
+            }),
+            providesTags: ["Promotions"]
+        }),
+        getPromotionsById: build.query<Promotion, string>({
+          query: (id) => `/promotions/${id}`, // Construire l'URL avec l'ID de l'utilisateur
+          providesTags: (result, error, id) => [{ type: "Promotions", id }], // Associer un tag pour l'invalidation
+        }),
+        updatePromotions: build.mutation<Promotion, { id: string; title: string; discount: number; startDate: Date; endDate: Date; creatorId?: number; productId: string}>({
+            query: ({ id, ...data }) => ({
+              url: `/promotions/${id}/update`,
+              method: "PUT",
+              body: data,
+            }),
+            invalidatesTags: (result, error, { id }) => [{ type: 'Promotions' }],
+        }),
+        deletePromotions: build.mutation<void, string>({
+            query: (id) => ({
+              url: `/promotions/${id}`,
+              method: 'DELETE',
+            }),
+            invalidatesTags: (result, error, id ) => [{ type: "Promotions", id }]
+        }),
+
+        //product
+
         getProducts: build.query<Product[], { institution: string; search?: string }>({
             query: ({ institution, search }) => ({
                 url: `/institutions/${institution}/products`,
@@ -500,7 +598,6 @@ export const api = createApi({
           query: (id) => `/institutions/${id}`, // Construire l'URL avec l'ID de l'utilisateur
           providesTags: (result, error, id) => [{ type: "Products", id }], // Associer un tag pour l'invalidation
         }),
-
 
         deleteProduct: build.mutation<void, string>({
             query: (id) => ({
@@ -946,7 +1043,9 @@ export const api = createApi({
 });
 
 
-export const { useGetDashboardMetricsQuery,useGetDashboardSalesQuery, useGetProductsQuery, useCreateProductMutation, useGetProductByIdQuery, useDeleteProductMutation,useUpdateProductMutation, useImportProductsMutation,
+export const { useGetDashboardMetricsQuery,useGetDashboardSalesQuery, 
+  useCreatePromotionsMutation, useGetActivePromotionsQuery, useUpdatePromotionStatusMutation, useGetAllPromotionsQuery, useGetPromotionsByIdQuery, useUpdatePromotionsMutation, useDeletePromotionsMutation, 
+  useGetProductsQuery, useCreateProductMutation, useGetProductByIdQuery, useDeleteProductMutation,useUpdateProductMutation, useImportProductsMutation,
   useCreateInventoryMutation, useGetInventoryQuery, useGetInventoryIdQuery, useUpdateInventoryMutation, useDeleteInventoryMutation, useCreateSaleMutation, useGetCustomerDebtStatusQuery, useGetSalesQuery,
     useGetSaleByIdQuery,useUpdateSaleStatusMutation, useUpdateSalePaymentMutation, useDeleteSaleInvoiceMutation, useCreateClaimMutation, 
     useRespondToClaimMutation, useUpdateClaimResponseMutation, useGetClaimQuery, useGetClaimByIdQuery, useDeleteClaimMutation, useGetDepartmentsQuery, 

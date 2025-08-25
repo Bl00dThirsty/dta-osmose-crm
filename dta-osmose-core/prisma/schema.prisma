@@ -164,10 +164,7 @@ model customer {
   institution                  institution?    @relation(fields: [institutionId], references: [id])
   notification       Notification[]
   user            user?        @relation(fields: [userId], references: [id])
-  //claims    claim[]
-
   
-
   claim claim[]
 }
 
@@ -219,6 +216,7 @@ model institution {
   customer  customer[]
   notification       Notification[]
   inventory          inventory[]
+  Promotion          Promotion[]
 }
 
 model product {
@@ -246,6 +244,7 @@ model product {
   claims                       claim[]
   notification                 Notification[]
   inventoryItem               inventoryItem[]
+  Promotion          Promotion[] @relation(name: "ProductPromotion")
 }
 
 model ProductCounter {
@@ -258,22 +257,6 @@ model ProductCounter {
   @@unique([institution, month, year])
 }
 
-/*model Pharmacy {
-  id           Int           @id @default(autoincrement())
-  name         String
-  address      String?
-  city         String?
-  phone        String?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-
-  // Relation avec les factures
-  saleInvoices saleInvoice[]
-
-  @@map("pharmacy") // nom de la table en DB
-}*/
-//vente given_amount       Float?
- // amount_refunded    Float?
 model saleInvoice {
   id              String      @id @default(uuid())
   invoiceNumber   String      @unique
@@ -362,6 +345,23 @@ model inventoryItem {
   comment        String?
   product      product  @relation(fields: [productId], references: [id])
   inventory    inventory @relation(fields: [inventoryId], references: [id])
+}
+
+model Promotion {
+  id           String   @id @default(uuid())
+  title        String?
+  discount     Float    // remise en pourcentage
+  startDate    DateTime
+  endDate      DateTime
+  status       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now())
+  productId    String
+  product      product  @relation(name: "ProductPromotion", fields: [productId], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "ProductPromotionRelation")
+  institutionId  String
+  institution    institution     @relation(fields: [institutionId], references: [id])
+  creatorId    Int
+  user      user     @relation(fields: [creatorId], references: [id])
 }
 
 
@@ -637,11 +637,10 @@ model user {
   saleInvoice        saleInvoice[]
   customer        customer[]
   department         department?          @relation(fields: [departmentId], references: [id])
-  //claims    claim[]
-
   claim claim[]
   notification       Notification[]
   inventory                    inventory[]
+  Promotion          Promotion[]
 }
 
 

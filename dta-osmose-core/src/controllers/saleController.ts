@@ -86,23 +86,58 @@ export const createSaleInvoice = async (req: Request, res: Response): Promise<vo
       });
       
 
-    // Calcul des totaux
-    //const subtotal = items.reduce((sum:any, item:any) => sum + (item.quantity * item.unitPrice), 0);
-    //const finalAmount = subtotal - (discount || 0);
+const now = new Date();
+
+const validatedItems = await Promise.all(
+  items.map(async (item) => {
+    const product = await prisma.product.findUnique({
+      where: { id: item.productId }
+    });
+
+    if (!product || product.quantity < item.quantity) {
+      throw new Error(`Stock insuffisant pour le produit "${product?.designation}". 
+                       Quantité demandée : ${item.quantity}, Stock disponible : ${product?.quantity || 0}`);
+    }
+
+    const activePromo = await prisma.promotion.findFirst({
+      where: {
+        productId: item.productId,
+        startDate: { lte: now },
+        endDate: { gte: now },
+        status: true,
+      }
+    });
+
+    const unitPrice = activePromo
+      ? product.sellingPriceTTC * (1 - activePromo.discount / 100)
+      : product.sellingPriceTTC;
+
+    return {
+      productId: item.productId,
+      quantity: item.quantity,
+      unitPrice,
+      totalPrice: unitPrice * item.quantity,
+    };
+  })
+);
+
+// Si une erreur est levée dans `Promise.all`, elle sera capturée dans le bloc `catch`.
+console.log("Produits validés :", validatedItems);
+
 
     // Vérification des stocks
-    for (const item of items) {
-      const product = await prisma.product.findUnique({
-        where: { id: item.productId }
-      });
+    // for (const item of items) {
+    //   const product = await prisma.product.findUnique({
+    //     where: { id: item.productId }
+    //   });
 
-      if (!product || product.quantity < item.quantity) {
-          res.status(400).json({
-          error: `Stock insuffisant pour le produit ${product?.designation}`
-        });
-        return;
-      }
-    }
+    //   if (!product || product.quantity < item.quantity) {
+    //       res.status(400).json({
+    //       error: `Stock insuffisant pour le produit ${product?.designation}`
+    //     });
+    //     return;
+    //   }
+    // }
 
     const allProduct = await Promise.all(
       items.map(async (item) => {
@@ -131,7 +166,7 @@ export const createSaleInvoice = async (req: Request, res: Response): Promise<vo
         userId: creatorType === "user" ? Number(creatorId) : undefined,
         customerCreatorId: creatorType === "customer" ? Number(creatorId) : undefined,
         institutionId: institution.id,
-        totalAmount: items.reduce((sum:any, item) => sum + (item.quantity * item.unitPrice), 0),
+        totalAmount: validatedItems.reduce((sum:any, item) => sum + (item.quantity * item.unitPrice), 0),
         discount: discount || 0,
         finalAmount: 0,
         profit: 0,
@@ -139,7 +174,7 @@ export const createSaleInvoice = async (req: Request, res: Response): Promise<vo
         dueAmount: 0,
         paymentMethod,
         items: {
-          create: items.map((item) => ({
+          create: validatedItems.map((item) => ({
             productId: item.productId,
             quantity: item.quantity,
             unitPrice: item.unitPrice,

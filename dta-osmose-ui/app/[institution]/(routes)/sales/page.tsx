@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useGetProductsQuery, useCreateSaleMutation, useGetCustomerDebtStatusQuery } from '@/state/api';
+import { useGetProductsQuery, useCreateSaleMutation, useGetCustomerDebtStatusQuery, useGetActivePromotionsQuery } from '@/state/api';
 import { useGetCustomersQuery } from '@/state/api';
 import { useGetUsersQuery } from '@/state/api';
 import { useRouter, useParams } from 'next/navigation';
@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "react-toastify";
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Badge } from "@/components/ui/badge";
 
 
 export interface Product {
@@ -61,6 +62,8 @@ const CreateSalePage = () => {
   const userRole = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
   const isParticulier = userRole === "Particulier";
   const userId = typeof window !== 'undefined' ? localStorage.getItem('id') : null;
+
+  //dette de plus d'un mois d'un customer
  const { data: debtStatus } = useGetCustomerDebtStatusQuery(
   { 
     customerId: customerId!, 
@@ -71,11 +74,18 @@ const CreateSalePage = () => {
   }
 );
 
+//promotion valide
+ const { data: activePromotions = [] } = useGetActivePromotionsQuery({institution});
+ const getPromoForProduct = (productId: string) => {
+  return activePromotions.find(promo => promo.productId === productId && promo.status);
+};
+
    useEffect(() => {
     if (customerId) {
       //refetchDebtStatus();
     }
   }, [customerId]);
+
   useEffect(() => {
     // Accéder à localStorage uniquement côté client
     const idFromStorage = localStorage.getItem("id");
@@ -151,9 +161,10 @@ const CreateSalePage = () => {
     );
   };
 
-  const handleRemoveProduct = (id: string) => {
+
+const handleRemoveProduct = (id: string) => {
     setSelectedProducts(prev => prev.filter(p => p.id !== id));
-  };
+};
 
   const handleCreateSale = async () => {
     if (!customerId || selectedProducts.length === 0) return;
@@ -189,6 +200,28 @@ const CreateSalePage = () => {
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6">Nouvelle Vente</h1>
+
+            {activePromotions.length > 0 && (
+  <div className="relative mb-5 mx-auto w-fit animate-fade-in animate-pulse">
+    <div className="bg-yellow-100 border-2 border-yellow-500 rounded-xl p-4 shadow-lg relative max-w-md">
+      <div className="absolute -top-3 left-6 w-6 h-6 bg-yellow-100 border-t-2 border-l-2 border-yellow-200 transform rotate-45"></div>
+      
+      <div className="flex items-start">
+        <div className="flex-shrink-0 mr-3">
+          <div className="bg-yellow-100 p-2 rounded-full">
+            <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+        </div>
+        <div>
+          <h3 className="font-bold text-yellow-800">🎉 Des promotions sont disponible ! Profitez-en avant la fin 🎉</h3>
+        </div>
+      </div>
+    </div>
+    <div className="absolute -bottom-1 left-1/4 w-1/2 h-2 bg-red-100 blur-sm opacity-70"></div>
+  </div>
+)}
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Liste des produits */}
@@ -204,26 +237,54 @@ const CreateSalePage = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-             {currentProducts.map(product => (
-            <div
-  key={product.id}
-  className={`border p-3 rounded cursor-pointer ${
-    product.quantity <= 0
-      ? "bg-gray-200 text-gray-500 cursor-not-allowed" // Désactiver le style
-      : "hover:bg-gray-50 hover:text-red-700"
-  }`}
-  onClick={() => product.quantity > 0 && handleAddProduct(product)} // Empêche les clics si stock = 0
->
-  <h3 className="font-bold">{product.designation}</h3>
-  <p>Prix: {product.sellingPriceTTC} €</p>
-  <p className="font-normal text-gray-500">
-    Stock: {product.quantity}{" "}
-    {product.quantity <= 0 && (
-      <span className="text-red-500 font-bold">(Épuisé)</span>
-    )}
-  </p>
-</div>
-           ))}
+            {currentProducts.map(product => {
+  const promo = getPromoForProduct(product.id);
+  const finalPrice = promo 
+    ? product.sellingPriceTTC * (1 - promo.discount / 100) 
+    : product.sellingPriceTTC;
+
+  return (
+    <div
+      key={product.id}
+      className={`border p-3 rounded cursor-pointer ${
+        product.quantity <= 0
+          ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+          : "hover:bg-gray-50 hover:text-red-700"
+      }`}
+      onClick={() => product.quantity > 0 && handleAddProduct({
+        ...product,
+        sellingPriceTTC: finalPrice // ⚡️ Utiliser le prix promo si actif
+      })}
+    >
+      {promo ? ( 
+        <Badge className="top-3 left-3 bg-red-500">-{promo.discount}%</Badge>
+      ) :(
+        <p> </p>
+      )}
+      <h3 className="font-bold">{product.designation}</h3>
+
+      {promo ? (
+        <p>
+          <span className="line-through text-gray-500 mr-2">
+            {product.sellingPriceTTC} F
+          </span>
+          <span className="text-green-600 font-bold mr-2">{finalPrice.toFixed(2)} F</span>
+          {/* <span className='text-red-600'>-{promo.discount}%</span> */}
+        </p>
+      ) : (
+        <p>Prix: {product.sellingPriceTTC} F</p>
+      )}
+
+      <p className="font-normal text-gray-500">
+        Stock: {product.quantity}{" "}
+        {product.quantity <= 0 && (
+          <span className="text-red-500 font-bold">(Épuisé)</span>
+        )}
+      </p>
+    </div>
+  );
+})}
+
           </div>
           <div className="flex justify-center mt-4 space-x-2">
   <Button
@@ -237,7 +298,7 @@ const CreateSalePage = () => {
     <Button
       key={i + 1}
       onClick={() => setCurrentPage(i + 1)}
-      className={`px-3 py-1 rounded ${currentPage === i + 1 ? 'bg-blue-600 text-gray' : 'bg-gray-200'}`}
+      className={`px-3 py-1 rounded ${currentPage === i + 1 ? 'text-gray' : 'bg-gray-200'}`}
     >
       {i + 1}
     </Button>

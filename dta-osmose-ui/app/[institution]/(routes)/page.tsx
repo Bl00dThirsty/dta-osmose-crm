@@ -113,7 +113,7 @@ const { trend: profitTrend, trendDirection: profitTrendDirection } = getDynamicT
 const { trend: invoiceTrend, trendDirection: invoiceTrendDirection } = getDynamicTrend(totalInvoices, previousInvoices);
 const { trend: totalAvailableCreditTrend, trendDirection: totalAvailableCreditTrendDirection } = getDynamicTrend(totalAvailableCredit, previousAvailableCredit);
 
-
+/*
 console.log("Factures actuelles:", totalInvoices, "Factures pr c dentes:", previousInvoices);
 console.log("Tendances calcul es :");
 console.log(`Ventes : ${salesTrend} (${salesTrendDirection})`);
@@ -130,7 +130,7 @@ console.log("?? totalAvailableCredit:", totalAvailableCredit);
 console.log("?? B n fices");
 console.log("  - Actuel :", totalProfits.toLocaleString("fr-FR"), " ");
 console.log("  - Pr c dent :", previousProfits.toLocaleString("fr-FR"), " ");
-console.log(`  - Tendance : ${profitTrend} (${profitTrendDirection})`);
+console.log(`  - Tendance : ${profitTrend} (${profitTrendDirection})`);*/
 
 // Fonction d impression
   const handlePrint = () => {
@@ -308,17 +308,17 @@ const AdminDashboard = ({ dashboardMetrics,
           trend={profitTrend}
           trendDirection={profitTrendDirection}
           footerTop="Comparaison dynamique"
-          footerBottom="Par rapport   la période précédente"
+          footerBottom="Par rapport à la période précédente"
   />
 
   <DashboardCard
     title="Nombre de ventes"
-    description="Factures généres"
+    description="Factures générées"
     value={totalInvoices?.toLocaleString() ?? "0"}
           trend={invoiceTrend}
           trendDirection={invoiceTrendDirection}
           footerTop="Comparaison dynamique"
-          footerBottom="30 jours pr c dents"
+          footerBottom="30 jours précédents"
   />
 
   <DashboardCard
@@ -341,7 +341,7 @@ const AdminDashboard = ({ dashboardMetrics,
           trend={salesTrend}
           trendDirection={salesTrendDirection}
           footerTop="Comparaison dynamique"
-          footerBottom="Bas  sur la p riode pr c dente"
+          footerBottom="Basé sur la période précédente"
 />
 
 
@@ -366,7 +366,7 @@ const AdminDashboard = ({ dashboardMetrics,
      trend={totalAvailableCreditTrend}  // ? tendance dynamique calcul e
      trendDirection={totalAvailableCreditTrendDirection}
      footerTop="Comparaison dynamique"
-     footerBottom="Par rapport   la période précédente"
+     footerBottom="Par rapport à la période précédente"
   />
 
   <DashboardCard
@@ -415,16 +415,16 @@ const AdminDashboard = ({ dashboardMetrics,
           trend={salesTrend}
           trendDirection={salesTrendDirection}
           footerTop="Comparaison dynamique"
-          footerBottom="Par rapport   la p riode pr c dente"
+          footerBottom="Par rapport à la période précédente"
                 />
 
                 <DashboardCard
                   title="Nombre de ventes"
-                  description="Factures g n r es"
+                  description="Factures générées"
                   trend={invoiceTrend}
                   trendDirection={invoiceTrendDirection}
                   footerTop="Comparaison dynamique"
-                  footerBottom="Par rapport   la p riode pr c dente" value={undefined}                />
+                  footerBottom="Par rapport à la période précédente" value={undefined}                />
           </div>
           </div>
           </div>
@@ -438,7 +438,7 @@ const AdminDashboard = ({ dashboardMetrics,
             {/* Mes Avoirs disponibles */}
             <DashboardCard
               title="Mes Avoirs disponibles"
-              description="Total des cr dits disponibles"
+              description="Total des crédits disponibles"
                value={
                   <>
                     <span className="text-sm">
@@ -456,7 +456,7 @@ const AdminDashboard = ({ dashboardMetrics,
      trend={totalAvailableCreditTrend}  // ? tendance dynamique calcul e
      trendDirection={totalAvailableCreditTrendDirection}
      footerTop="Comparaison dynamique"
-     footerBottom="Par rapport   la période précédente"
+     footerBottom="Par rapport à la période précédente"
   />
 
             {/* Total des Achats */}
@@ -485,14 +485,14 @@ const AdminDashboard = ({ dashboardMetrics,
             {/* Nombre de Commandes */}
             <DashboardCard
               title="Nombre de Commandes"
-              description="Nombre total de commandes pass es"
+              description="Nombre total de commandes passées"
               value={`${dashboardMetrics?.customerStats?.nombreCommandes?.toLocaleString() ?? "0"}`}
               // Ajoute trend, trendDirection, footerTop, footerBottom si n cessaire
             />
 
             {/* Nombre de Commandes Impay es */}
             <DashboardCard
-              title="Nombre de Commandes Impay es"
+              title="Nombre de Commandes Impayées"
               description="Total des commandes en attente de paiement"
               value={`${dashboardMetrics?.customerStats?.nombreCommandesImpaye?.toLocaleString() ?? "0"}`}
               // Ajoute trend, trendDirection, footerTop, footerBottom si n cessaire

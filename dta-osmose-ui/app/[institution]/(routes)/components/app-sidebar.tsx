@@ -108,12 +108,13 @@ const data = {
       ],
     },
     {
-      title: "Fournisseurs",
+      title: "Marketing",
       path: "#",
       icon: () => <ArrowBigDownDash strokeWidth="1.5" className="w-5 h-5" />,
       items: [
-        { title: "Liste des fournisseurs", path: "#" },
-        { title: "Commandes", path: "#" },
+        { title: "Ajouter une Promotion", path: "promotions" },
+        { title: "Promotions en Cours", path: "promotions/allInprogress" },
+        { title: "Liste des Promotions", path: "promotions/all" },
       ],
     },
     {
