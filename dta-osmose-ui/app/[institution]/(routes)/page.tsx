@@ -54,8 +54,9 @@ const [previousEndDate, setPreviousEndDate] = useState(() => {
       router.push(`/${institution}/sign-in`);
     }
   }, [token, institution]);
-
-  const userType = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
+// visibilité du bouton imprimer uniquement pour les admins
+const userType = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
+const isAdmin = userType === "admin";
 
 // R cup ration des m triques depuis l'API
   const { data: dashboardMetrics } = useGetDashboardMetricsQuery({ institution, startDate, endDate });
@@ -113,24 +114,35 @@ const { trend: profitTrend, trendDirection: profitTrendDirection } = getDynamicT
 const { trend: invoiceTrend, trendDirection: invoiceTrendDirection } = getDynamicTrend(totalInvoices, previousInvoices);
 const { trend: totalAvailableCreditTrend, trendDirection: totalAvailableCreditTrendDirection } = getDynamicTrend(totalAvailableCredit, previousAvailableCredit);
 
-
+if (userType === "admin" || userType === "staff") {
 console.log("Factures actuelles:", totalInvoices, "Factures pr c dentes:", previousInvoices);
 console.log("Tendances calcul es :");
 console.log(`Ventes : ${salesTrend} (${salesTrendDirection})`);
 console.log(`B n fices : ${profitTrend} (${profitTrendDirection})`);
 console.log(`Nombre de factures : ${invoiceTrend} (${invoiceTrendDirection})`);
 
-console.log("=== M TRIQUES DU DASHBOARD ===");
+console.log("=== METRIQUES DU DASHBOARD ===");
 console.log("?? Montant total des ventes");
 console.log("  - Actuel :", totalSales.toLocaleString("fr-FR"), " ");
-console.log("  - Pr c dent :", previousSales.toLocaleString("fr-FR"), " ");
+console.log("  - Précédent :", previousSales.toLocaleString("fr-FR"), " ");
 console.log(`  - Tendance : ${salesTrend} (${salesTrendDirection})`);
 console.log("?? totalAvailableCredit:", totalAvailableCredit);
 
 console.log("?? B n fices");
 console.log("  - Actuel :", totalProfits.toLocaleString("fr-FR"), " ");
-console.log("  - Pr c dent :", previousProfits.toLocaleString("fr-FR"), " ");
+console.log("  - Précédent :", previousProfits.toLocaleString("fr-FR"), " ");
 console.log(`  - Tendance : ${profitTrend} (${profitTrendDirection})`);
+}
+
+if (userType === "Particulier") {
+  const customerStats = dashboardMetrics?.customerStats;
+  console.log("=== MÉTRIQUES DU CLIENT ===");
+  console.log("💰 Total Achats :", customerStats?.totalAchats);
+  console.log("🧾 Nombre de commandes :", customerStats?.nombreCommandes);
+  console.log("❌ Commandes impayées :", customerStats?.nombreCommandesImpaye);
+  console.log("🏦 Avoir disponible :", customerStats?.avoirDisponible);
+}
+
 
 // Fonction d impression
   const handlePrint = () => {
@@ -172,7 +184,7 @@ console.log(`  - Tendance : ${profitTrend} (${profitTrendDirection})`);
           chartData={dashboardMetrics?.chartData || []}
         />;
       case "Particulier":
-        return <ClientDashboard dadashboardMetrics={dashboardMetrics} 
+        return <ClientDashboard dashboardMetrics={dashboardMetrics} 
      totalSales={totalSales} 
      totalProfits={totalProfits} 
      totalInvoices={totalInvoices} 
@@ -180,7 +192,7 @@ console.log(`  - Tendance : ${profitTrend} (${profitTrendDirection})`);
      totalAvailableCreditTrendDirection={totalAvailableCreditTrendDirection} 
   />;
       default:
-        return <p>R le non reconnu. Veuillez contacter l'administrateur.</p>;
+        return <p>Role non reconnu. Veuillez contacter l'administrateur.</p>;
     }
   };
 
@@ -205,12 +217,16 @@ console.log(`  - Tendance : ${profitTrend} (${profitTrendDirection})`);
             onChange={(e) => setEndDate(e.target.value)}
             className="border-5 p-2 rounded"
           />
+          {/* Bouton visible uniquement pour admin */}
+        {/* Bouton visible uniquement pour admin */}
+       {isAdmin && (
         <button
           onClick={handlePrint}
           className="ml-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
         >
           Imprimer le dashboard
         </button>
+        )}
       </div>
       
        <div className="hidden print:block p-4" ref={printRef}>
@@ -219,7 +235,7 @@ console.log(`  - Tendance : ${profitTrend} (${profitTrendDirection})`);
   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
     {/* B n fices */}
     <div>
-      <strong>B n fices :</strong><br />
+      <strong>Bénéfices : </strong><br />
       {(totalProfits ?? 0).toLocaleString("fr-FR", {
         style: "currency",
         currency: "EUR",
@@ -255,7 +271,7 @@ console.log(`  - Tendance : ${profitTrend} (${profitTrendDirection})`);
 
     {/* Utilisateurs enregistr s */}
     <div>
-      <strong>Utilisateurs enregistr s :</strong><br />
+      <strong>Utilisateurs enregistrés :</strong><br />
       {dashboardMetrics?.totalUsers?.toLocaleString() ?? "0"}
     </div>
   </div>
@@ -318,7 +334,7 @@ const AdminDashboard = ({ dashboardMetrics,
           trend={invoiceTrend}
           trendDirection={invoiceTrendDirection}
           footerTop="Comparaison dynamique"
-          footerBottom="30 jours pr c dents"
+          footerBottom="30 jours précédents"
   />
 
   <DashboardCard
@@ -341,7 +357,7 @@ const AdminDashboard = ({ dashboardMetrics,
           trend={salesTrend}
           trendDirection={salesTrendDirection}
           footerTop="Comparaison dynamique"
-          footerBottom="Bas  sur la p riode pr c dente"
+          footerBottom="Bas  sur la période précédente"
 />
 
 
@@ -366,11 +382,11 @@ const AdminDashboard = ({ dashboardMetrics,
      trend={totalAvailableCreditTrend}  // ? tendance dynamique calcul e
      trendDirection={totalAvailableCreditTrendDirection}
      footerTop="Comparaison dynamique"
-     footerBottom="Par rapport   la période précédente"
+     footerBottom="Par rapport la période précédente"
   />
 
   <DashboardCard
-    title="Employ s"
+    title="Employés"
     description="Utilisateurs enregistrés"
     value={dashboardMetrics?.totalUsers?.toLocaleString() ?? "0"}
     footerTop="Recrutements récents"
@@ -385,12 +401,12 @@ const AdminDashboard = ({ dashboardMetrics,
 );
 
         const StaffDashboard = ({ dashboardMetrics,
-  totalSales,
-  totalInvoices,
-  salesTrend,
-  salesTrendDirection,
-  invoiceTrend,
-  invoiceTrendDirection, }: any) => (
+                totalSales,
+                totalInvoices,
+                salesTrend,
+                salesTrendDirection,
+                invoiceTrend,
+                invoiceTrendDirection, }: any) => (
           <div className="@container/main flex flex-1 flex-col gap-2">
           <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
           <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
@@ -415,16 +431,16 @@ const AdminDashboard = ({ dashboardMetrics,
           trend={salesTrend}
           trendDirection={salesTrendDirection}
           footerTop="Comparaison dynamique"
-          footerBottom="Par rapport   la p riode pr c dente"
+          footerBottom="Par rapport la période précédente"
                 />
 
                 <DashboardCard
                   title="Nombre de ventes"
-                  description="Factures g n r es"
+                  description="Factures génèrées"
                   trend={invoiceTrend}
                   trendDirection={invoiceTrendDirection}
                   footerTop="Comparaison dynamique"
-                  footerBottom="Par rapport   la p riode pr c dente" value={undefined}                />
+                  footerBottom="Par rapport la période précédente" value={undefined}                />
           </div>
           </div>
           </div>
@@ -438,7 +454,7 @@ const AdminDashboard = ({ dashboardMetrics,
             {/* Mes Avoirs disponibles */}
             <DashboardCard
               title="Mes Avoirs disponibles"
-              description="Total des cr dits disponibles"
+              description="Total des crédits disponibles"
                value={
                   <>
                     <span className="text-sm">
@@ -449,14 +465,14 @@ const AdminDashboard = ({ dashboardMetrics,
                     </span>
                     <br />
                     <span className="text-sm">
-        {(Math.round((dashboardMetrics?.totalAvailableCredit ?? 0) * 655.957)).toLocaleString("fr-FR")} F CFA
+        {(Math.round((dashboardMetrics?.customerStats?.avoirDisponible ?? 0) * 655.957)).toLocaleString("fr-FR")} F CFA
       </span>
     </>
   }
      trend={totalAvailableCreditTrend}  // ? tendance dynamique calcul e
      trendDirection={totalAvailableCreditTrendDirection}
      footerTop="Comparaison dynamique"
-     footerBottom="Par rapport   la période précédente"
+     footerBottom="Par rapport la période précédente"
   />
 
             {/* Total des Achats */}
@@ -485,14 +501,14 @@ const AdminDashboard = ({ dashboardMetrics,
             {/* Nombre de Commandes */}
             <DashboardCard
               title="Nombre de Commandes"
-              description="Nombre total de commandes pass es"
+              description="Nombre total de commandes passées"
               value={`${dashboardMetrics?.customerStats?.nombreCommandes?.toLocaleString() ?? "0"}`}
               // Ajoute trend, trendDirection, footerTop, footerBottom si n cessaire
             />
 
             {/* Nombre de Commandes Impay es */}
             <DashboardCard
-              title="Nombre de Commandes Impay es"
+              title="Nombre de Commandes Impayées"
               description="Total des commandes en attente de paiement"
               value={`${dashboardMetrics?.customerStats?.nombreCommandesImpaye?.toLocaleString() ?? "0"}`}
               // Ajoute trend, trendDirection, footerTop, footerBottom si n cessaire

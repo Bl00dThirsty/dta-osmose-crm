@@ -23,6 +23,7 @@ interface MonthlyTrend {
   invoiceTrend: string;
 }
 
+//Récupère les tendances mensuelles (ventes, profits, factures)sur les X derniers mois pour une institution donnée.
 
 export const getMonthlyTrends = async (institutionId: string, monthsBack = 6): Promise<MonthlyTrend[]> => {
   const monthlyData: MonthlyMetrics[] = [];
@@ -33,6 +34,7 @@ export const getMonthlyTrends = async (institutionId: string, monthsBack = 6): P
     const end = endOfMonth(monthDate);
     const key = start.toISOString().slice(0, 7);
 
+     //Calcule pour chaque mois : total des ventes, des profits et nombre de factures.
     const sales = await prisma.saleInvoice.findMany({
       where: {
         institutionId,
@@ -46,7 +48,7 @@ export const getMonthlyTrends = async (institutionId: string, monthsBack = 6): P
 
     monthlyData.push({ month: key, totalSales, totalProfit, invoiceCount });
   }
-
+//  Compare chaque mois avec le précédent pour générer une "trend" (hausse/baisse/stable).
   const trends: MonthlyTrend[] = [];
   for (let i = 1; i < monthlyData.length; i++) {
     const current = monthlyData[i];
@@ -66,6 +68,7 @@ export const getMonthlyTrends = async (institutionId: string, monthsBack = 6): P
   return trends;
 };
 
+//Génère les données pour les graphiques de ventes sur le dashboard principal.
 const generateChartData = async (startDate: Date, endDate: Date, institutionId: string) => {
   const rawSales = await prisma.saleInvoice.findMany({
     where: {
@@ -86,6 +89,7 @@ const generateChartData = async (startDate: Date, endDate: Date, institutionId: 
     grouped[date].amount += sale.finalAmount;
   }
 
+  //Regroupe les ventes par jour (nombre + montant).
   const data: { date: string; "Nombre vente": number; "Montant vente": number }[] = [];
   const currentDate = new Date(startDate);
 
@@ -99,6 +103,7 @@ const generateChartData = async (startDate: Date, endDate: Date, institutionId: 
   return data;
 };
 
+//Préparer des séries temporelles pour les ventes, profits et factures.
 const getData = async (startDate: Date, endDate: Date) => {
   const allSaleInvoice = await prisma.saleInvoice.groupBy({
     orderBy: { createdAt: "asc" },
@@ -133,6 +138,7 @@ const getData = async (startDate: Date, endDate: Date) => {
   return { formattedData1, formattedData2, formattedData3 };
 };
 
+//Récupèrer toutes les métriques nécessaires pour le tableau de bord global.
 export const getDashboardMetrics = async (req: Request, res: Response): Promise<void> => {
   try {
     const { startDate, endDate } = req.query;
@@ -161,7 +167,7 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
       res.status(404).json({ error: "Institution not found" });
       return;
     }
-
+//Génère les données pour les graphiques (chartData, trends mensuels, produits populaires).
     const chartData = await generateChartData(start, end, institution.id);
     const popularProducts = await prisma.product.findMany({ take: 10, orderBy: { quantity: "desc" } });
     const monthlyTrends = await getMonthlyTrends(institution.id);
@@ -180,15 +186,17 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
 
     const sum = (arr: any[], key: "amount" | "count" = "amount") => arr.reduce((acc, item) => acc + (item[key] || 0), 0);
 
-
+//Calcule les tendances (ventes, profits, factures) en comparant avec la période précédente.
     const salesTrend = getDynamicTrend(sum(formattedData1), sum(previousFormatted1));
     const profitTrend = getDynamicTrend(sum(formattedData2), sum(previousFormatted2));
     const invoiceTrend = getDynamicTrend(sum(formattedData3, "count"), sum(previousFormatted3, "count"));
 
 
     const saleProfitCount = [...formattedData1, ...formattedData2];
-
+// récupérer le total des utilisateurs entregistrés
     const totalUsers = await prisma.user.count();
+
+    // recupérer le total des avoirs
     const totalCredits = await prisma.credit.aggregate({
       where: {
         customer: { saleInvoice: { some: { institutionId: institution.id } } },
@@ -198,6 +206,7 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
 
     const totalAvailableCredit = (totalCredits._sum.amount ?? 0) - (totalCredits._sum.usedAmount ?? 0);
 
+    //  --- Données spécifiques pour le dashboard client
     let customerStats = null;
     let creditTrend = null;
     if (req.auth?.role === "Particulier") {
@@ -210,6 +219,12 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
       const nombreCommandespaye = commandespaye.length;
       const nombreCommandesImpaye = nombreCommandes - nombreCommandespaye;
 
+      const customerCredits = await prisma.credit.aggregate({
+        where: { customerId },
+        _sum: { amount: true, usedAmount: true },
+      });
+      const customerAvailableCredit = (customerCredits._sum.amount ?? 0) - (customerCredits._sum.usedAmount ?? 0);
+
       // Avoir disponible période précédente
 const previousCredits = await prisma.credit.aggregate({
   where: {
@@ -219,13 +234,14 @@ const previousCredits = await prisma.credit.aggregate({
 });
 const previousAvailableCredit = (previousCredits._sum.amount ?? 0) - (previousCredits._sum.usedAmount ?? 0);
 
- const creditTrend = getDynamicTrend(totalAvailableCredit, previousAvailableCredit);
+ creditTrend = getDynamicTrend(totalAvailableCredit, previousAvailableCredit);
 
       customerStats = {
         totalAchats,
         nombreCommandes,
         previousAvailableCredit,
         nombreCommandesImpaye,
+        avoirDisponible: customerAvailableCredit,
       };
     }
 
@@ -254,7 +270,7 @@ const previousAvailableCredit = (previousCredits._sum.amount ?? 0) - (previousCr
   }
 };
 
-// --------------------- DASHBOARD VENTES ---------------------
+// --------------------- DASHBOARD VENTES(Récupère des statistiques détaillées de ventes (vue "commerciale")) ---------------------
 export const getSalesDashboard = async (req: Request, res: Response): Promise<void> => {
   try {
     const { startDate, endDate,customerId,customerIds } = req.query;
@@ -377,7 +393,7 @@ const customers = await prisma.customer.findMany({
 
     const sortedTopProducts = topProducts.sort((a, b) => b.value - a.value);
 
-    // ------------------ TOP CLIENTS ------------------
+    // ------------------ TOP 10 DES CLIENTS(CA + nombre factures)------------------
     const groupedCustomers = await prisma.saleInvoice.groupBy({
       by: ["customerId"],
       _sum: { totalAmount: true },
@@ -401,7 +417,7 @@ const customers = await prisma.customer.findMany({
         };
       })
     );
-
+//Historique des ventes des 6 derniers mois (par client).
     const sixMonthsAgo = subMonths(new Date(), 6);
     const salesHistory = await prisma.saleInvoice.groupBy({
       by: ["customerId", "createdAt"],
@@ -438,7 +454,7 @@ const customers = await prisma.customer.findMany({
   },
 });
 
-// 1️⃣ Regrouper les produits préférés par client
+// 1️⃣ Regrouper les produits préférés par client(celui le plus acheté)
 const preferredByCustomer: Record<string, { productId: string; total: number }> = {};
 withCustomer.forEach((row) => {
   const customerId = row.invoice?.customerId;
