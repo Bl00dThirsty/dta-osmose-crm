@@ -76,6 +76,7 @@ CREATE TABLE "customer" (
     "id" SERIAL NOT NULL,
     "customId" TEXT NOT NULL,
     "name" TEXT NOT NULL,
+    "userId" INTEGER,
     "userName" TEXT,
     "phone" TEXT NOT NULL,
     "email" TEXT NOT NULL,
@@ -168,7 +169,6 @@ CREATE TABLE "saleInvoice" (
     "userId" INTEGER,
     "institutionId" TEXT NOT NULL,
     "customerCreatorId" INTEGER,
-     "pharmacyId" INTEGER,
     "totalAmount" DOUBLE PRECISION NOT NULL,
     "discount" DOUBLE PRECISION NOT NULL,
     "finalAmount" DOUBLE PRECISION NOT NULL,
@@ -181,22 +181,9 @@ CREATE TABLE "saleInvoice" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "delivred" BOOLEAN NOT NULL DEFAULT false,
     "ready" BOOLEAN NOT NULL DEFAULT false,
+    "date" TIMESTAMP(3),
 
     CONSTRAINT "saleInvoice_pkey" PRIMARY KEY ("id")
-);
-
-
-CREATE TABLE pharmacy (
-    id SERIAL PRIMARY KEY,
-    institutionId TEXT NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    address TEXT,
-    city VARCHAR(255),  
-    phoneNumber VARCHAR(50),
-    email VARCHAR(255),
-    createdAt TIMESTAMP DEFAULT NOW(),
-    updatedAt TIMESTAMP DEFAULT NOW(),
-    FOREIGN KEY (institutionId) REFERENCES institution(id) ON DELETE CASCADE
 );
 
 -- CreateTable
@@ -209,6 +196,68 @@ CREATE TABLE "saleItem" (
     "totalPrice" DOUBLE PRECISION NOT NULL,
 
     CONSTRAINT "saleItem_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Notification" (
+    "id" TEXT NOT NULL,
+    "title" TEXT,
+    "message" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
+    "isRead" BOOLEAN NOT NULL DEFAULT false,
+    "userId" INTEGER,
+    "customerId" INTEGER,
+    "saleId" TEXT,
+    "institutionId" TEXT,
+    "productId" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Notification_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "inventory" (
+    "id" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "titre" TEXT NOT NULL DEFAULT 'Inventaire XX',
+    "location" TEXT,
+    "institutionId" TEXT NOT NULL,
+    "performedById" INTEGER NOT NULL,
+    "note" TEXT,
+    "status" TEXT NOT NULL DEFAULT 'PENDING',
+
+    CONSTRAINT "inventory_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "inventoryItem" (
+    "id" TEXT NOT NULL,
+    "inventoryId" TEXT NOT NULL,
+    "productId" TEXT NOT NULL,
+    "countedQty" INTEGER NOT NULL DEFAULT 0,
+    "systemQty" INTEGER NOT NULL,
+    "difference" INTEGER NOT NULL,
+    "comment" TEXT,
+
+    CONSTRAINT "inventoryItem_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Promotion" (
+    "id" TEXT NOT NULL,
+    "title" TEXT,
+    "discount" DOUBLE PRECISION NOT NULL,
+    "startDate" TIMESTAMP(3) NOT NULL,
+    "endDate" TIMESTAMP(3) NOT NULL,
+    "status" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "productId" TEXT NOT NULL,
+    "institutionId" TEXT NOT NULL,
+    "creatorId" INTEGER NOT NULL,
+
+    CONSTRAINT "Promotion_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -386,6 +435,9 @@ ALTER TABLE "credit" ADD CONSTRAINT "credit_customerId_fkey" FOREIGN KEY ("custo
 ALTER TABLE "customer" ADD CONSTRAINT "customer_institutionId_fkey" FOREIGN KEY ("institutionId") REFERENCES "institution"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "customer" ADD CONSTRAINT "customer_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "product" ADD CONSTRAINT "product_institutionId_fkey" FOREIGN KEY ("institutionId") REFERENCES "institution"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -405,6 +457,42 @@ ALTER TABLE "saleItem" ADD CONSTRAINT "saleItem_invoiceId_fkey" FOREIGN KEY ("in
 
 -- AddForeignKey
 ALTER TABLE "saleItem" ADD CONSTRAINT "saleItem_productId_fkey" FOREIGN KEY ("productId") REFERENCES "product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "customer"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_saleId_fkey" FOREIGN KEY ("saleId") REFERENCES "saleInvoice"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_productId_fkey" FOREIGN KEY ("productId") REFERENCES "product"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_institutionId_fkey" FOREIGN KEY ("institutionId") REFERENCES "institution"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "inventory" ADD CONSTRAINT "inventory_institutionId_fkey" FOREIGN KEY ("institutionId") REFERENCES "institution"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "inventory" ADD CONSTRAINT "inventory_performedById_fkey" FOREIGN KEY ("performedById") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "inventoryItem" ADD CONSTRAINT "inventoryItem_productId_fkey" FOREIGN KEY ("productId") REFERENCES "product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "inventoryItem" ADD CONSTRAINT "inventoryItem_inventoryId_fkey" FOREIGN KEY ("inventoryId") REFERENCES "inventory"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Promotion" ADD CONSTRAINT "ProductPromotionRelation" FOREIGN KEY ("productId") REFERENCES "product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Promotion" ADD CONSTRAINT "Promotion_institutionId_fkey" FOREIGN KEY ("institutionId") REFERENCES "institution"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Promotion" ADD CONSTRAINT "Promotion_creatorId_fkey" FOREIGN KEY ("creatorId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "appSetting" ADD CONSTRAINT "appSetting_institutionId_fkey" FOREIGN KEY ("institutionId") REFERENCES "institution"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

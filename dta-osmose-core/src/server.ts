@@ -45,7 +45,7 @@ app.use(bodyParser.urlencoded({extended: false}));
 //app.use(cors());
 app.use(cors({
   origin: 'http://localhost:3000', // <-- autorise le frontend Next.js local
-  credentials: true, // <-- permet l'envoi des cookies (token de session, etc.)
+  credentials: true,
 }));
 
 //app.use(express.json());
