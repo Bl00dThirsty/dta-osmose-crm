@@ -64,6 +64,10 @@ async function main() {
       console.log(`Seeded ${modelName}`);
     }
   }
+  await createPermissions();
+  await createRoles();
+  await assignRolePermissions();
+  await createUsers();
 }
 
 main()

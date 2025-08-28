@@ -8,6 +8,10 @@ import { SalesBarChart } from "./_components/SalesByCityChart";
 import TopProductsChart  from "./_components/TopProductsChart";
 import TopCustomersChart from "./_components/TopCustumersChart";
 import FavoriteProductChart from "./_components/FavoriteProductChart";
+import { OverviewCards } from "./_components/overview-cards";
+import { InsightCards } from "./_components/insight-cards";
+import { OperationalCards } from "./_components/operational-cards";
+
 const CrmDashboardPage = () => {
   const router = useRouter();
   const { institution } = useParams() as { institution: string };
@@ -115,131 +119,12 @@ const CrmDashboardPage = () => {
   if (error) return <div>Erreur lors du chargement des données</div>;
 
   return (
-    <Container
-      title="Dashboard Ventes"
-      description="Vue d'ensemble des ventes par produit, pharmacie et ville."
-    >
-      {/* --- Sélecteur de période --- */}
-      <div className="mb-4 flex gap-2">
-        <div>
-          <label className="block text-sm font-medium mb-1">Du :</label>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="border rounded p-1"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Au :</label>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="border rounded p-1"
-          />
-        </div>
-        {/* Sélecteur Client */}
-         <div>
-          <label className="block text-sm font-medium mb-1">Client :</label>
-          <select
-            value={customerId ?? ""}
-            onChange={(e) => setCustomerId(e.target.value || null)}
-            className="border rounded p-1"
-            disabled={customersLoading} // bloque tant que la liste charge
-          >
-            <option value="">Tous</option>
-            {customersLoading && <option disabled>Chargement des clients...</option>}
-            {!customersLoading && customersData?.map((c: any) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
-        </div>
-        <button
-          onClick={() => refetch()}
-          className="bg-blue-500 text-white px-4 py-2 rounded self-end"
-        >
-          Actualiser
-        </button>
-        <button onClick={handlePrint} className="bg-blue-500 text-white px-4 py-2 rounded self-end">
-          Imprimer le rapport
-        </button>
-      </div>
-
-      {/* --- Contenu à imprimer --- */}
-      <div ref={printRef}>
-
+    <div className="flex flex-col gap-4 md:gap-6">
+      <OverviewCards />
+      <InsightCards />
+      <OperationalCards />
       
-        {/* Top Produits */}
-        <div className="p-4 overflow-hidden rounded-[0.5rem]  shadow mb-6">
-          <TopProductsChart data={dashboardData?.topProducts || []} isLoading={isLoading} />
-        </div>
-
-        {/* Top client */}
-        <div className="p-4 overflow-hidden rounded-[0.5rem]  shadow mb-6">
-          <TopCustomersChart data={dashboardData?.topCustomers || []} isLoading={isLoading} />
-        </div>
-   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Produits préférés par client */}
-        <section className="p-4 overflow-hidden rounded-[0.5rem] shadow mb-6">
-          <FavoriteProductChart data={dashboardData?.favoriteProductsByCustomer || []} isLoading={isLoading} />
-        </section>
-
-        {/* --- Ventes par Ville --- */}
-        <section className="p-4 overflow-hidden rounded-[0.5rem] shadow mb-6">
-          <h2 className="text-xl font-semibold mb-4">Ventes par ville</h2>
-          {dashboardData?.salesByCity?.length ? (
-            <SalesBarChart
-              data={dashboardData.salesByCity}
-              xKey="cityName"
-              bars={[
-                { dataKey: "totalSales", name: "Montant total", color: "#2563eb" },
-                { dataKey: "totalQuantity", name: "Nombre de ventes", color: "#60a5fa" },
-              ]}
-            />
-          ) : (
-            <p>Aucune donnée disponible</p>
-          )}
-        </section>
-     </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* --- Ventes par Produit --- */}
-        <section className="p-4 overflow-hidden rounded-[0.5rem]  shadow mb-6">
-          <h2 className="text-xl font-semibold mb-4">Ventes par produit</h2>
-          {dashboardData?.salesByProduct?.length ? (
-            <SalesBarChart
-              data={dashboardData.salesByProduct}
-              xKey="productName"
-              bars={[
-                { dataKey: "totalSales", name: "Montant total", color: "#2563eb" },
-                { dataKey: "totalQuantity", name: "Quantité vendue", color: "#60a5fa" },
-              ]}
-            />
-          ) : (
-            <p>Aucune donnée disponible</p>
-          )}
-        </section>
-
-        {/* --- Ventes par Pharmacie --- */}
-        <section className="p-4 overflow-hidden rounded-[0.5rem]  shadow mb-6">
-          <h2 className="text-xl font-semibold mb-4">Ventes par pharmacie</h2>
-          {dashboardData?.salesByPharmacy?.length ? (
-            <SalesBarChart
-              data={dashboardData.salesByPharmacy}
-              xKey="pharmacyName"
-              bars={[
-                { dataKey: "totalSales", name: "Montant total", color: "#2563eb" },
-                { dataKey: "totalQuantity", name: "Quantité vendue", color: "#60a5fa"},
-              ]}
-            />
-          ) : (
-            <p>Aucune donnée disponible</p>
-          )}
-        </section>
-        </div>
-        
-        </div>
-    </Container>
+    </div>
   );
 };
 

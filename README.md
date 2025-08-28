@@ -2,17 +2,17 @@
 
 This application consists of:
 
-* **Backend** (Node.js + Express + Prisma) containerized with Docker
-* **Database** PostgreSQL containerized with Docker
-* **Frontend** Next.js (runs locally outside Docker)
+- **Backend** (Node.js + Express + Prisma) containerized with Docker
+- **Database** PostgreSQL containerized with Docker
+- **Frontend** Next.js (runs locally outside Docker)
 
 ---
 
 ## Prerequisites
 
-* [Docker](https://www.docker.com/) & Docker Compose installed
-* [Node.js](https://nodejs.org/) (>=18) and npm
-* Prisma CLI (`npx prisma …`)
+- [Docker](https://www.docker.com/) & Docker Compose installed
+- [Node.js](https://nodejs.org/) (>=18) and npm
+- Prisma CLI (`npx prisma …`)
 
 ---
 
@@ -46,6 +46,8 @@ NEXT_PUBLIC_API_URL=http://localhost:5003
 From the project root:
 
 ```bash
+npx prisma generate
+npx prisma migrate dev --name init
 docker compose up -d
 ```
 
@@ -123,8 +125,7 @@ docker logs -f dta-osmose-core-postgres-1
 
 ## Quick Check
 
-* Visit [http://localhost:3000](http://localhost:3000) → frontend should load
-* Visit [http://localhost:5003/api/products](http://localhost:5003/api/products) → backend should return JSON
+- Visit [http://localhost:3000](http://localhost:3000) → frontend should load
+- Visit [http://localhost:5003/api/products](http://localhost:5003/api/products) → backend should return JSON
 
 ---
-

@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: admin
       POSTGRES_DB: ibacameroon
     ports:
-      - '5432:5432'
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -25,7 +25,7 @@ services:
     platform: linux/amd64
     restart: always
     ports:
-      - '5003:5003'
+      - "5003:5003"
     environment:
       DATABASE_URL: "postgresql://postgres:admin@postgres:5432/ibacameroon?schema=public&connect_timeout=30"
     volumes:
