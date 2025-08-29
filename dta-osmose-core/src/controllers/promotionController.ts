@@ -4,6 +4,23 @@ import { v4 as uuidv4 } from 'uuid';
 
 const prisma = new PrismaClient();
 
+/**
+ * @desc    Crée une nouvelle promotion pour un produit
+ * @route   POST /promotions/institutions/:institution/promotions
+ * @access  Privé (Authentifié)
+ * 
+ * @body    {string}  productId   - ID du produit à promouvoir
+ * @body    {number}  discount    - Pourcentage de remise (ex: 15 pour 15%)
+ * @body    {string}  startDate   - Date de début de la promotion (ISO string)
+ * @body    {string}  endDate     - Date de fin de la promotion (ISO string)
+ * @body    {string}  [title]     - Titre optionnel de la promotion
+ * 
+ * @returns {Object} Promotion créée avec les informations du produit et créateur
+ * @throws  {400} Si l'institution est manquante ou période chevauchante
+ * @throws  {401} Si l'utilisateur n'est pas authentifié
+ * @throws  {404} Si l'institution ou le produit n'existe pas
+ * @throws  {500} Erreur serveur inattendue
+ */
 export const createPromotion = async (req: Request, res: Response) => {
   try {
     const { productId, discount, startDate, endDate, title } = req.body;
@@ -32,15 +49,23 @@ export const createPromotion = async (req: Request, res: Response) => {
     if (!product) {
       return res.status(404).json({ error: "Produit introuvable" });
     }
-
+    /**
+     * Vérification des chevauchements de promotions
+     * Empêche la création de promotions sur le même produit
+     * pendant des périodes qui se chevauchent
+     * 
+     * Condition: Une promotion existe si:
+     * - startDate nouvelle promo ≤ endDate promo existante ET
+     * - endDate nouvelle promo ≥ startDate promo existante
+     */
     const overlappingPromotion = await prisma.promotion.findFirst({
       where: {
         productId,
         institutionId: institution.id,
-        // condition de chevauchement
+        // condition de chevauchement TEMPORELLE
         AND: [
-          { startDate: { lte: new Date(endDate) } },
-          { endDate: { gte: new Date(startDate) } }
+          { startDate: { lte: new Date(endDate) } }, // Début nouvelle promo ≤ Fin promo existante
+          { endDate: { gte: new Date(startDate) } }  // Fin nouvelle promo ≥ Début promo existante
         ]
       }
     });
@@ -48,7 +73,7 @@ export const createPromotion = async (req: Request, res: Response) => {
     if (overlappingPromotion) {
       return res.status(400).json({
         error: "Une promotion existe déjà pour ce produit dans cette période.",
-        existingPromotion: overlappingPromotion,
+        existingPromotion: overlappingPromotion, // Renvoie les infos de la promo existante pour debug
       });
     }
 
@@ -72,6 +97,20 @@ export const createPromotion = async (req: Request, res: Response) => {
   }
 };
 
+
+/**
+ * @desc    Lister les promotion actives
+ * @route   GET /promotions/:institution/active
+ * @access  Privé (Authentifié)
+ * 
+ * condition statue=true
+ * 
+ * @returns {Object} Promotion créée avec les informations du produit et créateur
+ * @throws  {400} Si l'institution est manquante ou période chevauchante
+ * @throws  {401} Si l'utilisateur n'est pas authentifié
+ * @throws  {404} Si l'institution ou le produit n'existe pas
+ * @throws  {500} Erreur serveur inattendue
+ */
 export const getActivePromotions = async (req: Request, res: Response): Promise<void> => {
   try {
     const now = new Date();
@@ -100,6 +139,15 @@ export const getActivePromotions = async (req: Request, res: Response): Promise<
       },
        data: { status: false }
     });
+    // Activer les promotions dont la date de fin a ete modifier et dont le status est a desactiver
+     await prisma.promotion.updateMany({
+     where: {
+       institutionId: institution.id,
+       status: false,
+       endDate: { gte: now } // lt = superirieur à maintenant = expirées
+      },
+       data: { status: true }
+    });
 
    // 2. Récupérer les promotions ACTIVES (incluant celles qu'on vient de mettre à jour)
     const promotions = await prisma.promotion.findMany({
@@ -126,6 +174,7 @@ export const getActivePromotions = async (req: Request, res: Response): Promise<
 
 export const getAllPromotion = async (req: Request, res: Response): Promise<void> => {
   try {
+    const now = new Date();
     const institutionSlug = req.params.institution;
 
     if (!institutionSlug) {
@@ -141,6 +190,16 @@ export const getAllPromotion = async (req: Request, res: Response): Promise<void
       res.status(404).json({ message: "Institution introuvable." });
       return;
     }
+
+    // Activer les promotions dont la date de fin a ete modifier et dont le status est a desactiver
+     await prisma.promotion.updateMany({
+     where: {
+       institutionId: institution.id,
+       status: false,
+       endDate: { gte: now } // lt = superirieur à maintenant = expirées
+      },
+       data: { status: true }
+    });
 
     const promotions = await prisma.promotion.findMany({
       where: {

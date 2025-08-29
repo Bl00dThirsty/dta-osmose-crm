@@ -189,60 +189,6 @@ async function main() {
   // Suppression des anciennes données
   await deleteAllData(orderedFileNames);
 
-  // // --- Création manuelle des institutions ---
-  // const iba = await prisma.institution.create({
-  //   data: {
-  //     id: "iba",
-  //     name: "IBA",
-  //   },
-  // });
-
-  // const asermpharma = await prisma.institution.create({
-  //   data: {
-  //     id: "asermpharma",
-  //     name: "Asermpharma",
-  //   },
-  // });
-
-  // console.log("Institutions créées.");
-
-  // // --- Traitement spécial pour les produits ---
-  // const productsPath = path.join(dataDirectory, "product.json");
-
-  // if (fs.existsSync(productsPath)) {
-  //   const jsonData = JSON.parse(fs.readFileSync(productsPath, "utf-8"));
-
-  //   for (const data of jsonData) {
-  //     const { institution, ...productData } = data;
-
-  //     let institutionId;
-
-  //     if (institution === "iba") {
-  //       institutionId = iba.id;
-  //     } else if (institution === "asermpharma") {
-  //       institutionId = asermpharma.id;
-  //     } else {
-  //       console.warn(`Institution inconnue pour le produit "${data.designation}"`);
-  //       continue;
-  //     }
-
-  //     await prisma.product.create({
-  //       data: {
-  //         ...productData,
-  //         institution: {
-  //           connect: { id: institutionId },
-  //         },
-  //       },
-  //     });
-  //   }
-
-  //   console.log("Produits importés.");
-  // } else {
-  //   console.error("Fichier product.json introuvable.");
-  // }
-
-  // // --- Importation générique des autres fichiers ---
-  // const remainingFiles = orderedFileNames.filter(f => f !== "product.json");
 
   for (const fileName of orderedFileNames) {
     const filePath = path.join(dataDirectory, fileName);

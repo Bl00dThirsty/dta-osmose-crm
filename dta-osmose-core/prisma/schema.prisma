@@ -46,9 +46,6 @@ model announcement {
 }
 
 
-
-
-
 /*model attendance {
   id            Int       @id @default(autoincrement())
   userId        Int
@@ -166,6 +163,8 @@ model customer {
   user            user?        @relation(fields: [userId], references: [id])
   
   claim claim[]
+  salePromise        salePromise[]  @relation(name: "CustomerSalePromise")
+  creatorsalePromise        salePromise[]  @relation(name: "CustomerCreatorSalePromise")
 }
 
 /*model CustomerCounter {
@@ -217,6 +216,7 @@ model institution {
   notification       Notification[]
   inventory          inventory[]
   Promotion          Promotion[]
+  salePromise        salePromise[]
 }
 
 model product {
@@ -245,6 +245,7 @@ model product {
   notification                 Notification[]
   inventoryItem               inventoryItem[]
   Promotion          Promotion[] @relation(name: "ProductPromotion")
+  salePromiseProduct salePromiseProduct[]
 }
 
 model ProductCounter {
@@ -263,6 +264,7 @@ model saleInvoice {
   customerId      Int
   userId          Int?
   institutionId   String
+  salePromiseId   Int?
   customerCreatorId  Int? // ID du client créateur
   totalAmount     Float
   discount        Float
@@ -284,6 +286,7 @@ model saleInvoice {
   items           saleItem[]
   claims          claim[]
   notification       Notification[]
+  salePromise        salePromise?  @relation(fields: [salePromiseId], references: [id])
 }
 
 model saleItem {
@@ -296,6 +299,43 @@ model saleItem {
 
   invoice         saleInvoice @relation(fields: [invoiceId], references: [id])
   product         product     @relation(fields: [productId], references: [id])
+}
+
+model salePromise {
+  id                 Int                  @id @default(autoincrement())
+  dueDate            DateTime?
+  reminderDate       DateTime?
+  customerId         Int?
+  userId          Int?
+  customerCreatorId  Int?
+  institutionId   String
+  customer_address   String?
+  customer_name      String?
+  customer_phone     String?
+  total_amount       Float
+  status             String @default("pending")
+  restocked          Boolean           @default(false)
+  discount           Float   @default(0)
+  note               String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  customer        customer?    @relation(name: "CustomerSalePromise", fields: [customerId], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "CustomerSalePromiseRelation")
+  customerCreator    customer?      @relation(name: "CustomerCreatorSalePromise", fields: [customerCreatorId], references: [id], map: "CustomerCreatorSalePromiseRelation")
+  user               user?                 @relation(fields: [userId], references: [id])
+  institution     institution @relation(fields: [institutionId], references: [id])
+  items  salePromiseProduct[]
+  saleInvoice  saleInvoice[]
+}
+
+model salePromiseProduct {
+  id                 Int         @id @default(autoincrement())
+  product_id         String
+  promise_id         Int
+  product_quantity   Int
+  product_sale_price Float
+  totalPrice      Float
+  product            product     @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  salePromise        salePromise @relation(fields: [promise_id], references: [id], onDelete: Cascade)
 }
 
 model Notification {
@@ -511,37 +551,7 @@ model saleInvoiceProduct {
   product            product     @relation(fields: [product_id], references: [id], onDelete: Cascade)
 }
 
-model salePromise {
-  id                 Int                  @id @default(autoincrement())
-  date               DateTime
-  dueDate            DateTime?
-  reminderDate       DateTime?
-  companyName        String?
-  customer_address   String?
-  total_amount       Float
-  discount           Float
-  customer_name      String
-  customer_phone     String
-  customer_id        Int?
-  user_id            Int
-  note               String?
-  created_at         DateTime             @default(now())
-  updated_at         DateTime
-  user               user                 @relation(fields: [user_id], references: [id])
-  salePromiseProduct salePromiseProduct[]
-}
 
-model salePromiseProduct {
-  id                 Int         @id @default(autoincrement())
-  product_id         Int
-  promise_id         Int
-  product_quantity   Int
-  product_sale_price Float
-  created_at         DateTime    @default(now())
-  updated_at         DateTime
-  product            product     @relation(fields: [product_id], references: [id], onDelete: Cascade)
-  salePromise        salePromise @relation(fields: [promise_id], references: [id], onDelete: Cascade)
-}
 */
 
 model role {
@@ -641,6 +651,7 @@ model user {
   notification       Notification[]
   inventory                    inventory[]
   Promotion          Promotion[]
+  salePromise        salePromise[]
 }
 
 

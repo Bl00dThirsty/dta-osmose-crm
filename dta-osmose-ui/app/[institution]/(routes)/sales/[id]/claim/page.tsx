@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Container from "../../../components/ui/Container";
+import { toast } from "react-toastify";
 
 export default function CreateClaimForm() {
   const [createClaim] = useCreateClaimMutation();
@@ -33,6 +34,7 @@ export default function CreateClaimForm() {
       return;
     }
     console.log("numero de facture:", invoice.id)
+    try{
     await createClaim({
       institution,
       invoiceId: invoice.id,
@@ -43,10 +45,14 @@ export default function CreateClaimForm() {
       unitPrice,
       
     }).unwrap();
-    alert("Réclamation créée !");
+    toast.success("Réclamation créée !");
     setForm({ productId: '', quantity: 1, reason: '', description: '' });
-     setQuantityError("");
+    setQuantityError("");
     router.push(`/${institution}/sales/${id}`);
+    } catch (error){
+      console.log('Erreur création reclam:', error);
+      toast.error("Échec de l'enregistrement");
+    }
   };
 
   return (

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Container from "../../components/ui/Container";
 import { useRouter, useParams } from 'next/navigation';
-import { useGetCustomersQuery, useGetDashboardSalesQuery } from "@/state/api";
+import { useGetCustomersQuery, useGetDashboardSalesQuery, useGetDashboardMetricsQuery } from "@/state/api";
 import { SalesBarChart } from "./_components/SalesByCityChart";
 import TopProductsChart  from "./_components/TopProductsChart";
 import TopCustomersChart from "./_components/TopCustumersChart";
@@ -32,7 +32,7 @@ const CrmDashboardPage = () => {
   const { data: customersData, isLoading: customersLoading } = useGetCustomersQuery();
   const [customerId, setCustomerId] = useState<string | null>(null);
   const { data: dashboardData, isLoading, error, refetch } = useGetDashboardSalesQuery(
-    { institution, startDate, endDate,customerId: customerId ?? undefined },
+    { institution, startDate, endDate, customerId: customerId ?? undefined },
     { skip: !startDate || !endDate, refetchOnMountOrArgChange: true }
   );
 

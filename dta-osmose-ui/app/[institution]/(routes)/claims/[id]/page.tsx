@@ -108,6 +108,7 @@ const ClaimPage = () => {
 
   return (
     <>
+    <div className="container mx-auto p-4 max-w-4xl border">
     <div className="mb-3 ml-4 pt-4">
         <button
           onClick={handleGoBack}
@@ -202,7 +203,7 @@ const ClaimPage = () => {
 
         </section>
     </div>
-
+    </div>
     <Dialog open={openDelete} onOpenChange={setOpenDelete}>
       <DialogContent>
         <DialogHeader>

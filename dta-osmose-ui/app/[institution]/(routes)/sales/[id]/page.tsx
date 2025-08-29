@@ -110,7 +110,7 @@ const InvoicePage = () => {
     <div className="mb-3 ml-4 pt-4">
         <button
           onClick={handleGoBack}
-          className="flex items-center gap-2 text-white-600 hover:bg-blue-500 transition-colors bg-blue-800 px-2 py-1 rounded"
+          className="flex items-center gap-2 hover:bg-blue-500 transition-colors bg-blue-800 px-2 py-1 rounded"
         >
           <ArrowLeft className="w-5 h-5" />
           <span>Retour</span>
@@ -196,7 +196,7 @@ const InvoicePage = () => {
              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-500 disabled:bg-red-400"
              disabled={sale?.delivred}
             >
-               {sale?.delivred ? "Déjà livrée" : "Annuler la commande"}
+               {sale?.delivred ? "Annuler la commande" : "Annuler la commande"}
             </button>
           </div>
           

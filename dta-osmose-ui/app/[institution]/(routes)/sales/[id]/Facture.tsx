@@ -31,7 +31,7 @@ const PrintToPdf = forwardRef<HTMLDivElement, PrintToPdfProps>(({ sale }, ref) =
             <img
               src={logoSrc}
               alt="Logo"
-              className="w-full h-20 object-cover rounded-lg" // Ajustez la taille du logo
+              className="w-full h-15 object-cover rounded-lg" // Ajustez la taille du logo
               // style={{
               //   maxWidth: "100px", // Limite la largeur à 100px
               //   maxHeight: "100px",
@@ -50,7 +50,7 @@ const PrintToPdf = forwardRef<HTMLDivElement, PrintToPdfProps>(({ sale }, ref) =
           )}
           <div>
             <h1 className="text-2xl font-bold">Facture N°: {sale.invoiceNumber}</h1>
-            <p className="text-gray-500">Date de comande: {new Date(sale.createdAt).toLocaleDateString()}</p>
+            <p className="text-gray-500">Date de commande: {new Date(sale.createdAt).toLocaleDateString()}</p>
             <p className="text-gray-500">Date de livraison: {new Date(sale.date).toLocaleDateString()}</p>
           </div>
         </div>
