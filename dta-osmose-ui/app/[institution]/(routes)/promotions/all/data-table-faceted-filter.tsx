@@ -97,10 +97,12 @@ export function DataTableFacetedFilter<TData, TValue>({
                       } else {
                         selectedValues.add(option.value)
                       }
-                      const filterValues = Array.from(selectedValues)
+                      const filterValues = Array.from(selectedValues).map(
+                        (value) => (value === "Active" ? true : false) // Convertir en booléen
+                      );
                       column?.setFilterValue(
                         filterValues.length ? filterValues : undefined
-                      )
+                      );
                     }}
                   >
                     <div

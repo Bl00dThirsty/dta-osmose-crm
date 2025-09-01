@@ -95,6 +95,8 @@ const data = {
       items: [
         { title: "Ventes", path: "sales" },
         { title: "Liste des ventes", path: "sales/all" },
+        {title:"Ajout Promesse d'achat", path:"salepromise"},
+        { title:"Liste promesse d'achat", path:"salepromise/all"}
         
       ],
     },

@@ -76,25 +76,7 @@ const NotificationAdmin = () => {
   const isParticulier = userRole === "Particulier";
   const { data: NotificationCustomer } = useGetCustomerNotificationsQuery();
   const { data: notifications, isLoading, isError } = useGetAllNotificationsQuery({institution});
-  const handleClearAll = async () => {
-    try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/notification`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          //"Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          userId: userId,
-          customerId: customerId,
-        }),
-      });
-      toast.success("Toutes les notifications ont été supprimées");
-    } catch (err) {
-      toast.error("Échec de la suppression");
-      console.error("Erreur:", err);
-    }
-  }
+  
 
 if (isLoading) return <p>Chargement...</p>
 if (isError) return <p>Erreur lors du chargement.</p>
@@ -102,7 +84,7 @@ if (isError) return <p>Erreur lors du chargement.</p>
 
 
   return (
-    <>
+    
     <Container
       title="Toutes les notifications"
       description=""
@@ -128,21 +110,7 @@ if (isError) return <p>Erreur lors du chargement.</p>
       </div>
     </Container>
 
-   <Dialog open={open} onOpenChange={setOpen}>
-<DialogContent>
-  <DialogHeader>
-    <DialogTitle>Confirmation</DialogTitle>
-    <DialogDescription>
-      Voulez-vous vraiment supprimer toutes les notifications ?
-    </DialogDescription>
-  </DialogHeader>
-  <DialogFooter>
-    <DialogCancel onClick={() => setOpen(false)}>Annuler</DialogCancel>
-    <DialogAction onClick={handleClearAll}>Oui</DialogAction>
-  </DialogFooter>
-</DialogContent>
-</Dialog>
-</>
+
   );
 };
 
