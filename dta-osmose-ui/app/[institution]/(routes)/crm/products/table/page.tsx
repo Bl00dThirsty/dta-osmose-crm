@@ -20,7 +20,7 @@ export default function ProductsTable() {
     const fetchProducts = async () => {
       try {
         setLoading(true)
-        const res = await fetch(`http://localhost:5003/institutions/${institution}/products`)
+        const res = await fetch(`http://localhost:8000/institutions/${institution}/products`)
         const data = await res.json()
         setProducts(data)
       } catch (error) {
