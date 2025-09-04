@@ -442,6 +442,7 @@ chartData?: {
   favoriteProductsByCustomer: any;
   topCustomers: any;
   topProducts: any;
+  lowProducts: any;
   salesByProduct: {
     totalSales: any;
     productId: string;
@@ -459,11 +460,14 @@ chartData?: {
   }[];
 
   salesByCity: {
-    totalSales: any;
-    cityName: string;
-    totalQuantity: number;
-    totalAmount: number;
-  }[];
+  cityName: string;
+  totalSales: number;
+  totalQuantity: number;
+  invoiceCount: number;
+  percentage: number;
+  growth: string;
+  isPositive: boolean;
+}[];
   customers?: Array<{
     id: string;
     name: string;
@@ -495,7 +499,7 @@ export const api = createApi({
             providesTags: ["DashboardMetrics"]
         }),
 
-         getDashboardSales: build.query<DashboardSales, { institution: string, startDate?: string; endDate?: string,customerId?: string  }>({
+         /*getDashboardSales: build.query<DashboardSales, { institution: string, startDate?: string; endDate?: string,customerId?: string  }>({
             query: ({ institution, startDate, endDate,customerId }) => {
               const params = new URLSearchParams();
               if (startDate) params.append("startDate", startDate);
@@ -505,7 +509,25 @@ export const api = createApi({
               return `/dashboard/${institution}/sales?${params.toString()}`;
             },
             providesTags: ["DashboardSales"]
-        }),
+        }),*/
+        getDashboardSales: build.query< DashboardSales,  { institution?: string; startDate?: string; endDate?: string; customerId?: string } | void>({
+        query: (args) => {
+          if (!args?.institution) {
+            // valeur par défaut si rien n’est passé
+            return `/dashboard/iba/sales`;
+          }
+
+          const { institution, startDate, endDate, customerId } = args;
+
+          const params = new URLSearchParams();
+          if (startDate) params.append("startDate", startDate);
+          if (endDate) params.append("endDate", endDate);
+          if (customerId) params.append("customerId", customerId);
+
+          return `/dashboard/${institution}/sales?${params.toString()}`;
+        },
+        providesTags: ["DashboardSales"],
+      }),
 
         /*getTopProducts: build.query<{ name: string; value: number }[], { institution: string }>({
         query: ({ institution }) => `/dashboard/${institution}/top-products`,

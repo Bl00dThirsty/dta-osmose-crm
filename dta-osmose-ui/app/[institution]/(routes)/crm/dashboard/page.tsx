@@ -5,12 +5,13 @@ import Container from "../../components/ui/Container";
 import { useRouter, useParams } from 'next/navigation';
 import { useGetCustomersQuery, useGetDashboardSalesQuery } from "@/state/api";
 import { SalesBarChart } from "./_components/SalesByCityChart";
-import TopProductsChart  from "./_components/TopProductsChart";
+import TopProductsChart  from "./_components/ProductsChart";
 import TopCustomersChart from "./_components/TopCustumersChart";
 import FavoriteProductChart from "./_components/FavoriteProductChart";
 import { OverviewCards } from "./_components/overview-cards";
 import { InsightCards } from "./_components/insight-cards";
 import { OperationalCards } from "./_components/operational-cards";
+import ProductsChart from "./_components/ProductsChart";
 
 const CrmDashboardPage = () => {
   const router = useRouter();
@@ -35,11 +36,20 @@ const CrmDashboardPage = () => {
   // 🔹 Récupération des clients
   const { data: customersData, isLoading: customersLoading } = useGetCustomersQuery();
   const [customerId, setCustomerId] = useState<string | null>(null);
-  const { data: dashboardData, isLoading, error, refetch } = useGetDashboardSalesQuery(
+  const { data: dashboardData,data, isLoading, error, refetch } = useGetDashboardSalesQuery(
     { institution, startDate, endDate,customerId: customerId ?? undefined },
     { skip: !startDate || !endDate, refetchOnMountOrArgChange: true }
   );
 
+  const salesByCityFormatted = (dashboardData?.salesByCity || []).map(city => ({
+  cityName: city.cityName,
+  totalSales: city.totalSales ?? 0,
+  totalQuantity: city.totalQuantity ?? 0,
+  invoiceCount: city.invoiceCount ?? 0,
+  percentage: city.percentage ?? 0,
+  growth: city.growth ?? "+0%",
+  isPositive: city.isPositive ?? true,
+}));
   //console.log("customersData", customersData);
 
 
@@ -120,9 +130,37 @@ const CrmDashboardPage = () => {
 
   return (
     <div className="flex flex-col gap-4 md:gap-6">
+      {/* --- Sélecteur de période --- */} 
+      <div className="mb-4 flex gap-2"> 
+        <div> 
+            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="border rounded p-1" /> 
+            </div>
+             <div>
+              <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="border rounded p-1" />
+          </div>
+     </div>
       <OverviewCards />
-      <InsightCards />
-      <OperationalCards />
+      <InsightCards
+        topProducts={(data?.topProducts || []).map((p: { name: any; designation: any; value: any; totalQuantity: any; }) => ({
+          name: p.name ?? p.designation ?? "Inconnu",
+          value: p.value ?? p.totalQuantity ?? 0,
+          
+        }))}
+        lowProducts={(data?.lowProducts || []).map((p: { name: any; designation: any; value: any; totalQuantity: any; }) => ({
+          name: p.name ?? p.designation ?? "Inconnu",
+          value: p.value ?? p.totalQuantity ?? 0,
+         
+        }))}
+        isLoading={isLoading}/>
+
+      <OperationalCards salesByCity={salesByCityFormatted} isLoading={isLoading} />
+      <TopCustomersChart data={dashboardData?.topCustomers || []} isLoading={isLoading}/>
+      <ProductsChart
+          salesByProduct={dashboardData?.salesByProduct || []}
+          salesByPharmacy={dashboardData?.salesByPharmacy || []}
+          favoriteProductsByCustomer={dashboardData?.favoriteProductsByCustomer || []}
+          isLoading={isLoading}
+        />
       
     </div>
   );

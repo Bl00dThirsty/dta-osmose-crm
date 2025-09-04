@@ -344,14 +344,49 @@ const customers = await prisma.customer.findMany({
     const salesByPharmacy = Object.values(salesByPharmacyMap);
 
    // ---------------------- Ventes par ville ----------------------
-    const salesByCityMap: Record<string, { invoiceCount: number; totalSales: number; totalQuantity: number }> = {};
+    // 1. Regrouper les ventes actuelles par ville
+const salesByCityMap: Record<string, { invoiceCount: number; totalSales: number; totalQuantity: number }> = {}; 
+
+salesByPharmacy.forEach(ph => {
+  if (!salesByCityMap[ph.city]) {
+    salesByCityMap[ph.city] = { invoiceCount: 0, totalSales: 0, totalQuantity: 0 };
+  }
+  salesByCityMap[ph.city].invoiceCount += ph.invoiceCount;
+  salesByCityMap[ph.city].totalSales += ph.totalSales;
+  salesByCityMap[ph.city].totalQuantity += ph.totalQuantity;
+});
+
+// 2. Total global des ventes (pour le calcul des pourcentages)
+const totalSalesAllCities = Object.values(salesByCityMap).reduce((sum, city) => sum + city.totalSales, 0);
+
+// 3. Regrouper aussi les ventes de la période précédente pour calculer la croissance
+const prevSalesByCityMap: Record<string, { totalSales: number }> = {};
     salesByPharmacy.forEach(ph => {
-      if (!salesByCityMap[ph.city]) salesByCityMap[ph.city] = { invoiceCount: 0, totalSales: 0, totalQuantity: 0 };
-      salesByCityMap[ph.city].invoiceCount += ph.invoiceCount;
-      salesByCityMap[ph.city].totalSales += ph.totalSales;
-      salesByCityMap[ph.city].totalQuantity += ph.totalQuantity;
-    });
-    const salesByCity = Object.entries(salesByCityMap).map(([city, data]) => ({ cityName: city, ...data }));
+  if (!prevSalesByCityMap[ph.city]) {
+    prevSalesByCityMap[ph.city] = { totalSales: 0 };
+  }
+  prevSalesByCityMap[ph.city].totalSales += ph.totalSales;
+});
+
+// 4. Formatter le résultat final
+const salesByCity = Object.entries(salesByCityMap).map(([city, data]) => {
+  const percentage = totalSalesAllCities > 0 ? (data.totalSales / totalSalesAllCities) * 100 : 0;
+
+  // Comparaison avec la période précédente
+  const prevTotal = prevSalesByCityMap[city]?.totalSales || 0;
+  const growthValue = prevTotal > 0 ? ((data.totalSales - prevTotal) / prevTotal) * 100 : 0;
+
+  return {
+    cityName: city,
+    invoiceCount: data.invoiceCount,
+    totalSales: data.totalSales,
+    totalQuantity: data.totalQuantity,
+    percentage: Math.round(percentage),
+    growth: `${growthValue >= 0 ? "+" : ""}${growthValue.toFixed(1)}%`,
+    isPositive: growthValue >= 0,
+  };
+});
+
 
 
 // ------------------ TOP PRODUITS ------------------
@@ -359,23 +394,38 @@ const customers = await prisma.customer.findMany({
     by: ["productId"],
     _sum: { quantity: true },
     orderBy: { _sum: { quantity: "desc" } },
-    take: 10, // top 10 produits
+    take: 5, // top 10 produits
+  });
+  // Top 5 produits les moins vendus
+  const lowSales = await prisma.saleItem.groupBy({
+    by: ["productId"],
+    _sum: { quantity: true },
+    orderBy: { _sum: { quantity: "asc" } },
+    take: 5,
   });
 
-    const topProducts = await Promise.all(
-      productSales.map(async (sale) => {
-        const product = await prisma.product.findUnique({
-          where: { id: sale.productId! },
-          select: { designation: true },
-        });
-        return {
-          name: product?.designation ?? "Inconnu",
-          value: sale._sum.quantity ?? 0,
-        };
-      })
-    );
+    // Fonction pour récupérer les désignations
+const formatProducts = async (sales: typeof productSales) => {
+  return Promise.all(
+    sales.map(async (sale) => {
+      const product = await prisma.product.findUnique({
+        where: { id: sale.productId! },
+        select: { designation: true },
+      });
+      return {
+        name: product?.designation ?? "Inconnu",
+        value: sale._sum.quantity ?? 0,
+      };
+    })
+  );
+};
 
-    const sortedTopProducts = topProducts.sort((a, b) => b.value - a.value);
+// Récupérer top et low produits
+const topProducts = await formatProducts(productSales);
+const lowProducts = await formatProducts(lowSales);
+console.log(topProducts);
+console.log(lowProducts);
+
 
     // ------------------ TOP CLIENTS ------------------
     const groupedCustomers = await prisma.saleInvoice.groupBy({
@@ -402,7 +452,7 @@ const customers = await prisma.customer.findMany({
       })
     );
 
-    const sixMonthsAgo = subMonths(new Date(), 6);
+    /*const sixMonthsAgo = subMonths(new Date(), 6);
     const salesHistory = await prisma.saleInvoice.groupBy({
       by: ["customerId", "createdAt"],
       where: { createdAt: { gte: sixMonthsAgo } },
@@ -417,6 +467,35 @@ const customers = await prisma.customer.findMany({
     });
 
     const topCustomers = customersWithData.map((c) => ({
+      ...c,
+      history: historyByCustomer[c.customerId] ?? [],
+    }));*/
+    const sixMonthsAgo = subMonths(new Date(), 6);
+
+const sales = await prisma.saleInvoice.findMany({
+  where: { createdAt: { gte: sixMonthsAgo } },
+  select: {
+    customerId: true,
+    createdAt: true,
+    totalAmount: true,
+  },
+});
+
+const historyByCustomer: Record<string, { month: string; total: number; count: number }[]> = {};
+
+sales.forEach((sale) => {
+  const monthKey = new Date(sale.createdAt).toLocaleString("default", { month: "short", year: "numeric" });
+  if (!historyByCustomer[sale.customerId]) historyByCustomer[sale.customerId] = [];
+
+  const existingMonth = historyByCustomer[sale.customerId].find((h) => h.month === monthKey);
+  if (existingMonth) {
+    existingMonth.total += sale.totalAmount;
+    existingMonth.count += 1;
+  } else {
+    historyByCustomer[sale.customerId].push({ month: monthKey, total: sale.totalAmount, count: 1 });
+  }
+});
+const topCustomers = customersWithData.map((c) => ({
       ...c,
       history: historyByCustomer[c.customerId] ?? [],
     }));
@@ -494,7 +573,8 @@ console.log(favoriteProductsByCustomer);
       salesByProduct,
       salesByPharmacy,
       salesByCity,
-      topProducts: sortedTopProducts,
+      topProducts,
+      lowProducts, 
       topCustomers,
       favoriteProductsByCustomer,
       customers,
