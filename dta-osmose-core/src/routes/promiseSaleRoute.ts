@@ -5,10 +5,10 @@ import authorize from "../authorize";
 
 const router = Router();
 
+router.post("/:institution/promiseSale", ...authorize("view-product"), createSalePromise);
 router.get("/:institution/all", getSalePromise);
-router.get("/:id", getSalePromiseById);
 router.get("/customer", ...authorize("view-product"), getSalePromiseByCustomer);
-router.post("/:institution/promiseSale", ...authorize("create-product"), createSalePromise);
+router.get("/:id", getSalePromiseById);
 router.delete("/:id", deleteSalePromise);
 
 export default router;

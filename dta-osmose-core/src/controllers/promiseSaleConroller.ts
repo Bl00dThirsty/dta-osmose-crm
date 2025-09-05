@@ -309,7 +309,7 @@ export const getSalePromise = async (req: Request, res: Response): Promise<void>
   try {
     const { startDate, endDate } = req.query;
     const institutionSlug = req.params.institution;
-
+    
     if (!institutionSlug) {
       res.status(400).json({ message: "Institution manquante." });
       return;
@@ -347,6 +347,49 @@ export const getSalePromise = async (req: Request, res: Response): Promise<void>
   }
 };
 
+export const getSalePromiseByCustomer = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { startDate, endDate } = req.query;
+    const creatorType = req.auth.userType; // Type de créateur ("user" ou "customer")
+      
+    const creator = req.auth.sub;  
+      
+      if (creatorType !== "customer") {
+        res.status(403).json({ message: "Seuls les clients peuvent accéder à leurs notifications." });
+        return;
+      }
+     
+      if (!creator) {
+         res.status(400).json({ message: "Identifiant du client manquant." });
+         return;
+      }
+    
+    const invoic = await prisma.salePromise.findMany({
+      where: { 
+        customerId: creator,
+        createdAt: {
+          gte: startDate ? new Date(startDate as string) : undefined,
+          lte: endDate ? new Date(endDate as string) : undefined,
+        },
+        },
+      include: {
+        customer: true,
+        user: true,
+        items: {
+          include: {
+            product: true
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(invoic);
+  } catch (error) {
+    console.error("Erreur getSalePromiseByCustomer:", error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 export const getSalePromiseById = async (req: Request, res: Response): Promise<void> => {
   try {
     const promiseId = Number(req.params.id);
@@ -374,45 +417,7 @@ export const getSalePromiseById = async (req: Request, res: Response): Promise<v
   }
 };
 
-export const getSalePromiseByCustomer = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { startDate, endDate } = req.query;
-    const creatorType = req.auth.userType; // Type de créateur ("user" ou "customer")
-      
-    const creatorId = req.auth.sub;  
-      
-      if (creatorType !== "customer") {
-        res.status(403).json({ message: "Seuls les clients peuvent accéder à leurs notifications." });
-      }
-     
-      if (!creatorId) {
-         res.status(400).json({ message: "Identifiant du client manquant." });
-      }
-    
-    const invoices = await prisma.salePromise.findMany({
-      where: { 
-        customerId: creatorId,
-        createdAt: {
-          gte: startDate ? new Date(startDate as string) : undefined,
-          lte: endDate ? new Date(endDate as string) : undefined,
-        },
-        },
-      include: {
-        customer: true,
-        user: true,
-        items: {
-          include: {
-            product: true
-          }
-        }
-      },
-      orderBy: { createdAt: 'desc' }
-    });
-    res.json(invoices);
-  } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
-  }
-};
+
 
 export const deleteSalePromise = async (req: Request, res: Response): Promise<void> => {
   try {

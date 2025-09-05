@@ -108,7 +108,7 @@ export function ChartAreaInteractive({ institutionSlug }: ChartAreaInteractivePr
 
   try {
     const response = await axios.get(
-      `http://localhost:8000/dashboard/${institutionSlug}`,
+      `http://localhost:5003/dashboard/${institutionSlug}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

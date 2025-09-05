@@ -245,9 +245,9 @@ useEffect(() => {
   </div>
 )}
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Liste des produits */}
-        <div className="lg:col-span-2 bg-gray p-4 rounded-lg shadow">
+        <div className="lg:col-span-3 bg-gray p-4 rounded-lg shadow">
           <div className="mb-4">
             <Input
               type="text"
@@ -260,52 +260,52 @@ useEffect(() => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {currentProducts.map(product => {
-  const promo = getPromoForProduct(product.id);
-  const finalPrice = promo 
-    ? product.sellingPriceTTC * (1 - promo.discount / 100) 
-    : product.sellingPriceTTC;
+              const promo = getPromoForProduct(product.id);
+                const finalPrice = promo 
+                  ? product.sellingPriceTTC * (1 - promo.discount / 100) 
+                  : product.sellingPriceTTC;
 
-  return (
-    <div
-      key={product.id}
-      className={`border p-3 rounded cursor-pointer  ${
-        product.quantity <= 0
-          ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-          : "hover:bg-gray-50 hover:text-red-700"
-      }`}
-      onClick={() => product.quantity > 0 && handleAddProduct({
-        ...product,
-        sellingPriceTTC: finalPrice // ⚡️ Utiliser le prix promo si actif
-      })}
-    >
-      {promo ? ( 
-        <Badge className="top-3 left-3 bg-red-500">-{promo.discount}%</Badge>
-      ) :(
-        <p> </p>
-      )}
-      <h3 className="font-bold">{product.designation}</h3>
+              return (
+                  <div
+                    key={product.id}
+                    className={`border p-3 rounded cursor-pointer  ${
+                     product.quantity <= 0
+                         ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                         : "hover:bg-gray-50 hover:text-red-700"
+                    }`}
+                   onClick={() => product.quantity > 0 && handleAddProduct({
+                   ...product,
+                    sellingPriceTTC: finalPrice // ⚡️ Utiliser le prix promo si actif
+                   })}
+                   >
+                {promo ? ( 
+                  <Badge className="top-3 left-3 bg-red-500">-{promo.discount}%</Badge>
+                ) :(
+                 <p> </p>
+                )}
+              <h3 className="font-bold">{product.designation}</h3>
 
-      {promo ? (
-        <p>
-          <span className="line-through text-gray-500 mr-2">
-            {product.sellingPriceTTC} F
-          </span>
-          <span className="text-green-600 font-bold mr-2">{finalPrice.toFixed(2)} F</span>
+              {promo ? (
+                <p>
+                  <span className="line-through text-gray-500 mr-2">
+                     {product.sellingPriceTTC} F
+                  </span>
+                  <span className="text-green-600 font-bold mr-2">{finalPrice.toFixed(2)} F</span>
           {/* <span className='text-red-600'>-{promo.discount}%</span> */}
-        </p>
-      ) : (
-        <p>Prix: {product.sellingPriceTTC} F</p>
-      )}
+                </p>
+              ) : (
+                <p>Prix: {product.sellingPriceTTC} F</p>
+              )}
 
-      <p className="font-normal text-gray-500">
-        Stock: {product.quantity}{" "}
-        {product.quantity <= 0 && (
-          <span className="text-red-500 font-bold">(Épuisé)</span>
-        )}
-      </p>
-    </div>
-  );
-})}
+                <p className="font-normal text-gray-500">
+                Stock: {product.quantity}{" "}
+                {product.quantity <= 0 && (
+                  <span className="text-red-500 font-bold">(Épuisé)</span>
+                )}
+                </p>
+            </div>
+         );
+        })}
 
           </div>
           <div className="flex justify-center mt-4 space-x-2">
@@ -338,7 +338,7 @@ useEffect(() => {
         </div>
         
         {/* Panier */}
-        <div className="bg-gray p-4 rounded-lg shadow p-4 w-100">
+        <div className="lg:col-span-2 bg-gray p-4 rounded-lg shadow">
           <h2 className="text-xl font-semibold mb-4">Récapitulatif</h2>
           
           {/* <div className="mb-4">
@@ -365,7 +365,7 @@ useEffect(() => {
   
             {isParticulier && currentCustomer ? (
                  // Si c'est un client connecté
-                <div className="p-2 border rounded bg-white-100">
+                <div className="p-2 border rounded">
                    <p>{currentCustomer.name} - {currentCustomer.phone}</p>
                 </div>
             ) : (

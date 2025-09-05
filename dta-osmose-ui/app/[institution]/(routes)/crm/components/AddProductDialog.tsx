@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label"
 import { PlusIcon } from "lucide-react"
 import { ChangeEvent, FormEvent, useState } from "react"
 import { v4 } from "uuid"
+import { ToastContainer, toast } from 'react-toastify';
 
 export type ProductFormData = {
   quantity: number;
@@ -42,6 +43,19 @@ export const AddProductDialog = ({ onCreate, institution }: AddProductDialogProp
     purchase_price: 0,
   });
 
+  const resetForm= () => {
+    setFormData({
+        quantity: 0,
+        EANCode: "",
+        brand: "",
+        designation: "",
+        restockingThreshold: 0,
+        warehouse: "",
+        sellingPriceTTC: 0,
+        purchase_price: 0,
+      });
+  }
+
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
     setFormData((prev) => ({
@@ -53,6 +67,8 @@ export const AddProductDialog = ({ onCreate, institution }: AddProductDialogProp
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     onCreate(formData);
+    toast.success("Ajout du produit reussi!")
+    resetForm();
   };
 
   return (

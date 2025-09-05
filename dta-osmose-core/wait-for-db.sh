@@ -5,6 +5,8 @@ until nc -z postgres 5432; do
 done
 echo "Base de données disponible !"
 
-npx prisma migrate deploy
+npx prisma migrate deploy 
 
-npm start
+npx prisma generate
+
+npm run dev

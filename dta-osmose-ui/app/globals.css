@@ -171,8 +171,9 @@
 
 @media print {
   body {
-    background: white;
-    color: black;
+    -webkit-print-color-adjust: exact;
+    margin: 0;
+    
   }
 
   /* Affiche tous les éléments masqués par .print:hidden */
@@ -190,7 +191,8 @@
 
   /* Réduit les marges et optimise la zone imprimée */
   @page {
-    margin: 1cm;
+    margin: 0;
+    size: auto;
    /*size: landscape; impression en paysage*/
   }
 
@@ -211,4 +213,5 @@
     background: none !important;
     box-shadow: none !important;
   }
+
 }

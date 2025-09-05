@@ -443,6 +443,29 @@ export interface NewPromotion {
   }
 }
 
+export interface Report{
+  id: number;
+  prospectName: string;
+  date: Date;
+  userId?: number
+  degree?: string;
+  responsable?: string;
+  rdvObject: string;
+  nextRdv?: Date;
+  time: string;
+  contact: string;
+  address: string;
+  email?: string;
+  pharmacoVigilance?: string;
+  institution:   string;
+  createdAt: Date;
+  user?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+  }
+}
+
 export type MetricItem = {
   count: number;
   type: string; // "Ventes" | "Profits" | "nombre de facture"
@@ -534,7 +557,8 @@ export const api = createApi({
         return headers;
       }, }),
     reducerPath: "api",
-    tagTypes: ["DashboardMetrics", "DashboardSales","getTopProducts","getTopCustomers", "Products", "Users", "Departments", "Designations", "Roles", "Customers", "SalePromise", "Sales", "AppSettings", "Claims", "Notifications", "Inventorys", "Promotions"],
+    tagTypes: ["DashboardMetrics", "DashboardSales","getTopProducts","getTopCustomers", "Products", "Users", "Departments", "Designations", "Roles", "Customers", "SalePromise", "Sales", "AppSettings", "Claims", "Notifications", 
+      "Inventorys", "Promotions", "Reports"],
 
     endpoints: (build) => ({
         getDashboardMetrics: build.query<DashboardMetrics, { institution: string, startDate?: string; endDate?: string  }>({
@@ -577,10 +601,53 @@ export const api = createApi({
         providesTags: ["getTopCustomers"],
       }),*/
         
+        //Reporting
+        createReport: build.mutation<Report, { institution: string; prospectName: string;
+  date: Date; userId?: number; responsable?: string; email?: string; degree: string; rdvObject: string; nextRdv: Date; time: string; contact: string;
+  address: string; pharmacoVigilance: string}>({
+            query: ({ institution, ...data }) => ({
+              url: `/report/${institution}/`,
+              method: "POST",
+              body: data,
+            }),
+            invalidatesTags: ["Reports"],
+        }), 
+        getReportById: build.query<Report, number>({
+          query: (id) => `/report/${id}`, // Construire l'URL avec l'ID de l'utilisateur
+          providesTags: (result, error, id) => [{ type: "Reports", id }], // Associer un tag pour l'invalidation
+        }),
+        getReport: build.query<Report[], { institution: string, startDate?: string; endDate?: string }>({
+          query: ({institution, startDate, endDate}) => {
+            const params = new URLSearchParams();
+            if (startDate) params.append("startDate", startDate);
+            if (endDate) params.append("endDate", endDate);
+        
+            return `/report/${institution}/all?${params.toString()}`;
+          },
+          providesTags: ['Reports']
+        }),
+
+        getReportByStaff: build.query<Report[], { startDate?: string; endDate?: string }>({
+          query: ({startDate, endDate}) => {
+            const params = new URLSearchParams();
+            if (startDate) params.append("startDate", startDate);
+            if (endDate) params.append("endDate", endDate);
+        
+            return `/report/staff?${params.toString()}`;
+          },
+          providesTags: ['Reports']
+        }),
+        deleteReport: build.mutation<void, number>({
+          query: (id) => ({
+            url: `/report/${id}`, 
+            method: "DELETE",
+          }),
+          invalidatesTags: (result, error, id ) => [{ type: "Reports", id }],
+        }),
 
         //Promotion
         createPromotions: build.mutation<Promotion, { institution: string; title?: string;
-  discount: number; startDate: Date; endDate: Date; status: boolean; creatorId?: number; productId: string }>({
+  discount: number; startDate: Date; endDate: Date; status: boolean; creatorId?: number; productId: string;}>({
             query: ({ institution, ...data }) => ({
               url: `/promotions/${institution}/`,
               method: "POST",
@@ -794,6 +861,14 @@ export const api = createApi({
           },
           providesTags: ['SalePromise']
         }),
+
+        // getSalePromiseByCustomer: build.query<salePromise[], { search?: string }>({
+        //     query: ({ search }) => ({
+        //         url: `/salepromise/customer`,
+        //         params: search ? { search } : {}
+        //     }),
+        //     providesTags: ["SalePromise"]
+        // }),
 
         getSalePromiseById: build.query<salePromise, number>({
           query: (id) => `/salepromise/${id}`,
@@ -1159,7 +1234,7 @@ export const api = createApi({
 });
 
 
-export const { useGetDashboardMetricsQuery,useGetDashboardSalesQuery, 
+export const { useGetDashboardMetricsQuery,useGetDashboardSalesQuery, useCreateReportMutation, useGetReportByIdQuery, useGetReportQuery, useGetReportByStaffQuery, useDeleteReportMutation,
   useCreatePromotionsMutation, useGetActivePromotionsQuery, useUpdatePromotionStatusMutation, useGetAllPromotionsQuery, useGetPromotionsByIdQuery, useUpdatePromotionsMutation, useDeletePromotionsMutation, 
   useGetProductsQuery, useCreateProductMutation, useGetProductByIdQuery, useDeleteProductMutation,useUpdateProductMutation, useImportProductsMutation,
   useCreateInventoryMutation, useGetInventoryQuery, useGetInventoryIdQuery, useUpdateInventoryMutation, useDeleteInventoryMutation, useCreateSaleMutation, useGetCustomerDebtStatusQuery, 
@@ -1168,7 +1243,7 @@ export const { useGetDashboardMetricsQuery,useGetDashboardSalesQuery,
     useRespondToClaimMutation, useUpdateClaimResponseMutation, useGetClaimQuery, useGetClaimByIdQuery, useDeleteClaimMutation, useGetDepartmentsQuery, 
     useCreateDepartmentsMutation, useDeleteDepartmentsMutation,
     useGetDesignationsQuery, useCreateDesignationsMutation, useDeleteDesignationMutation,useGetRolesQuery, useCreateRolesMutation, 
-    useDeleteRoleMutation, useGetUsersQuery, useGetUserByIdQuery, useDeleteUserMutation,  useGetCustomersQuery, useCreateCustomersMutation,
+    useDeleteRoleMutation, useGetUsersQuery, useGetUserByIdQuery, useUpdateUserMutation, useDeleteUserMutation,  useGetCustomersQuery, useCreateCustomersMutation,
     useGetCustomerByIdQuery, useDeleteCustomerMutation,useUpdateCustomerMutation, useSendTokenResetPasswordMutation, useResetPasswordMutation, 
     useGetSettingsQuery, useUpdateSettingsMutation, useGetAllNotificationsQuery, useGetCustomerNotificationsQuery, useDeleteNotificationsMutation} = api;
 

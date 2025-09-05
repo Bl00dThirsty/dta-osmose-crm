@@ -1,19 +1,13 @@
 "use client";
 
-import React, { useRef } from "react";
+import React from "react";
 import { useGetClaimByIdQuery } from '@/state/api';
 import { useRouter, useParams } from 'next/navigation';
-import { useState } from "react"
-import PrintUserSheet from "./Facture"
-import { Row } from "@tanstack/react-table"
-import { useRespondToClaimMutation, useDeleteClaimMutation, useUpdateClaimResponseMutation } from '@/state/api';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import Container from "../../components/ui/Container";
-import { toast } from "react-toastify";
 import Link from "next/link";
+import PrintClaimSheet from "./Facture"
+import { useRespondToClaimMutation, useDeleteClaimMutation, useUpdateClaimResponseMutation } from '@/state/api';
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
   DialogHeader,
   DialogFooter,
@@ -22,6 +16,8 @@ import {
   DialogCancel,
   DialogAction,
 } from "@/components/ui/dialog"
+import { toast } from "react-toastify";
+import { useState } from "react"
 import {
     ArrowLeft,
     
@@ -30,20 +26,19 @@ import {
 
 const ClaimPage = () => {
   const router = useRouter();
-  const params = useParams();
-  const id = params?.id as string;
-  const { institution } = useParams<{ institution: string }>();
+  const { id, institution } = useParams<{ id: string; institution: string }>();
   const [openDelete, setOpenDelete] = useState(false);
   const [openResponse, setOpenResponse] = useState(false);
   const [openResponseUpdate, setOpenResponseUpdate] = useState(false);
-  //console.log('Institution from params:', institution);
-  //const { id } = (row.original as any);
+  const userRole = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
+  const isParticulier = userRole === "Particulier";
   const [responseDesc, setResponseDesc] = useState("");
   const [respondToClaim] = useRespondToClaimMutation();
   const [updateClaimResponse] = useUpdateClaimResponseMutation();
   const [deleteClaim] = useDeleteClaimMutation()
-  
-  const { data: claim, isLoading, refetch } = useGetClaimByIdQuery(id);
+  const { data: claim, isLoading, refetch } = useGetClaimByIdQuery(id, {
+  refetchOnMountOrArgChange: true, // Force le rafraîchissement des données à chaque montage
+});
  
   const handleDelete = async () => {
     if (!id) {
@@ -101,15 +96,16 @@ const ClaimPage = () => {
       toast.error("Erreur lors de la mise à jour");
     }
   };
+
   
  
   if (isLoading) return <div>Chargement...</div>;
   if (!claim) return <div>Réclamation non trouvée</div>;
 
   return (
-    <>
-    <div className="container mx-auto p-4 max-w-4xl border">
-    <div className="mb-3 ml-4 pt-4">
+   <>
+    <div className="container mx-auto p-4 max-w-4xl">
+      <div className="mb-3 ml-4 pt-4">
         <button
           onClick={handleGoBack}
           className="flex items-center gap-2 text-white-600 hover:bg-blue-500 transition-colors bg-blue-800 px-2 py-1 rounded"
@@ -117,18 +113,20 @@ const ClaimPage = () => {
           <ArrowLeft className="w-5 h-5" />
           <span>Retour</span>
         </button>
-    </div>
-    <div className="flex flex-col h-full">
+      </div>
+
+      
+     <div className="flex flex-col ">
       <section className="overflow-hidden rounded-[0.5rem] border bg-background shadow-zinc-50">
         <div className="flex justify-center mb-8 mt-3">
           
             <h1 className="text-2xl">Détails de la Réclamation</h1>
             {/* <p className="text-gray-500">Date: {new Date(sale.createdAt ).toLocaleDateString()}</p> */}
         </div>
-        
-        <div className="grid grid-cols-3 gap-5 mb-8 place-items-center">
-          
+            <div className="grid grid-cols-3 gap-5 mb-8 place-items-center">
+         
           <div>
+             {!isParticulier && (
              <button  
                 onClick={() => {
                     if (claim.response?.status === 'ACCEPTED' || claim.response?.status === 'REJECTED') {
@@ -140,7 +138,10 @@ const ClaimPage = () => {
               >
                Réponse
              </button>
+             )
+            }
           </div>
+          
           <div>
             <button
              onClick={() => {
@@ -157,13 +158,12 @@ const ClaimPage = () => {
                {/* {sale?.delivred ? "Déjà livrée" : "Annuler la commande"} */}
             </button>
           </div>
-          
           <div>
           
-              <PrintUserSheet claim={claim} />
+              <PrintClaimSheet claim={claim} />
           </div>
         </div>
-
+          
         <div className="container mx-auto p-4 max-w-4xl border">
            <div className="bg-gray p-6 rounded-lg shadow text-white-500 print:shadow-none">
               <h2 className="font-bold mb-5 text-center text-2xl">Informations</h2>
@@ -182,8 +182,7 @@ const ClaimPage = () => {
               {claim.response?.description && (
              <p className="mb-2">Descriptif de la réponse: <b>{claim.response.description}</b></p>
              )}
-               
-              
+                             
           </div>
           <div>
             {/* <h2 className="font-bold mb-2">Client</h2> */}
@@ -281,8 +280,8 @@ const ClaimPage = () => {
     </div>
   </DialogContent>
 </Dialog>
+</>
 
-   </> 
   );
 };
 

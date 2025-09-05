@@ -28,7 +28,8 @@ import claimRoutes from './routes/claimRoute';
 import NotificationRoutes from './routes/notificationRoutes'
 import InventoryRoutes from './routes/inventoryRoutes'
 import promotionRoutes from "./routes/promotionRoute";
-import PromiseSaleRoutes from "./routes/promiseSaleRoute"
+import PromiseSaleRoutes from "./routes/promiseSaleRoute";
+import ReportRoutes from "./routes/reportRoutes"
 import { startReminderScheduler } from "./reminderScheduler";
 
 export const prisma = new PrismaClient();
@@ -47,7 +48,7 @@ app.use(bodyParser.urlencoded({extended: false}));
 //app.use(cors());
 app.use(cors({
   origin: 'http://localhost:3000', // <-- autorise le frontend Next.js local
-  credentials: true, // <-- permet l'envoi des cookies (token de session, etc.)
+  credentials: true,
 }));
 
 //app.use(express.json());
@@ -71,7 +72,8 @@ app.use("/claim", claimRoutes);
 app.use("/notification", NotificationRoutes);
 app.use("/inventory", InventoryRoutes);
 app.use("/promotions", promotionRoutes);
-app.use("/salepromise", PromiseSaleRoutes)
+app.use("/salepromise", PromiseSaleRoutes);
+app.use("/report",  ReportRoutes)
 
 // Error handling middleware
 app.use(errorHandler);

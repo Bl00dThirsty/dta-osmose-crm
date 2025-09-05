@@ -1,27 +1,33 @@
 services:
   postgres:
-    image: postgres:10.3
+    image: postgres:15
     restart: always
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: admin
+      POSTGRES_DB: ibacameroon
+    ports:
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - '5432:5432'
-
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
   backend:
+    depends_on:
+      postgres:
+        condition: service_healthy
     build:
       context: .
       dockerfile: Dockerfile
     platform: linux/amd64
     restart: always
     ports:
-      - '5003:5003'
+      - "5003:5003"
     environment:
-      DATABASE_URL: "postgresql://postgres:admin@postgres:5432/ibacameroon?schema=public"
-    depends_on:
-      - postgres
+      DATABASE_URL: "postgresql://postgres:admin@postgres:5432/ibacameroon?schema=public&connect_timeout=30"
     volumes:
       - .:/app
       - /app/node_modules # Volume anonyme pour node_modules container-only
