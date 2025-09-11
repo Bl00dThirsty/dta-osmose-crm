@@ -113,24 +113,8 @@ const { trend: profitTrend, trendDirection: profitTrendDirection } = getDynamicT
 const { trend: invoiceTrend, trendDirection: invoiceTrendDirection } = getDynamicTrend(totalInvoices, previousInvoices);
 const { trend: totalAvailableCreditTrend, trendDirection: totalAvailableCreditTrendDirection } = getDynamicTrend(totalAvailableCredit, previousAvailableCredit);
 
-/*
-console.log("Factures actuelles:", totalInvoices, "Factures pr c dentes:", previousInvoices);
-console.log("Tendances calcul es :");
-console.log(`Ventes : ${salesTrend} (${salesTrendDirection})`);
-console.log(`B n fices : ${profitTrend} (${profitTrendDirection})`);
-console.log(`Nombre de factures : ${invoiceTrend} (${invoiceTrendDirection})`);
 
-console.log("=== M TRIQUES DU DASHBOARD ===");
-console.log("?? Montant total des ventes");
-console.log("  - Actuel :", totalSales.toLocaleString("fr-FR"), " ");
-console.log("  - Pr c dent :", previousSales.toLocaleString("fr-FR"), " ");
-console.log(`  - Tendance : ${salesTrend} (${salesTrendDirection})`);
-console.log("?? totalAvailableCredit:", totalAvailableCredit);
-
-console.log("?? B n fices");
-console.log("  - Actuel :", totalProfits.toLocaleString("fr-FR"), " ");
-console.log("  - Pr c dent :", previousProfits.toLocaleString("fr-FR"), " ");
-console.log(`  - Tendance : ${profitTrend} (${profitTrendDirection})`);*/
+console.log("Institution:", institution);
 
 // Fonction d impression
   const handlePrint = () => {
@@ -144,6 +128,7 @@ console.log(`  - Tendance : ${profitTrend} (${profitTrendDirection})`);*/
     switch (userType) {
       case "admin":
         return <AdminDashboard
+         institution={institution}
            dashboardMetrics={dashboardMetrics}
             totalSales={totalSales}
             totalProfits={totalProfits}
@@ -172,7 +157,7 @@ console.log(`  - Tendance : ${profitTrend} (${profitTrendDirection})`);*/
           chartData={dashboardMetrics?.chartData || []}
         />;
       case "Particulier":
-        return <ClientDashboard dadashboardMetrics={dashboardMetrics} 
+        return <ClientDashboard dashboardMetrics={dashboardMetrics} 
      totalSales={totalSales} 
      totalProfits={totalProfits} 
      totalInvoices={totalInvoices} 
@@ -271,7 +256,7 @@ console.log(`  - Tendance : ${profitTrend} (${profitTrendDirection})`);*/
 
 export default DashboardPage;
 //const { institution } = useParams() as { institution: string }
-const AdminDashboard = ({ dashboardMetrics,
+const AdminDashboard = ({institution, dashboardMetrics,
   totalSales,
   totalProfits,
   totalInvoices,
@@ -378,7 +363,7 @@ const AdminDashboard = ({ dashboardMetrics,
   />
     </div>
     <div className="px-4 lg:px-6">
-          <ChartAreaInteractive institutionSlug="iba" />
+          <ChartAreaInteractive institutionSlug={institution} />
     </div>
   </div>
 </div>

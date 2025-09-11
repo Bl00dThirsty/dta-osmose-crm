@@ -185,7 +185,7 @@ mergedHistory.forEach((m) => {
       <Card className="shadow-md rounded-2xl">
         <CardHeader>
           <CardTitle className="text-xl font-semibold mb-4">
-            📈 Historique d’achats (6 mois)
+            Historique d’achats (6 mois)
           </CardTitle>
         </CardHeader>
         <CardContent>

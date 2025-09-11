@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { projectRevenueChartConfig } from "./crm.confg";
+import { GitCommitVertical, TrendingUp } from "lucide-react";
 
 interface ProductsChartProps {
   salesByPharmacy?: {
@@ -99,6 +100,10 @@ export default function ProductsChart({
     });
     return entry;
   });
+  // ---------------- DEBUG LOGS ----------------
+  console.log("✅ [ProductsChart] salesByProduct:", salesByProduct);
+  console.log("✅ [ProductsChart] salesByPharmacy:", salesByPharmacy);
+  console.log("✅ [ProductsChart] favoriteProductsByCustomer:", favoriteProductsByCustomer);
 
   return (
     <div className="grid gap-6 md:grid-cols-3">
@@ -144,94 +149,76 @@ export default function ProductsChart({
         </CardFooter>
       </Card>
 
-      {/* BarChart Vente par pharmacie */}
-   <Card className="col-span-1 ">
+   {/* LineChart Vente par pharmacie */}
+<Card className="col-span-1">
   <CardHeader>
     <CardTitle>Vente par pharmacie</CardTitle>
+    <CardDescription>
+      Montant total (€) et quantités par pharmacie
+    </CardDescription>
   </CardHeader>
-  <CardContent className="size-full max-h-52">
-    <ChartContainer config={projectRevenueChartConfig} className="size-full">
+  <CardContent className="size-full">
+    <ChartContainer
+      config={{
+        totalAmount: { label: "Montant (€)", color: "var(--chart-1)" },
+      }}
+      className="size-full"
+    >
       <ResponsiveContainer width="100%" height={250}>
-      <BarChart 
-      data={pharmacyData} 
-      layout="vertical" 
-      barSize={25}  // largeur des barres            
-      barCategoryGap={5}    // espace entre les catégories (pharmacies)
-      barGap={0}
-      margin={{ top: 10, right: 12, bottom: 10, left: 12 }}             // espace entre les barres empilées
-      >
-        {/* Grille horizontale seulement */}
-        <CartesianGrid horizontal={false} vertical={false} />
-
-        {/* Axe Y (pharmacies) */}
-        <YAxis
-          dataKey="name"
-          type="category"
-          hide
-        />
-
-        {/* Axe X caché */}
-        <XAxis type="number" hide />
-
-        {/* Tooltip */}
-       <Tooltip
-  cursor={{ fill: "rgba(0,0,0,0.05)" }}
-  contentStyle={{
-    backgroundColor: "var(--card-bg)",
-    borderRadius: 8,
-    padding: 8,
-  }}
-  itemStyle={{ color: "var(--text-primary)" }}
-  formatter={(value: number, name: string) =>
-    name === "totalAmount"
-      ? [`${value.toLocaleString()} €`, "Montant total"]
-      : [`${value} unités`, "Quantité vendue"]
-  }
-/>
-
-        {/* Montant (€) */}
-        <Bar stackId="a" dataKey="totalAmount" layout="vertical" fill="var(--chart-1)">
-          <LabelList
+        <LineChart data={pharmacyData} margin={{ left: 12, right: 12 }}>
+          <CartesianGrid vertical={false} stroke="var(--border)" />
+          <XAxis
             dataKey="name"
-            position="insideLeft"
-            offset={8}
-            className="fill-primary-foreground text-xs"
+            tick={false} // <-- supprime les noms en abscisse
+            axisLine={false}
           />
-          <LabelList
+          <YAxis hide />
+          <ChartTooltip
+            cursor={false}
+            content={
+              <ChartTooltipContent
+                formatter={(value, name, entry: any) => {
+                  const qty = entry?.payload?.totalQuantity ?? 0;
+                  const amount = entry?.payload?.totalAmount ?? 0;
+                  return [`${amount.toLocaleString()} € | ${qty} unités`];
+                }}
+              />
+            }
+          />
+          <Line
+            type="monotone"
             dataKey="totalAmount"
-            position="insideRight"
-            offset={8}
-            formatter={(val: number) => `${val.toLocaleString()} €`}
-            className="fill-primary-foreground text-xs tabular-nums"
+            stroke="var(--chart-1)"
+            strokeWidth={2}
+            dot={({ cx, cy, payload }) => {
+              const r = 20;
+              return (
+                <GitCommitVertical
+                  key={payload.name}
+                  x={cx - r / 2}
+                  y={cy - r / 2}
+                  width={r}
+                  height={r}
+                  fill="hsl(var(--background))"
+                  stroke="var(--chart-1)"
+                />
+              );
+            }}
           />
-        </Bar>
-
-        {/* Quantité */}
-        <Bar 
-        stackId="a" 
-        dataKey="totalQuantity" 
-        layout="vertical" 
-        fill="var(--chart-2)" 
-        radius={[0, 6, 6, 0]}
-        >
-          <LabelList
-            dataKey="totalQuantity"
-            position="insideRight"
-            offset={8}
-            formatter={(val: number) => `${val} `}
-            className="fill-primary-foreground text-xs tabular-nums"
-          />
-        </Bar>
-      </BarChart>
+        </LineChart>
       </ResponsiveContainer>
     </ChartContainer>
   </CardContent>
-  <CardFooter>
-    <p className="text-muted-foreground text-xs">
-      Montant total (€) et quantités vendues par pharmacie
-    </p>
+  <CardFooter className="flex-col items-start gap-2 text-sm">
+    <div className="flex gap-2 leading-none font-medium">
+      Tendance des ventes par pharmacie <TrendingUp className="h-4 w-4" />
+    </div>
+    <div className="text-muted-foreground leading-none">
+      Montant total (€) et quantités vendues
+    </div>
   </CardFooter>
 </Card>
+
 
       {/* LineChart Produits préférés par client */}
       <Card>

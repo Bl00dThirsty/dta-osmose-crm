@@ -488,6 +488,7 @@ export const api = createApi({
     tagTypes: ["DashboardMetrics", "DashboardSales","getTopProducts","getTopCustomers", "Products", "Users", "Departments", "Designations", "Roles", "Customers", "Sales", "AppSettings", "Claims", "Notifications", "Inventorys", "Promotions"],
 
     endpoints: (build) => ({
+      // dashboard principal
         getDashboardMetrics: build.query<DashboardMetrics, { institution: string, startDate?: string; endDate?: string  }>({
             query: ({ institution, startDate, endDate }) => {
               const params = new URLSearchParams();
@@ -498,18 +499,7 @@ export const api = createApi({
             },
             providesTags: ["DashboardMetrics"]
         }),
-
-         /*getDashboardSales: build.query<DashboardSales, { institution: string, startDate?: string; endDate?: string,customerId?: string  }>({
-            query: ({ institution, startDate, endDate,customerId }) => {
-              const params = new URLSearchParams();
-              if (startDate) params.append("startDate", startDate);
-              if (endDate) params.append("endDate", endDate);
-              if (customerId) params.append("customerId", customerId);
-          
-              return `/dashboard/${institution}/sales?${params.toString()}`;
-            },
-            providesTags: ["DashboardSales"]
-        }),*/
+        //dashboard des des ventes
         getDashboardSales: build.query< DashboardSales,  { institution?: string; startDate?: string; endDate?: string; customerId?: string } | void>({
         query: (args) => {
           if (!args?.institution) {
@@ -528,23 +518,6 @@ export const api = createApi({
         },
         providesTags: ["DashboardSales"],
       }),
-
-        /*getTopProducts: build.query<{ name: string; value: number }[], { institution: string }>({
-        query: ({ institution }) => `/dashboard/${institution}/top-products`,
-        providesTags: ["getTopProducts"],
-      }),
-
-      getTopCustomers: build.query<{
-        history: never[];
-        totalAmount: any;
-        invoicesCount: ReactNode;
-        customerEmail: string;
-        customerName: DataKey<any>;
-        customerId: Key | null | undefined; name: string; value: number 
-}[], { institution: string }>({
-        query: ({ institution }) => `/dashboard/${institution}/top-customers`,
-        providesTags: ["getTopCustomers"],
-      }),*/
         
 
         //Promotion
@@ -616,12 +589,12 @@ export const api = createApi({
             }),
             invalidatesTags: ["Products"],
         }), 
-        getProductById: build.query<Product, string>({
-          query: (id) => `/institutions/${id}`, // Construire l'URL avec l'ID de l'utilisateur
-          providesTags: (result, error, id) => [{ type: "Products", id }], // Associer un tag pour l'invalidation
+        getProductById: build.query<Product, { institution: string; id: string }>({
+          query: ({ institution, id }) => `/institutions/${institution}/products/${id}`, // Construire l'URL avec l'ID de l'utilisateur
+          providesTags: (result, error, { id }) => [{ type: "Products", id }], // Associer un tag pour l'invalidation
         }),
 
-        deleteProduct: build.mutation<void, string>({
+        /*deleteProduct: build.mutation<void, string>({
             query: (id) => ({
               url: `/${id}`,
               method: 'DELETE',
@@ -637,7 +610,22 @@ export const api = createApi({
               body: data,
             }),
             invalidatesTags: (result, error, { id }) => [{ type: 'Products' }],
-          }),
+          }),*/
+          deleteProduct: build.mutation<void, { institution: string; id: string }>({
+              query: ({ institution, id }) => ({
+                url: `/institutions/${institution}/products/${id}`,
+                method: "DELETE",
+              }),
+            }),
+
+            updateProduct: build.mutation<Product, { institution: string; id: string; }>({
+              query: ({ institution, id, ...data }) => ({
+                url: `/institutions/${institution}/products/${id}`,
+                method: "PUT",
+                body: data,
+              }),
+            }),
+
 
 
         importProducts: build.mutation<void, { data: NewProduct[]; institution: string }>({
