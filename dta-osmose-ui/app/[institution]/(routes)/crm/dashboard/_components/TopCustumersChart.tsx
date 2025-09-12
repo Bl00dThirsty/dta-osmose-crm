@@ -62,34 +62,8 @@ export default function TopCustomersChart({
 }: TopCustomersChartProps) {
   if (isLoading) return <div>Chargement...</div>;
   if (!data.length) return <div>Aucune donnée disponible</div>;
-
-  // ------------------------
   // Fusionner les historiques pour LineChart
-  // ------------------------
- /* const mergedHistory: MergedHistoryItem[] = [];
 
-  // 1️⃣ Créer un set de tous les mois présents dans les données
-  const monthsSet = new Set<string>();
-  data.forEach((customer) => {
-    (customer.history ?? []).forEach((h) => monthsSet.add(h.month));
-  });
-
-  const months = Array.from(monthsSet).sort(
-    (a, b) => new Date(a).getTime() - new Date(b).getTime()
-  );
-
-  months.forEach((m) => mergedHistory.push({ month: m }));
-
-  // 2️⃣ Remplir les valeurs pour chaque client
-  data.forEach((customer) => {
-    const historyMap: Record<string, number> = {};
-    (customer.history ?? []).forEach((h) => {
-      historyMap[h.month] = h.total;
-    });
-    mergedHistory.forEach((m) => {
-      m[customer.customerName] = historyMap[m.month] ?? 0;
-    });
-  });*/
   // Générer les 6 derniers mois fixes
 const mergedHistory: MergedHistoryItem[] = [];
 const today = new Date();
@@ -97,7 +71,7 @@ const months: string[] = [];
 
 for (let i = 5; i >= 0; i--) {
   const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
-  const monthKey = d.toLocaleString("default", { month: "short", year: "numeric" }); // ex: "juil. 2025"
+  const monthKey = d.toLocaleString("default", { month: "short", year: "numeric" }); 
   months.push(monthKey);
   mergedHistory.push({ month: monthKey });
 }
