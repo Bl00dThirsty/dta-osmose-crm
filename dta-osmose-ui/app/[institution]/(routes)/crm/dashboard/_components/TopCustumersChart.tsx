@@ -62,9 +62,7 @@ export default function TopCustomersChart({
 }: TopCustomersChartProps) {
   if (isLoading) return <div>Chargement...</div>;
   if (!data.length) return <div>Aucune donnée disponible</div>;
-  // Fusionner les historiques pour LineChart
-
-  // Générer les 6 derniers mois fixes
+  // Générer historiques des 6 derniers mois fixes
 const mergedHistory: MergedHistoryItem[] = [];
 const today = new Date();
 const months: string[] = [];
@@ -99,9 +97,7 @@ mergedHistory.forEach((m) => {
   console.log("PieChart data (top clients):", data);
   console.log("Merged History (LineChart):", mergedHistory);
 
-  // ------------------------
   // PieChart top clients
-  // ------------------------
   const pieData = data.map((c, i) => ({
     name: c.customerName,
     value: c.totalAmount ?? 0,
