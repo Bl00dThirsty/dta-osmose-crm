@@ -20,6 +20,7 @@ import { DashboardCard } from "./components/dasboard/dashboard-card";
 import { ChartAreaInteractive } from "./components/dasboard/chart-area-interactive";
 //import { getDynamicTrend } from "@/lib/utils";
 import { getDynamicTrend } from "@/lib/trendUtils";
+import { DatePicker } from "./crm/dashboard/_components/date-picker";
 
 
 const DashboardPage = () => {
@@ -29,6 +30,10 @@ const DashboardPage = () => {
   const now = new Date();
   const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+  const [startDate, setStartDate] = useState<Date | undefined>(firstDayOfMonth);
+  const [endDate, setEndDate] = useState<Date | undefined>(lastDayOfMonth);
+  
 //Calcul des p riodes compar es
   const [previousStartDate, setPreviousStartDate] = useState(() => {
   const start = new Date(firstDayOfMonth);
@@ -45,22 +50,23 @@ const [previousEndDate, setPreviousEndDate] = useState(() => {
 // R f rencement du conteneur   imprimer
   const printRef = useRef<HTMLDivElement>(null);
 
-  const [startDate, setStartDate] = useState<string>(firstDayOfMonth.toISOString().split("T")[0]);
-  const [endDate, setEndDate] = useState<string>(lastDayOfMonth.toISOString().split("T")[0]);
   const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-
+  const userType = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
   useEffect(() => {
     if (!token) {
       router.push(`/${institution}/sign-in`);
     }
   }, [token, institution]);
 
-  const userType = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
+  
+// Récupération des métriques depuis l'API
+  const { data: dashboardMetrics } = useGetDashboardMetricsQuery({
+    institution,
+    startDate: startDate ? startDate.toISOString().split("T")[0] : undefined,
+    endDate: endDate ? endDate.toISOString().split("T")[0] : undefined,
+  });
 
-// R cup ration des m triques depuis l'API
-  const { data: dashboardMetrics } = useGetDashboardMetricsQuery({ institution, startDate, endDate });
-
-  // ? R cup ration des donn es actuelles
+  // ? Récupération des données actuelles
 const totalSales = Array.isArray(dashboardMetrics?.saleProfitCount)
   ? dashboardMetrics.saleProfitCount
       .filter(item => item.type === "Ventes")
@@ -178,18 +184,8 @@ console.log("Institution:", institution);
       description="Bienvenue sur le tableau de bord"
     >
       <div className="flex space-x-4 print:hidden mb-4">
-          <input
-            type="date"
-            value={startDate || ""}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="border-5 p-1 rounded"
-          />
-          <input
-            type="date"
-            value={endDate || ""}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="border-5 p-2 rounded"
-          />
+          <DatePicker label="" date={startDate} onSelect={(d) => d && setStartDate(d)} />
+        <DatePicker label="" date={endDate} onSelect={(d) => d && setEndDate(d)} />
         <button
           onClick={handlePrint}
           className="ml-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
