@@ -107,7 +107,7 @@ const getData = async (startDate: Date, endDate: Date, institutionId: string) =>
     where: {
       delivred: true,
       paymentStatus: "PAID",
-      institutionId, // ✅ utilisation du paramètre
+      institutionId, 
       createdAt: { gte: startDate, lte: endDate },
     },
     _sum: { paidAmount: true, finalAmount: true, profit: true },
@@ -452,7 +452,7 @@ console.log(lowProducts);
 
     // ------------------ TOP CLIENTS ------------------
     const groupedCustomers = await prisma.saleInvoice.groupBy({
-  where: { institutionId: institution.id }, // ✅ filtre institution
+  where: { institutionId: institution.id },
   by: ["customerId"],
   _sum: { totalAmount: true },
   _count: { id: true },
@@ -483,8 +483,8 @@ const sales = await prisma.saleInvoice.findMany({
   where: {
     institutionId: institution.id,
     createdAt: { gte: sixMonthsAgo },
-    paymentStatus: "PAID",   // ✅ uniquement les ventes payées
-    delivred: true,          // ✅ uniquement les livrées
+    paymentStatus: "PAID",  
+    delivred: true,        
   },
   select: {
     customerId: true,
