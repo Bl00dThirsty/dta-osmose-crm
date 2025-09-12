@@ -1010,6 +1010,15 @@ export const api = createApi({
               : [{ type: 'Claims', id: 'LIST' }],
       }),
 
+      getClaimPending: build.query<Claim[], { institution: string }>({  
+            query: ({ institution }) => ({
+                url: `/claim/${institution}/pendingClaim`,
+                //params: search ? { search } : {}
+            }),
+            providesTags: ["Claims"]
+      }), 
+          
+
       getClaimById: build.query<Claim, string>({
         query: (id) => `/claim/${id}`,
         providesTags: (result, error, id) => [{ type: 'Claims', id }]
@@ -1111,7 +1120,7 @@ export const api = createApi({
           }),
           updateUser: build.mutation<User, { id: number; data: Partial<User> }>({
             query: ({ id, data }) => ({
-              url: `/User/${id}`,
+              url: `/user/${id}`,
               method: "PUT",
               body: data,
             }),
@@ -1240,7 +1249,7 @@ export const { useGetDashboardMetricsQuery,useGetDashboardSalesQuery, useCreateR
   useCreateInventoryMutation, useGetInventoryQuery, useGetInventoryIdQuery, useUpdateInventoryMutation, useDeleteInventoryMutation, useCreateSaleMutation, useGetCustomerDebtStatusQuery, 
   useCreateSalePromiseMutation, useGetSalePromiseQuery, useGetSalesQuery, useGetSalePromiseByIdQuery, useDeleteSalePromiseMutation, useGetSalePromiseByCustomerQuery,
     useGetSaleByIdQuery,useUpdateSaleStatusMutation, useUpdateSalePaymentMutation, useDeleteSaleInvoiceMutation, useCreateClaimMutation, 
-    useRespondToClaimMutation, useUpdateClaimResponseMutation, useGetClaimQuery, useGetClaimByIdQuery, useDeleteClaimMutation, useGetDepartmentsQuery, 
+    useRespondToClaimMutation, useUpdateClaimResponseMutation, useGetClaimQuery, useGetClaimPendingQuery, useGetClaimByIdQuery, useDeleteClaimMutation, useGetDepartmentsQuery, 
     useCreateDepartmentsMutation, useDeleteDepartmentsMutation,
     useGetDesignationsQuery, useCreateDesignationsMutation, useDeleteDesignationMutation,useGetRolesQuery, useCreateRolesMutation, 
     useDeleteRoleMutation, useGetUsersQuery, useGetUserByIdQuery, useUpdateUserMutation, useDeleteUserMutation,  useGetCustomersQuery, useCreateCustomersMutation,

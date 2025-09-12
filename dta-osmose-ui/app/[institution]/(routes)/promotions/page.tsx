@@ -45,6 +45,16 @@ const CreatePromotion = () => {
       toast.error("Veuillez remplir tous les champs obligatoires.");
       return;
     }
+    const now = new Date();
+
+   // sont convertir startDate et endDate  en objets Date
+     const parsedStartDate = new Date(startDate);
+     const parsedEndDate = new Date(endDate);
+
+    if (parsedStartDate < now || parsedEndDate < now) {
+      toast.error("La date de début et de fin doivent être dans le futur.");
+      return;
+    }
 
     try {
       await createPromotion({
@@ -61,7 +71,7 @@ const CreatePromotion = () => {
       router.push(`/${institution}/promotions/all`);
     } catch (error) {
       toast.error("Erreur lors de l'enregistrement.");
-      toast.info("Verifier si cette promo🎉 n'existe déjà pas ou réessayer autrement")
+      toast.info("Verifier si une promo🎉 sur ce produit n'existe déjà pas ou réessayer autrement")
       console.error(error);
     }
   };

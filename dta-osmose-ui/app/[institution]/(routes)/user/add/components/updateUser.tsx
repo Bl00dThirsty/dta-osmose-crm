@@ -25,6 +25,7 @@ export function UpdateUserForm({
   const { data: departments = [] } = useGetDepartmentsQuery()
   const { data: designations = [] } = useGetDesignationsQuery()
 
+
   const onSubmit = async (data: User) => {
     await onUpdate(data)
     onOpenChange(false)

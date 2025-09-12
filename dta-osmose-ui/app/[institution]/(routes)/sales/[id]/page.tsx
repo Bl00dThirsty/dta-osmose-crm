@@ -49,7 +49,8 @@ const InvoicePage = () => {
       toast.error("ID de la commande introuvable.")
       return
     }
-    if((sale?.paymentStatus == "PARTIAL") || (sale?.paymentStatus == "PAID")){
+    
+    if(((sale?.paymentStatus == "PARTIAL") || (sale?.paymentStatus == "PAID")) && (sale?.paidAmount !== 0)){
       toast.error("Impossible de supprimé la commande, paiement déja entamé")
       return
     }
@@ -57,7 +58,7 @@ const InvoicePage = () => {
     try {
       await deleteSaleInvoice(id).unwrap()
       console.log("Commande supprimé avec succès")
-      router.push(`/${institution}/sales/all`);
+      router.push(`/${institution}/sales/`);
       toast.success("Commande annulée")
     } catch (error) {
       console.log("Erreur lors de la suppression :")
@@ -103,7 +104,7 @@ const InvoicePage = () => {
   ) ?? 0;
  
   if (isLoading) return <div>Chargement...</div>;
-  if (!sale) return <div>Facture non trouvée</div>;
+  if (!sale) return <div>Vous n'avez pas accès à ces informations. Facture non trouvée</div>;
 
   return (
     <>

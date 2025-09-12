@@ -78,7 +78,7 @@ export default function SettingsForm() {
   };
 
   if (isLoading || !formData.company_name) return <div>Chargement...</div>;
-  if (isError) return <div>Erreur lors du chargement des paramètres</div>;
+  if (isError) return <div>Vous n'avez pas accès à ces informations. Erreur lors du chargement des paramètres</div>;
   if (!settings) return <div>Aucun paramètre trouvé pour cette institution.</div>;
 
   return (

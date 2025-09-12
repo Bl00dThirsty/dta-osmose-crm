@@ -785,74 +785,78 @@ export const updatePayment = async (req: Request, res: Response): Promise<void> 
 
 export const deleteSaleInvoice = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { id } = req.params; // Utiliser "id"
-
-    // Afficher l'ID pour vérifier sa réception
-    console.log("ID de la facture reçu : ", id);
+    const { id } = req.params;
 
     if (!id) {
       res.status(400).json({ error: "ID de facture invalide" });
-      return; 
+      return;
     }
-    
 
-    // Récupérer les produits associés à la facture
-    const items = await prisma.saleItem.findMany({
-      where: {
-        invoiceId: id, // Utiliser l'ID converti
-      },
+    // Récupérer la facture
+    const invoice = await prisma.saleInvoice.findUnique({
+      where: { id },
       include: {
-        product: true, // Inclure les détails des produits
+        customer: true,
+        items: { include: { product: true } }
       }
     });
 
+    if (!invoice) {
+      res.status(404).json({ error: "Facture introuvable" });
+      return;
+    }
+
+    // Calcul du crédit utilisé sur cette facture
+    const creditUtilise = Math.max(
+      0,
+      invoice.finalAmount - invoice.dueAmount - invoice.paidAmount
+    );
+
     // Restaurer les quantités en stock
-    for (const item of items) {
+    for (const item of invoice.items) {
       await prisma.product.update({
-        where: {
-          id: item.productId,
-        },
-        data: {
-          quantity:
-            item.product.quantity +
-            item.quantity,
-        },
+        where: { id: item.productId },
+        data: { quantity: { increment: item.quantity } }
       });
     }
 
-    // Supprimer d'abord les items 
-    await prisma.saleItem.deleteMany({
-      where: {
-        invoiceId: id,
-      },
-    });
-
-    // Supprimer les reclamation qui y sont reliers
-    // await prisma.claim.delete({
-    //   where: {
-    //     invoiceId: id,
-    //   },
-    // });
+    // Supprimer les items
+    await prisma.saleItem.deleteMany({ where: { invoiceId: id } });
 
     // Supprimer la facture
-    await prisma.saleInvoice.delete({
-      where: {
-        id
-      },
+    await prisma.saleInvoice.delete({ where: { id } });
+
+    // Réattribuer le crédit utilisé (si > 0)
+    if (creditUtilise > 0) {
+      const dernierCredit = await prisma.credit.findFirst({
+        where: { customerId: invoice.customerId },
+        orderBy: { createdAt: "desc" }
+      });
+
+      if (dernierCredit) {
+        await prisma.credit.update({
+          where: { id: dernierCredit.id },
+          data: {
+            usedAmount: {
+              decrement: creditUtilise
+            }
+          }
+        });
+      }
+    }
+
+    res.status(200).json({
+      message: `Facture ${id} annulée. Produits remis en stock. Crédit réattribué (${creditUtilise}).`
     });
 
-    console.log(
-      `La commande avec l'ID ${id} a été annulée et les produits ont été restaurés en stock.`
-    );
-      res.status(200).json({
-      message: "Facture mise à jour avec succès",
-      data: items
-    });
   } catch (error) {
     console.error("Erreur lors de l'annulation de la commande :", error);
     res.status(500).json({ error: "Erreur lors de l'annulation de la commande." });
   }
 };
+
+
+
 
 // let totalPurchasePrice = 0;
 //     items.forEach((item: any, index: number) => {

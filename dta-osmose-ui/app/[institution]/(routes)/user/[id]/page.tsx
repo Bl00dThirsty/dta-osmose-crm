@@ -75,7 +75,7 @@ export default function DetailUserPage() {
   };
 
   if (isLoading) return <p>Chargement...</p>;
-  if (error || !user) return <p>Utilisateur introuvable.</p>;
+  if (error || !user) return <p>Vous n'avez pas accès à ces informations. Utilisateur introuvable.</p>;
 
   const avatarUrl =
     user.gender === "feminin"
@@ -138,6 +138,7 @@ export default function DetailUserPage() {
                 <h3 className="text-lg font-semibold text-gray-700 mb-3 border-b pb-2">📍 Adresse</h3>
                 <div className="space-y-3">
                   <InfoItem icon={MapPin} label="Adresse" value={`${user.street}, ${user.city} ${user.zipCode}`} />
+                   <InfoItem icon={User2} label="Rôle" value={user.role} />
                 </div>
               </div>
               
@@ -158,6 +159,7 @@ export default function DetailUserPage() {
                     label="Salaire Mensuelle" 
                     value={`${(user.salary ?? 0).toLocaleString('fr-FR')} F CFA`} 
                   />
+                 <InfoItem icon={Calendar} label="Date d'embauche" value={new Date(user.joinDate ).toLocaleDateString()} />
                 </div>
               </div>
 
@@ -165,7 +167,7 @@ export default function DetailUserPage() {
                 <h3 className="text-lg font-semibold text-gray-700 mb-3 border-b pb-2">☎ Urgences</h3>
                 <div className="space-y-3">
                   <InfoItem icon={Contact} label={user.emergencyname1 || "Contact"} value={`${user.emergencylink1 || ""} - ${user.emergencyPhone1 || ""}`} />
-                  <InfoItem icon={User2} label="Rôle" value={user.role} />
+                  
                 </div>
               </div>
               

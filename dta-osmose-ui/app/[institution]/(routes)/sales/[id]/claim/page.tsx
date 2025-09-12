@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Container from "../../../components/ui/Container";
 import { toast } from "react-toastify";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function CreateClaimForm() {
   console.log('ClaimPage rendered');
@@ -25,7 +26,7 @@ export default function CreateClaimForm() {
   const total = unitPrice * form.quantity;
 
   const isQuantityInvalid = form.quantity > maxQuantity;
-  if (isLoading || !invoice) return <div>Chargement...</div>;
+  if (isLoading || !invoice) return <div>Vous n'avez pas accès à ces informations. Chargement...</div>;
 
   useEffect(() => {
     console.log('ClaimPage mounted');
@@ -48,7 +49,7 @@ export default function CreateClaimForm() {
       unitPrice,
       
     }).unwrap();
-    toast.success("Réclamation créée !");
+    toast.success("Réclamation créée et envoyée!");
     setForm({ productId: '', quantity: 1, reason: '', description: '' });
     setQuantityError("");
     router.push(`/${institution}/sales/${id}`);
@@ -129,7 +130,7 @@ export default function CreateClaimForm() {
       </select>
 
       <Label className='mb-2'>Description</Label>
-      <textarea
+      <Textarea
         value={form.description}
         onChange={e => setForm({...form, description: e.target.value})}
         placeholder="Description…"

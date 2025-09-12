@@ -128,7 +128,7 @@ function NotificationBell() {
       </button>
       {/* Liste des notifications lorsqu'on clique sur la cloche */}
       {showNotifications && (
-        <div className="notification-list-container1">
+        <div className="notification-list-container1 absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto bg-white shadow-lg rounded-lg p-4 z-50">
           {notifications.map((item) => (
             <Alert
               key={item.id}

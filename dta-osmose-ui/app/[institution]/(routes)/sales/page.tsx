@@ -188,8 +188,11 @@ useEffect(() => {
 }, [salePromise]);
 
   const handleCreateSale = async () => {
-    if (!customerId || selectedProducts.length === 0) return;
-  
+    if (!customerId || selectedProducts.length === 0) {
+      
+      toast.error("Veuillez remplir tous les champs obligatoires.");
+      return;
+    };
   // Vérification explicite des IDs
     const creatorId = currentUserId || customerId;
     if (!creatorId) return; // Au moins un des deux doit exister
@@ -291,7 +294,7 @@ useEffect(() => {
                      {product.sellingPriceTTC} F
                   </span>
                   <span className="text-green-600 font-bold mr-2">{finalPrice.toFixed(2)} F</span>
-          {/* <span className='text-red-600'>-{promo.discount}%</span> */}
+          {/* <span className='text-red-600'>-{promo.discount}%</span>⚠️ */}
                 </p>
               ) : (
                 <p>Prix: {product.sellingPriceTTC} F</p>

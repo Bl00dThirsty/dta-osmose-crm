@@ -5,13 +5,13 @@ const router = Router();
 
 router.post(
     "/",
-    ...authorize("create-department"),
+    ...authorize("create-designation"),
     createDesignation
   );
-  router.get("/", getAllDesignation);
+  router.get("/", ...authorize("readAll-designation"), getAllDesignation);
   router.delete(
     "/:id",
-    ...authorize("delete-department"),
+    ...authorize("delete-designation"),
     deleteDesignation
   );
 

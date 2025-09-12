@@ -110,53 +110,86 @@ export const getAllUser = async (
         res.status(500).json({ message: "Erreur serveur" });
       }
   };
-
   
 
-  export const updateSingleUser = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    const id = parseInt(req.params.id);
-    try {
-        const hash = await bcrypt.hash(req.body.password, saltRounds);
-        const join_date = new Date(req.body.joinDate); 
-        const updateUser = await prisma.user.update({
-            where: {
-              id: Number(req.params.id)
-            },
-            data: {
-                firstName: req.body.firstName,
-                lastName: req.body.lastName,
-                userName: req.body.userName,
-                password: hash,
-                email: req.body.email,
-                phone: req.body.phone,
-                street: req.body.street,
-                city: req.body.city,
-                zipCode: req.body.zipCode,
-                birthday: req.body.birthday,
-                CnpsId: req.body.CnpsId,
-                gender: req.body.gender,
-                joinDate: join_date,
-                employeeId: req.body.employeeId,
-                bloodGroup: req.body.bloodGroup,
-                role: req.body.role,
-                salary: req.body.salary,
-                emergencyPhone1: req.body.emergencyPhone1,
-                emergencyname1: req.body.emergencyname1,
-                emergencylink1: req.body.emergencylink1,
-                designationId: req.body.designationId,
-                departmentId: req.body.departmentId,
-            }
-          });
-
-          const { password, ...userWithoutPassword } = updateUser;
-           res.status(200).json(userWithoutPassword);  
-    } catch (error) {
-      res.status(500).json({ message: "Erreur lors de la recherche du produit" });
+  export const updateSingleUser = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const id = Number(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: "ID utilisateur invalide" });
     }
-  };
+
+    const {
+      firstName,
+      lastName,
+      userName,
+      password,
+      email,
+      phone,
+      street,
+      city,
+      zipCode,
+      birthday,
+      CnpsId,
+      gender,
+      joinDate,
+      employeeId,
+      bloodGroup,
+      role,
+      salary,
+      emergencyPhone1,
+      emergencyname1,
+      emergencylink1,
+      designationId,
+      departmentId,
+    } = req.body;
+
+    // Convertir les champs sensibles
+    const parsedJoinDate = joinDate ? new Date(joinDate) : null;
+    const parsedBirthday = birthday ? new Date(birthday) : null;
+    const parsedSalary = salary ? Number(salary) : null;
+
+    let hashedPassword;
+    if (password && password.trim() !== "") {
+      hashedPassword = await bcrypt.hash(password, 10);
+    }
+
+    const updateUser = await prisma.user.update({
+      where: { id },
+      data: {
+        firstName,
+        lastName,
+        userName,
+        email,
+        phone,
+        street,
+        city,
+        zipCode,
+        birthday,
+        CnpsId,
+        gender,
+        joinDate: parsedJoinDate,
+        employeeId,
+        bloodGroup,
+        role,
+        salary: parsedSalary,
+        emergencyPhone1,
+        emergencyname1,
+        emergencylink1,
+        designationId: designationId ? Number(designationId) : null,
+        departmentId: departmentId ? Number(departmentId) : null,
+        ...(hashedPassword && { password: hashedPassword }), // seulement si password fourni
+      },
+    });
+
+    const { password: _, ...userWithoutPassword } = updateUser;
+    res.status(200).json(userWithoutPassword);
+  } catch (error) {
+    console.error("Erreur update user:", error);
+    res.status(500).json({ message: "Erreur lors de la mise à jour de l'utilisateur" });
+  }
+};
+
 
   // GET /roles/:id/permission
   export const deleteSingleUser = async (
