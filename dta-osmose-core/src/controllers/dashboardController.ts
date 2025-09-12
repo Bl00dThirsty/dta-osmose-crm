@@ -23,7 +23,7 @@ interface MonthlyTrend {
   invoiceTrend: string;
 }
 
-
+//compare mois par mois
 export const getMonthlyTrends = async (institutionId: string, monthsBack = 6): Promise<MonthlyTrend[]> => {
   const monthlyData: MonthlyMetrics[] = [];
 
@@ -66,6 +66,7 @@ export const getMonthlyTrends = async (institutionId: string, monthsBack = 6): P
   return trends;
 };
 
+//prépare les ventes quotidiennes pour le graphique.
 const generateChartData = async (startDate: Date, endDate: Date, institutionId: string) => {
   const rawSales = await prisma.saleInvoice.findMany({
     where: {
@@ -98,14 +99,15 @@ const generateChartData = async (startDate: Date, endDate: Date, institutionId: 
 
   return data;
 };
-
-const getData = async (startDate: Date, endDate: Date) => {
+//regroupe ventes, profits et factures par jour
+const getData = async (startDate: Date, endDate: Date, institutionId: string) => {
   const allSaleInvoice = await prisma.saleInvoice.groupBy({
     orderBy: { createdAt: "asc" },
     by: ["createdAt"],
     where: {
       delivred: true,
       paymentStatus: "PAID",
+      institutionId, 
       createdAt: { gte: startDate, lte: endDate },
     },
     _sum: { paidAmount: true, finalAmount: true, profit: true },
@@ -132,7 +134,6 @@ const getData = async (startDate: Date, endDate: Date) => {
 
   return { formattedData1, formattedData2, formattedData3 };
 };
-
 export const getDashboardMetrics = async (req: Request, res: Response): Promise<void> => {
   try {
     const { startDate, endDate } = req.query;
@@ -161,22 +162,24 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
       res.status(404).json({ error: "Institution not found" });
       return;
     }
-
+//ventes par jour
     const chartData = await generateChartData(start, end, institution.id);
+    //top 10 produits par stock
     const popularProducts = await prisma.product.findMany({ take: 10, orderBy: { quantity: "desc" } });
+    //tendances mensuelles
     const monthlyTrends = await getMonthlyTrends(institution.id);
 
-    const { formattedData1, formattedData2, formattedData3 } = await getData(start, end);
+    const { formattedData1, formattedData2, formattedData3 } = await getData(start, end, institution.id);
 
     const duration = end.getTime() - start.getTime();
     const previousEnd = new Date(start.getTime());
     const previousStart = new Date(start.getTime() - duration);
 
     const {
-      formattedData1: previousFormatted1,
-      formattedData2: previousFormatted2,
-      formattedData3: previousFormatted3,
-    } = await getData(previousStart, previousEnd);
+  formattedData1: previousFormatted1,
+  formattedData2: previousFormatted2,
+  formattedData3: previousFormatted3,
+} = await getData(previousStart, previousEnd, institution.id);
 
     const sum = (arr: any[], key: "amount" | "count" = "amount") => arr.reduce((acc, item) => acc + (item[key] || 0), 0);
 
@@ -185,10 +188,12 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
     const profitTrend = getDynamicTrend(sum(formattedData2), sum(previousFormatted2));
     const invoiceTrend = getDynamicTrend(sum(formattedData3, "count"), sum(previousFormatted3, "count"));
 
-
+  //(ventes + profits combinés)
     const saleProfitCount = [...formattedData1, ...formattedData2];
 
+  // utilisateurs enregistrés
     const totalUsers = await prisma.user.count();
+    //Calcule le crédit disponible (total – utilisé).
     const totalCredits = await prisma.credit.aggregate({
       where: {
         customer: { saleInvoice: { some: { institutionId: institution.id } } },
@@ -344,82 +349,182 @@ const customers = await prisma.customer.findMany({
     const salesByPharmacy = Object.values(salesByPharmacyMap);
 
    // ---------------------- Ventes par ville ----------------------
-    const salesByCityMap: Record<string, { invoiceCount: number; totalSales: number; totalQuantity: number }> = {};
+    // 1. Regrouper les ventes actuelles par ville
+const salesByCityMap: Record<string, { invoiceCount: number; totalSales: number; totalQuantity: number }> = {}; 
+
+salesByPharmacy.forEach(ph => {
+  if (!salesByCityMap[ph.city]) {
+    salesByCityMap[ph.city] = { invoiceCount: 0, totalSales: 0, totalQuantity: 0 };
+  }
+  salesByCityMap[ph.city].invoiceCount += ph.invoiceCount;
+  salesByCityMap[ph.city].totalSales += ph.totalSales;
+  salesByCityMap[ph.city].totalQuantity += ph.totalQuantity;
+});
+
+// 2. Total global des ventes (pour le calcul des pourcentages)
+const totalSalesAllCities = Object.values(salesByCityMap).reduce((sum, city) => sum + city.totalSales, 0);
+
+// 3. Regrouper aussi les ventes de la période précédente pour calculer la croissance
+const prevSalesByCityMap: Record<string, { totalSales: number }> = {};
     salesByPharmacy.forEach(ph => {
-      if (!salesByCityMap[ph.city]) salesByCityMap[ph.city] = { invoiceCount: 0, totalSales: 0, totalQuantity: 0 };
-      salesByCityMap[ph.city].invoiceCount += ph.invoiceCount;
-      salesByCityMap[ph.city].totalSales += ph.totalSales;
-      salesByCityMap[ph.city].totalQuantity += ph.totalQuantity;
-    });
-    const salesByCity = Object.entries(salesByCityMap).map(([city, data]) => ({ cityName: city, ...data }));
+  if (!prevSalesByCityMap[ph.city]) {
+    prevSalesByCityMap[ph.city] = { totalSales: 0 };
+  }
+  prevSalesByCityMap[ph.city].totalSales += ph.totalSales;
+});
+
+// 4. Formatter le résultat final
+const salesByCity = Object.entries(salesByCityMap).map(([city, data]) => {
+  const percentage = totalSalesAllCities > 0 ? (data.totalSales / totalSalesAllCities) * 100 : 0;
+
+  // Comparaison avec la période précédente
+  const prevTotal = prevSalesByCityMap[city]?.totalSales || 0;
+  const growthValue = prevTotal > 0 ? ((data.totalSales - prevTotal) / prevTotal) * 100 : 0;
+
+  return {
+    cityName: city,
+    invoiceCount: data.invoiceCount,
+    totalSales: data.totalSales,
+    totalQuantity: data.totalQuantity,
+    percentage: Math.round(percentage),
+    growth: `${growthValue >= 0 ? "+" : ""}${growthValue.toFixed(1)}%`,
+    isPositive: growthValue >= 0,
+  };
+});
+
 
 
 // ------------------ TOP PRODUITS ------------------
-    const productSales = await prisma.saleItem.groupBy({
-    by: ["productId"],
-    _sum: { quantity: true },
-    orderBy: { _sum: { quantity: "desc" } },
-    take: 10, // top 10 produits
-  });
+    // Top 5 produits les plus vendus
+const productSales = await prisma.saleItem.groupBy({
+  by: ["productId"],
+  where: {
+    invoice: {
+      institutionId: institution.id,
+      paymentStatus: "PAID",
+      delivred: true,
+      createdAt: { gte: start, lte: end },
+    },
+  },
+  _sum: { quantity: true },
+  orderBy: { _sum: { quantity: "desc" } },
+  take: 5,
+});
 
-    const topProducts = await Promise.all(
-      productSales.map(async (sale) => {
-        const product = await prisma.product.findUnique({
-          where: { id: sale.productId! },
-          select: { designation: true },
-        });
-        return {
-          name: product?.designation ?? "Inconnu",
-          value: sale._sum.quantity ?? 0,
-        };
-      })
-    );
+// Top 5 produits les moins vendus
+const lowSales = await prisma.saleItem.groupBy({
+  by: ["productId"],
+  where: {
+    invoice: {
+      institutionId: institution.id,
+      paymentStatus: "PAID",
+      delivred: true,
+      createdAt: { gte: start, lte: end },
+    },
+  },
+  _sum: { quantity: true },
+  orderBy: { _sum: { quantity: "asc" } },
+  take: 5,
+});
 
-    const sortedTopProducts = topProducts.sort((a, b) => b.value - a.value);
+    // Fonction pour récupérer les désignations
+const formatProducts = async (sales: typeof productSales) => {
+  return Promise.all(
+    sales.map(async (sale) => {
+      const product = await prisma.product.findUnique({
+        where: { id: sale.productId! },
+        select: { designation: true },
+      });
+      return {
+        name: product?.designation ?? "Inconnu",
+        value: sale._sum.quantity ?? 0,
+      };
+    })
+  );
+};
+
+// Récupérer top et low produits
+const topProducts = await formatProducts(productSales);
+const lowProducts = await formatProducts(lowSales);
+console.log(topProducts);
+console.log(lowProducts);
+
 
     // ------------------ TOP CLIENTS ------------------
     const groupedCustomers = await prisma.saleInvoice.groupBy({
-      by: ["customerId"],
-      _sum: { totalAmount: true },
-      _count: { id: true },
-      orderBy: { _sum: { totalAmount: "desc" } },
-      take: 10,
+  where: { institutionId: institution.id },
+  by: ["customerId"],
+  _sum: { totalAmount: true },
+  _count: { id: true },
+  orderBy: { _sum: { totalAmount: "desc" } },
+  take: 10,
+});
+
+const customersWithData = await Promise.all(
+  groupedCustomers.map(async (sale) => {
+    const customer = await prisma.customer.findUnique({
+      where: { id: sale.customerId },
+      select: { id: true, name: true, email: true },
     });
+    return {
+      customerId: sale.customerId,
+      customerName: customer?.name ?? "Inconnu",
+      customerEmail: customer?.email ?? "",
+      totalAmount: sale._sum?.totalAmount ?? 0,
+      invoiceCount: sale._count?.id ?? 0,
+    };
+  })
+);
 
-    const customersWithData = await Promise.all(
-      groupedCustomers.map(async (sale) => {
-        const customer = await prisma.customer.findUnique({
-          where: { id: sale.customerId },
-          select: { id: true, name: true, email: true },
-        });
-        return {
-          customerId: sale.customerId,
-          customerName: customer?.name ?? "Inconnu",
-          customerEmail: customer?.email ?? "",
-          totalAmount: sale._sum?.totalAmount ?? 0,
-          invoiceCount: sale._count?.id ?? 0,
-        };
-      })
-    );
+// --- HISTORIQUE 6 MOIS ---
+const sixMonthsAgo = subMonths(new Date(), 6);
 
-    const sixMonthsAgo = subMonths(new Date(), 6);
-    const salesHistory = await prisma.saleInvoice.groupBy({
-      by: ["customerId", "createdAt"],
-      where: { createdAt: { gte: sixMonthsAgo } },
-      _sum: { totalAmount: true },
+const sales = await prisma.saleInvoice.findMany({
+  where: {
+    institutionId: institution.id,
+    createdAt: { gte: sixMonthsAgo },
+    paymentStatus: "PAID",  
+    delivred: true,        
+  },
+  select: {
+    customerId: true,
+    createdAt: true,
+    totalAmount: true,
+  },
+});
+
+const historyByCustomer: Record<string, { month: string; total: number; count: number }[]> = {};
+
+sales.forEach((sale) => {
+  const monthKey = new Date(sale.createdAt).toLocaleString("default", {
+    month: "short",
+    year: "numeric",
+  });
+
+  if (!historyByCustomer[sale.customerId]) {
+    historyByCustomer[sale.customerId] = [];
+  }
+
+  const existingMonth = historyByCustomer[sale.customerId].find(
+    (h) => h.month === monthKey
+  );
+
+  if (existingMonth) {
+    existingMonth.total += sale.totalAmount;
+    existingMonth.count += 1;
+  } else {
+    historyByCustomer[sale.customerId].push({
+      month: monthKey,
+      total: sale.totalAmount,
+      count: 1,
     });
+  }
+});
 
-    const historyByCustomer: Record<string, { month: string; total: number }[]> = {};
-    salesHistory.forEach((sale) => {
-      const monthKey = new Date(sale.createdAt).toLocaleString("default", { month: "short", year: "numeric" });
-      if (!historyByCustomer[sale.customerId]) historyByCustomer[sale.customerId] = [];
-      historyByCustomer[sale.customerId].push({ month: monthKey, total: sale._sum?.totalAmount ?? 0 });
-    });
-
-    const topCustomers = customersWithData.map((c) => ({
-      ...c,
-      history: historyByCustomer[c.customerId] ?? [],
-    }));
+const topCustomers = customersWithData.map((c) => ({
+  ...c,
+  history: historyByCustomer[c.customerId] ?? [],
+}));
 
    // ---------------------- Produits préférés par client ----------------------
    const withCustomer = await prisma.saleItem.findMany({
@@ -494,7 +599,8 @@ console.log(favoriteProductsByCustomer);
       salesByProduct,
       salesByPharmacy,
       salesByCity,
-      topProducts: sortedTopProducts,
+      topProducts,
+      lowProducts, 
       topCustomers,
       favoriteProductsByCustomer,
       customers,

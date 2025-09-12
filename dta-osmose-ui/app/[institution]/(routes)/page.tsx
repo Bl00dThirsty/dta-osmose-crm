@@ -20,6 +20,7 @@ import { DashboardCard } from "./components/dasboard/dashboard-card";
 import { ChartAreaInteractive } from "./components/dasboard/chart-area-interactive";
 //import { getDynamicTrend } from "@/lib/utils";
 import { getDynamicTrend } from "@/lib/trendUtils";
+import { DatePicker } from "./crm/dashboard/_components/date-picker";
 
 
 const DashboardPage = () => {
@@ -29,6 +30,10 @@ const DashboardPage = () => {
   const now = new Date();
   const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+  const [startDate, setStartDate] = useState<Date | undefined>(firstDayOfMonth);
+  const [endDate, setEndDate] = useState<Date | undefined>(lastDayOfMonth);
+  
 //Calcul des p riodes compar es
   const [previousStartDate, setPreviousStartDate] = useState(() => {
   const start = new Date(firstDayOfMonth);
@@ -45,22 +50,23 @@ const [previousEndDate, setPreviousEndDate] = useState(() => {
 // R f rencement du conteneur   imprimer
   const printRef = useRef<HTMLDivElement>(null);
 
-  const [startDate, setStartDate] = useState<string>(firstDayOfMonth.toISOString().split("T")[0]);
-  const [endDate, setEndDate] = useState<string>(lastDayOfMonth.toISOString().split("T")[0]);
   const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-
+  const userType = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
   useEffect(() => {
     if (!token) {
       router.push(`/${institution}/sign-in`);
     }
   }, [token, institution]);
 
-  const userType = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
+  
+// Récupération des métriques depuis l'API
+  const { data: dashboardMetrics } = useGetDashboardMetricsQuery({
+    institution,
+    startDate: startDate ? startDate.toISOString().split("T")[0] : undefined,
+    endDate: endDate ? endDate.toISOString().split("T")[0] : undefined,
+  });
 
-// R cup ration des m triques depuis l'API
-  const { data: dashboardMetrics } = useGetDashboardMetricsQuery({ institution, startDate, endDate });
-
-  // ? R cup ration des donn es actuelles
+  // ? Récupération des données actuelles
 const totalSales = Array.isArray(dashboardMetrics?.saleProfitCount)
   ? dashboardMetrics.saleProfitCount
       .filter(item => item.type === "Ventes")
@@ -113,24 +119,8 @@ const { trend: profitTrend, trendDirection: profitTrendDirection } = getDynamicT
 const { trend: invoiceTrend, trendDirection: invoiceTrendDirection } = getDynamicTrend(totalInvoices, previousInvoices);
 const { trend: totalAvailableCreditTrend, trendDirection: totalAvailableCreditTrendDirection } = getDynamicTrend(totalAvailableCredit, previousAvailableCredit);
 
-/*
-console.log("Factures actuelles:", totalInvoices, "Factures pr c dentes:", previousInvoices);
-console.log("Tendances calcul es :");
-console.log(`Ventes : ${salesTrend} (${salesTrendDirection})`);
-console.log(`B n fices : ${profitTrend} (${profitTrendDirection})`);
-console.log(`Nombre de factures : ${invoiceTrend} (${invoiceTrendDirection})`);
 
-console.log("=== M TRIQUES DU DASHBOARD ===");
-console.log("?? Montant total des ventes");
-console.log("  - Actuel :", totalSales.toLocaleString("fr-FR"), " ");
-console.log("  - Pr c dent :", previousSales.toLocaleString("fr-FR"), " ");
-console.log(`  - Tendance : ${salesTrend} (${salesTrendDirection})`);
-console.log("?? totalAvailableCredit:", totalAvailableCredit);
-
-console.log("?? B n fices");
-console.log("  - Actuel :", totalProfits.toLocaleString("fr-FR"), " ");
-console.log("  - Pr c dent :", previousProfits.toLocaleString("fr-FR"), " ");
-console.log(`  - Tendance : ${profitTrend} (${profitTrendDirection})`);*/
+console.log("Institution:", institution);
 
 // Fonction d impression
   const handlePrint = () => {
@@ -144,6 +134,7 @@ console.log(`  - Tendance : ${profitTrend} (${profitTrendDirection})`);*/
     switch (userType) {
       case "admin":
         return <AdminDashboard
+         institution={institution}
            dashboardMetrics={dashboardMetrics}
             totalSales={totalSales}
             totalProfits={totalProfits}
@@ -172,7 +163,7 @@ console.log(`  - Tendance : ${profitTrend} (${profitTrendDirection})`);*/
           chartData={dashboardMetrics?.chartData || []}
         />;
       case "Particulier":
-        return <ClientDashboard dadashboardMetrics={dashboardMetrics} 
+        return <ClientDashboard dashboardMetrics={dashboardMetrics} 
      totalSales={totalSales} 
      totalProfits={totalProfits} 
      totalInvoices={totalInvoices} 
@@ -193,18 +184,8 @@ console.log(`  - Tendance : ${profitTrend} (${profitTrendDirection})`);*/
       description="Bienvenue sur le tableau de bord"
     >
       <div className="flex space-x-4 print:hidden mb-4">
-          <input
-            type="date"
-            value={startDate || ""}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="border-5 p-1 rounded"
-          />
-          <input
-            type="date"
-            value={endDate || ""}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="border-5 p-2 rounded"
-          />
+          <DatePicker label="" date={startDate} onSelect={(d) => d && setStartDate(d)} />
+        <DatePicker label="" date={endDate} onSelect={(d) => d && setEndDate(d)} />
         <button
           onClick={handlePrint}
           className="ml-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
@@ -271,7 +252,7 @@ console.log(`  - Tendance : ${profitTrend} (${profitTrendDirection})`);*/
 
 export default DashboardPage;
 //const { institution } = useParams() as { institution: string }
-const AdminDashboard = ({ dashboardMetrics,
+const AdminDashboard = ({institution, dashboardMetrics,
   totalSales,
   totalProfits,
   totalInvoices,
@@ -378,7 +359,7 @@ const AdminDashboard = ({ dashboardMetrics,
   />
     </div>
     <div className="px-4 lg:px-6">
-          <ChartAreaInteractive institutionSlug="iba" />
+          <ChartAreaInteractive institutionSlug={institution} />
     </div>
   </div>
 </div>
