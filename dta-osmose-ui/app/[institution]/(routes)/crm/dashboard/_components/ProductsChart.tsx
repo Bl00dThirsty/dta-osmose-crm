@@ -100,10 +100,6 @@ export default function ProductsChart({
     });
     return entry;
   });
-  // ---------------- DEBUG LOGS ----------------
-  console.log("[ProductsChart] salesByProduct:", salesByProduct);
-  console.log(" [ProductsChart] salesByPharmacy:", salesByPharmacy);
-  console.log(" [ProductsChart] favoriteProductsByCustomer:", favoriteProductsByCustomer);
 
   return (
     <div className="grid gap-6 md:grid-cols-3">
