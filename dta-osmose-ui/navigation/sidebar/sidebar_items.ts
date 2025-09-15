@@ -12,6 +12,7 @@ import {
   User,
   Settings2,
   BookOpen,
+  Grip,
   type LucideIcon,
 } from "lucide-react";
 

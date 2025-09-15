@@ -31,7 +31,7 @@ const InventoryPage = () => {
 const { data: inventory, isLoading, isError } = useGetInventoryQuery({ institution })
 
 if (isLoading) return <p>Chargement...</p>
-if (isError) return <p>Erreur lors du chargement.</p>
+if (isError) return <p>Vous n'avez pas accès à ces informations. Erreur lors du chargement.</p>
 
 
   return (

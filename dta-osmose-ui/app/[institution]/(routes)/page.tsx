@@ -180,7 +180,7 @@ console.log(`  - Tendance : ${profitTrend} (${profitTrendDirection})`);*/
      totalAvailableCreditTrendDirection={totalAvailableCreditTrendDirection} 
   />;
       default:
-        return <p>R le non reconnu. Veuillez contacter l'administrateur.</p>;
+        return <p>Role non reconnu. Veuillez contacter l'administrateur.</p>;
     }
   };
 

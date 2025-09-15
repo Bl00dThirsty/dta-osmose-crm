@@ -104,7 +104,7 @@ const handleUpdate = async () => {
     try {
         await deletePromotions(promotionId).unwrap()
         //console.log("Designation supprimé avec succès")
-        toast.success("Promotions supprimé avec succès")
+        toast.success("Promotions supprimé avec succès, Réactualisez la page")
         setOpen(false); // <-- Fermer la modale AVANT de rediriger
         setTimeout(() => {
           

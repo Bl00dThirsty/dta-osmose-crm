@@ -159,15 +159,28 @@ const CreateSalePage = () => {
   });
 
   const handleCreateSale = async () => {
-    if ( !currentUserId || selectedProducts.length === 0) return;
-    
+    if ( !currentUserId || selectedProducts.length === 0 || !dueDate || !reminderDate) {
+      toast.error("Veuillez remplir tous les champs obligatoires.");
+      return;
+    }
+    const now = new Date();
+    const maxDueDate = new Date();
+    maxDueDate.setDate(now.getDate() + 30);
+    if(dueDate > maxDueDate){
+      toast.error("La date d'échéance ne peut pas dépasser 30 jours.");
+      return;
+    }
+     if (dueDate < now || reminderDate < now) {
+    toast.error("La date d'échéance et de rappel doivent être dans le futur.");
+    return;
+    }
     try {
       const result = await createSale({
-        customerId: useTemporaryCustomer ? undefined : customerId!, // tu passes 0 si pas de compte
+        customerId: useTemporaryCustomer ? undefined : customerId!, // ceci passes 0 si pas de compte
         userId: currentUserId ?? 0,
         customerCreatorId: isParticulier ? customerId ?? undefined : undefined,
         items: selectedProducts.map(p => ({
-          product_id: p.id, // ⚠️ attention aux clés → doit correspondre au backend
+          product_id: p.id,
           product_quantity: p.product_quantity,
           product_sale_price: p.product_sale_price
         })),

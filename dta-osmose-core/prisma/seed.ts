@@ -48,23 +48,103 @@ async function deleteAllData(orderedFileNames: string[]) {
 
 const permissions = [
   "create-product",
+  "readAll-product",
+  "import-product",
+  "update-singleProduct",
   "view-product",
+  "delete-product",
   "create-user",
+  "readAll-user",
+  "view-user",
+  "update-user",
+  "delete-user",
   "create-department",
   "readAll-department",
   "delete-department",
-  "update-sale",
-  "create-sale"
+  "create-claim",
+  "create-claimResponse",
+  "readAll-claim",
+  "view-pendingClaim",
+  "view-Claim",
+  "update-claimResponse",
+  "delete-claim",
+  "create-customer",
+  "readAll-customer",
+  "view-Customer",
+  "update-customer",
+  "delete-customer",
+  "view-dashboard",
+  "view-dashboardSale",
+  "create-designation",
+  "readAll-designation",
+  "delete-designation",
+  "create-inventory",
+  "readAll-inventory",
+  "view-inventory",
+  "delete-inventory",
+  "update-inventory",
+  "readAll-notification",
+  "readAll-notificationCustomer",
+  "delete-notification",
+  "readAll-permission",
+  "create-promiseSale",
+  "readAll-promiseSale",
+  "view-promiseSale",
+  "readAll-salePromiseBycustomer",
+  "delete-salePromise",
+  "create-promotion",
+  "readAll-activePromotion",
+  "update-statusPromotion",
+  "readAll-promotion",
+  "view-promotion",
+  "update-promotion",
+  "delete-promotion",
+  "create-report",
+  "readAll-report",
+  "view-report",
+  "readAll-reportBystaff",
+  "delete-report",
+  "create-rolePermission",
+  "readAll-rolePermission",
+  "view-rolePermission",
+  "update-rolePermission",
+  "delete-rolePermission",
+  "create-role",
+  "readAll-role",
+  "view-role",
+  "delete-role",
+  "deleteAll-rolePermission",
+  "readAll-permissionByrole",
+  "create-sale",
+  "readAll-sale",
+  "view-sale",
+  "update-saleStatus",
+  "update-salePayment",
+  "delete-sale",
+  "update-setting",
+  "view-setting"
 ];
 
 const roles = ["admin", "staff", "manager", "Particulier"];
 
 const adminPermissions = [...permissions];
-const staffPermissions = [...permissions];
-const managerPermissions = [
-  "view-product",
+const staffPermissions = ["create-product", "readAll-product", "view-product",
+  "view-user", "update-user", "readAll-department", "readAll-claim", "view-pendingClaim",
+  "view-Claim", "create-customer", "readAll-customer", "view-Customer", "view-dashboard",
+  "view-dashboardSale", "readAll-designation", "readAll-inventory", "view-inventory",
+   "readAll-notification", "create-promiseSale", "readAll-promiseSale", "view-promiseSale",
+   "readAll-activePromotion", "create-report", "view-report", "readAll-reportBystaff",
+  "delete-report", "create-sale", "readAll-sale", "view-sale", "view-setting"
+  
 ];
-const particularPermissions = [...managerPermissions];
+
+const managerPermissions = [...permissions];
+const particularPermissions = ["create-sale", "view-sale", "update-salePayment",
+  "delete-sale", "create-promiseSale", "view-promiseSale", "readAll-salePromiseBycustomer",
+  "delete-salePromise", "readAll-activePromotion", "readAll-product", "create-customer",
+  "readAll-customer", "view-Customer", "update-customer", "view-dashboard", "create-claim",
+  "readAll-claim", "delete-claim","readAll-notificationCustomer", "view-setting"
+];
 
 const rolePermissionsMap: Record<string, string[]> = {
   admin: adminPermissions,

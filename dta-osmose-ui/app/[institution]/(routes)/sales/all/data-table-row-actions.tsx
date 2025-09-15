@@ -43,6 +43,7 @@ export function DataTableRowActions<TData>({
   const router = useRouter();
   const saleId = (row.original as any).id;
   const delivred = (row.original as any).delivred === true
+  const paymentStatus = (row.original as any).paymentStatus
   console.log("saleId :", saleId)
   const [deleteSaleInvoice] = useDeleteSaleInvoiceMutation()
   const [open, setOpen] = useState(false);
@@ -54,6 +55,10 @@ export function DataTableRowActions<TData>({
     }
     if (delivred) {
       toast.warning("Impossible d'annuler une commande déjà livrée.")
+      return
+    }
+    if(paymentStatus === "PARTIAL" || paymentStatus === "PAID"){
+      toast.error("Impossible de supprimé la commande, paiement déja entamé")
       return
     }
     console.log("saleId :", saleId)
