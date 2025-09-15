@@ -66,8 +66,7 @@ const CrmDashboardPage = () => {
   }));
 
   if (isLoading) return <div>Chargement...</div>;
-  if (error) return <div>Erreur lors du chargement des données</div>;
-
+  if (error) return <div>Vous n'avez pas accès à ces informations. Erreur lors du chargement des données.</div>
   return (
     <div className="flex flex-col gap-4 md:gap-6">
       {/* Calendriers StartDate / EndDate */}

@@ -90,6 +90,14 @@ export const createPromotion = async (req: Request, res: Response) => {
       include: { product: true, user: true },
     });
 
+    const now = new Date();
+    if (promotion.startDate > now){
+      await prisma.promotion.update({
+        where: { id: promotion.id },
+        data: { status: false }, 
+      });
+    }
+
     res.status(201).json(promotion);
   } catch (error) {
     console.error("Erreur création promotion:", error);
@@ -139,12 +147,13 @@ export const getActivePromotions = async (req: Request, res: Response): Promise<
       },
        data: { status: false }
     });
-    // Activer les promotions dont la date de fin a ete modifier et dont le status est a desactiver
+    // Activer les promotions dont la date de fin a ete modifier et dont le status est desactiver
      await prisma.promotion.updateMany({
      where: {
        institutionId: institution.id,
        status: false,
-       endDate: { gte: now } // lt = superirieur à maintenant = expirées
+       startDate: { lte: now },
+       endDate: { gte: now } // gte = supérieur à maintenant = expirées
       },
        data: { status: true }
     });
@@ -313,6 +322,10 @@ export const deletePromotion = async (
   ): Promise<void> => {
     try {
         const { id } = req.params;
+        if (!id) {
+        res.status(404).json({ error: "Protion Id non trouvé" });
+        return;
+      }
         const deletedPromotion = await prisma.promotion.delete({
             where: {
               id,

@@ -76,7 +76,7 @@ const notifyUserOrCustomer = async ({
   message,
   type
 }: {
-  saleId: string;
+  saleId?: string;
   userId?: number;
   customerId?: number;
   productId?: string;
