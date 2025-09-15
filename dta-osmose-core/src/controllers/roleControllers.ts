@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 const { PrismaClient } = require("@prisma/client");
 import { v4 as uuidv4 } from 'uuid'
+const { getPagination } = require("../query");
 
 const prisma = new PrismaClient();
 
@@ -147,35 +148,86 @@ export const createRole = async (
     }
   };
   
-  export const getPermissionsByRoleId = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    const roleId = parseInt(req.params.id, 10);
-    const skip = req.query.skip ? Number(req.query.skip) : 0;
-    const limit = req.query.limit ? Number(req.query.limit) : 10;
-    try {
-      const permissions = await prisma.rolePermission.findMany({
-        where: {
-          role_id: roleId,
-        },
-        include: {
-          permission: true,
-        },
-      });
+
+// export const getPermissionsByRoleId = async (
+//   req: Request,
+//   res: Response
+// ): Promise<void> => {
+//   const roleId = parseInt(req.params.id, 10);
+//   const { skip, limit } = getPagination(req.query);
   
-      res.json(permissions.map((rp:any) => ({
+//   try {
+//     // 1. Récupérer les permissions avec pagination
+//     const permissions = await prisma.rolePermission.findMany({
+//       where: {
+//         role_id: roleId,
+//       },
+//       skip: Number(skip),
+//       take: Number(limit),
+//       include: {
+//         permission: true,
+//       },
+//     });
+
+
+//     res.json({
+//       data: permissions.map((rp: any) => ({
+//         id: rp.id,
+//         permissionId: rp.permission_id,
+//         name: rp.permission.name,
+//         status: rp.status,
+//         createdAt: rp.createdAt,
+//       })),
+    
+//     });
+//   } catch (error) {
+//     console.error("Erreur lors de la récupération des permissions :", error);
+//     res.status(500).json({ message: "Erreur serveur" });
+//   }
+// };
+
+export const getPermissionsByRoleId = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const roleId = parseInt(req.params.id, 10);
+  const { skip, limit } = getPagination(req.query);
+
+  try {
+    // Récupérez les permissions paginées
+    const permissions = await prisma.rolePermission.findMany({
+      where: {
+        role_id: roleId,
+      },
+      skip: Number(skip),
+      take: Number(limit),
+      include: {
+        permission: true,
+      },
+    });
+
+    // Récupérez le total des permissions pour ce rôle (sans pagination)
+    const totalPermissions = await prisma.rolePermission.count({
+      where: {
+        role_id: roleId,
+      },
+    });
+
+    res.json({
+      permissions: permissions.map((rp: any) => ({
         id: rp.id,
         permissionId: rp.permission_id,
         name: rp.permission.name,
         status: rp.status,
         createdAt: rp.createdAt,
-      })));
-    } catch (error) {
-      console.error("Erreur lors de la récupération des permissions :", error);
-      res.status(500).json({ message: "Erreur serveur" });
-    }
-  };
+      })),
+      total: totalPermissions, // Ajoutez le total ici
+    });
+  } catch (error) {
+    console.error("Erreur lors de la récupération des permissions :", error);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+};
 
   // DELETE /roles/:roleId/permissions/:permissionId
 export const deleteRolePermission = async (

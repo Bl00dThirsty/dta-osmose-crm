@@ -7,9 +7,28 @@ const {
   notifyUserOrCustomer,
   notifyAllUsers
 } = require("../websocketNotification");
+import { expireSalePromiseIfNeeded } from "./promiseSaleConroller"
 
 const prisma = new PrismaClient();
 
+/**
+ * @desc    Crée une nouvelle facture de vente avec gestion complète
+ * @route   POST /api/institutions/:institution/sale-invoices
+ * @access  Privé (Authentifié)
+ * 
+ * @param   {string} institution - Slug de l'institution
+ * @body    {number} customerId - ID du client
+ * @body    {Array} items - Liste des produits avec quantité et prix
+ * @body    {number} [discount] - Remise globale sur la facture
+ * @body    {number} paidAmount - Montant payé immédiatement
+ * @body    {string} paymentMethod - Méthode de paiement
+ * 
+ * @returns {Object} Facture créée avec tous les détails
+ * @throws  {400} Stock insuffisant ou données invalides
+ * @throws  {401} Utilisateur non authentifié
+ * @throws  {404} Institution non trouvée
+ * @throws  {500} Erreur serveur
+ */
 export const createSaleInvoice = async (req: Request, res: Response): Promise<void> =>  {
     console.log('=== DEBUT DE LA REQUETE ===');
     console.log('Headers:', req.headers);
@@ -19,27 +38,24 @@ export const createSaleInvoice = async (req: Request, res: Response): Promise<vo
   
     try {
       interface SaleItemInput {
-        productId: number;
+        productId: string;
         quantity: number;
         unitPrice: number;
         
       }
       
-    const { customerId, items, discount, paidAmount, paymentMethod }: {
+    const { customerId, items, discount, paidAmount, paymentMethod, salePromiseId, }: {
       customerId: number;
       items: SaleItemInput[];
       discount?: number;
       paidAmount: number;
-      paymentMethod: string;} = req.body;
+      paymentMethod: string;
+      salePromiseId?: number;} = req.body;
    
     const institutionSlug = req.params.institution;
     const randomSuffix = randomInt(1000, 9999);
     const invoiceNumber = `${institutionSlug}-fac-${customerId}-${randomSuffix}`;
-    // if (!req.auth) {
-    //     res.status(401).json({ error: 'Non autorisé' });
-    //     return;
-    // }
-    //const userId = req.auth.sub;
+
     const payload = req.auth;
     if (!payload?.sub) {
       res.status(401).json({ error: "Utilisateur non authentifié" });
@@ -84,8 +100,35 @@ export const createSaleInvoice = async (req: Request, res: Response): Promise<vo
         },
         orderBy: { createdAt: 'asc' }, // on utilise le crédit le plus ancien
       });
-      
 
+  // 🔒 Si on vient d'une promesse : vérifier non expirée / non validée
+    let promiseItems: { product_id: string; product_quantity: number }[] = [];
+    if (salePromiseId) {
+      const sp = await expireSalePromiseIfNeeded(salePromiseId);
+      if (!sp){
+         res.status(404).json({ message: "Promesse introuvable" });
+         return;
+      }
+      if (sp?.status === "expired"){        
+        res.status(400).json({ message: "Promesse expirée, impossible de valider." });
+        return;
+      }
+      if (sp?.status === "validated"){
+        res.status(400).json({ message: "Promesse déjà validée." });
+        return;
+      }
+      // Charger items pour calculer le delta
+      const spFull = await prisma.salePromise.findUnique({
+        where: { id: salePromiseId },
+        include: { items: true },
+      });
+      promiseItems = spFull?.items?.map((i:any) => ({
+        product_id: i.product_id,
+        product_quantity: i.product_quantity,
+      })) ?? [];
+    }
+      
+// Validation & application des promotions 
 const now = new Date();
 
 const validatedItems = await Promise.all(
@@ -213,6 +256,59 @@ console.log("Produits validés :", validatedItems);
       });
     }
 
+     if (salePromiseId) {
+      // Map promesse
+      const promised = new Map<string, number>();
+      for (const i of promiseItems) {
+        promised.set(i.product_id, (promised.get(i.product_id) ?? 0) + i.product_quantity);
+      }
+      // Map facture
+      const invoiced = new Map<string, number>();
+      for (const i of validatedItems) {
+        invoiced.set(i.productId, (invoiced.get(i.productId) ?? 0) + i.quantity);
+      }
+
+      // 1) Pour chaque produit facturé, si quantité > promise → décrémenter la différence
+      for (const [pid, qtyInv] of invoiced.entries()) {
+        const qtyProm = promised.get(pid) ?? 0;
+        const diff = qtyInv - qtyProm;
+        if (diff > 0) {
+          await prisma.product.update({
+            where: { id: pid },
+            data: { quantity: { decrement: diff } },
+          });
+        }
+      }
+
+      // 2) Pour chaque produit promis, si quantité > facture → ré-incrémenter la différence
+      for (const [pid, qtyProm] of promised.entries()) {
+        const qtyInv = invoiced.get(pid) ?? 0;
+        const diff = qtyProm - qtyInv;
+        if (diff > 0) {
+          await prisma.product.update({
+            where: { id: pid },
+            data: { quantity: { increment: diff } },
+          });
+        }
+      }
+
+      // 3) Marquer la promesse validée
+      await prisma.salePromise.update({
+        where: { id: salePromiseId },
+        data: { status: "validated" }, // restocked true = plus rien à rendre plus tard
+      });
+    } else {
+      // 💡 cas classique: pas de promesse → décrémenter comme avant
+      await Promise.all(
+        validatedItems.map((it) =>
+          prisma.product.update({
+            where: { id: it.productId },
+            data: { quantity: { decrement: it.quantity } },
+          })
+        )
+      );
+    }
+
 
     // Mise à jour finale
     const updatedInvoice = await prisma.saleInvoice.update({
@@ -272,14 +368,14 @@ console.log("Produits validés :", validatedItems);
 
     console.log("le type user", creatorType)
     // Mise à jour des stocks
-    await Promise.all(items.map((item) => 
-      prisma.product.update({
-        where: { id: item.productId },
-        data: { 
-          quantity: { decrement: item.quantity } 
-        }
-      })
-    ));
+    // await Promise.all(validatedItems.map((item) => 
+    //   prisma.product.update({
+    //     where: { id: item.productId },
+    //     data: { 
+    //       quantity: { decrement: item.quantity } 
+    //     }
+    //   })
+    // ));
     for (const item of items) {
       const product = await prisma.product.findUnique({
         where: { id: item.productId }
@@ -319,7 +415,9 @@ console.log("Produits validés :", validatedItems);
   }
 };
 
-// Récupération des factures impayées depuis plus d'un mois
+/** @titre Récupération des factures impayées depuis plus d'un mois
+ * DPAV: Delais de paiement apres vente par defaut nous avons chois 1 mois 
+ * */ 
 export const checkCustomerDebtStatus = async (req: Request, res: Response) => {
   const { customerId } = req.params;
   const institutionSlug = req.params.institution;
@@ -545,6 +643,23 @@ export const updateSaleStatus = async (req: Request, res: Response): Promise<voi
   }
 };
 
+
+/**
+ * @desc    Met à jour le paiement d'une facture et recalcule les montants
+ * @route   PATCH /api/invoices/:id/payment
+ * @access  Privé (Authentifié)
+ * 
+ * @param   {string} id - ID de la facture à mettre à jour
+ * @body    {string} paymentMethod - Méthode de paiement (cash, card, etc.)
+ * @body    {number} paidAmount - Montant payé
+ * @body    {number} [discount=0] - Remise supplémentaire à appliquer
+ * @body    {number} [dueAmount] - Montant dû après paiement (optionnel)
+ * 
+ * @returns {Object} Facture mise à jour avec les nouveaux calculs
+ * @throws  {400} Items invalides ou crédit non trouvé
+ * @throws  {404} Facture non trouvée
+ * @throws  {500} Erreur serveur
+ */
 export const updatePayment = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
@@ -565,27 +680,21 @@ export const updatePayment = async (req: Request, res: Response): Promise<void> 
     }
        
     const invoice = await prisma.saleInvoice.findUnique({ where: { id } });
-    // const credit = await prisma.credit.findFirst({
-    //   where: {
-    //     customerId: invoice.customerId,
-    //     // amount: { gt: 0 }, et customer.invoice.id = invoice.id
-    //     // usedAmount: { lt: prisma.credit.fields.amount },
-    //   },
-    //   orderBy: { createdAt: 'asc' }, // Utiliser le plus ancien crédit disponible
-    // });
+   
+    // Recherche du crédit disponible pour ce client
     const credit = await prisma.credit.findFirst({
-    where: {
-      customer: { // Relation vers le modèle `customer`
-        saleInvoice: { // Relation vers les factures du client (CustomerSaleInvoice)
-          some: { // Au moins une facture correspondante
-            id: invoice.id // ID de la facture cible
+      where: {
+        customer: { // Relation vers le modèle `customer`
+          saleInvoice: { // Relation vers les factures du client
+            some: { // Au moins une facture correspondante
+              id: invoice.id // ID de la facture cible
+            }
           }
-        }
+        },
+        amount: { gt: 0 }, // Crédit non nul
+        // usedAmount: { lt: prisma.credit.fields.amount }, // Crédit non entièrement utilisé
       },
-    amount: { gt: 0 }, // Crédit non nul
-    //usedAmount: { lt: prisma.credit.fields.amount }, // Crédit non entièrement utilisé
-    },
-    orderBy: { createdAt: 'asc' }, // Plus ancien en premier
+      orderBy: { createdAt: 'asc' }, // Utiliser le crédit le plus ancien en premier (FIFO)
     });
     if (!invoice) {
       res.status(404).json({ error: 'Invoice not found' });
@@ -676,74 +785,78 @@ export const updatePayment = async (req: Request, res: Response): Promise<void> 
 
 export const deleteSaleInvoice = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { id } = req.params; // Utiliser "id"
-
-    // Afficher l'ID pour vérifier sa réception
-    console.log("ID de la facture reçu : ", id);
+    const { id } = req.params;
 
     if (!id) {
       res.status(400).json({ error: "ID de facture invalide" });
-      return; 
+      return;
     }
-    
 
-    // Récupérer les produits associés à la facture
-    const items = await prisma.saleItem.findMany({
-      where: {
-        invoiceId: id, // Utiliser l'ID converti
-      },
+    // Récupérer la facture
+    const invoice = await prisma.saleInvoice.findUnique({
+      where: { id },
       include: {
-        product: true, // Inclure les détails des produits
+        customer: true,
+        items: { include: { product: true } }
       }
     });
 
+    if (!invoice) {
+      res.status(404).json({ error: "Facture introuvable" });
+      return;
+    }
+
+    // Calcul du crédit utilisé sur cette facture
+    const creditUtilise = Math.max(
+      0,
+      invoice.finalAmount - invoice.dueAmount - invoice.paidAmount
+    );
+
     // Restaurer les quantités en stock
-    for (const item of items) {
+    for (const item of invoice.items) {
       await prisma.product.update({
-        where: {
-          id: item.productId,
-        },
-        data: {
-          quantity:
-            item.product.quantity +
-            item.quantity,
-        },
+        where: { id: item.productId },
+        data: { quantity: { increment: item.quantity } }
       });
     }
 
-    // Supprimer d'abord les items 
-    await prisma.saleItem.deleteMany({
-      where: {
-        invoiceId: id,
-      },
-    });
-
-    // Supprimer les reclamation qui y sont reliers
-    // await prisma.claim.delete({
-    //   where: {
-    //     invoiceId: id,
-    //   },
-    // });
+    // Supprimer les items
+    await prisma.saleItem.deleteMany({ where: { invoiceId: id } });
 
     // Supprimer la facture
-    await prisma.saleInvoice.delete({
-      where: {
-        id
-      },
+    await prisma.saleInvoice.delete({ where: { id } });
+
+    // Réattribuer le crédit utilisé (si > 0)
+    if (creditUtilise > 0) {
+      const dernierCredit = await prisma.credit.findFirst({
+        where: { customerId: invoice.customerId },
+        orderBy: { createdAt: "desc" }
+      });
+
+      if (dernierCredit) {
+        await prisma.credit.update({
+          where: { id: dernierCredit.id },
+          data: {
+            usedAmount: {
+              decrement: creditUtilise
+            }
+          }
+        });
+      }
+    }
+
+    res.status(200).json({
+      message: `Facture ${id} annulée. Produits remis en stock. Crédit réattribué (${creditUtilise}).`
     });
 
-    console.log(
-      `La commande avec l'ID ${id} a été annulée et les produits ont été restaurés en stock.`
-    );
-      res.status(200).json({
-      message: "Facture mise à jour avec succès",
-      data: items
-    });
   } catch (error) {
     console.error("Erreur lors de l'annulation de la commande :", error);
     res.status(500).json({ error: "Erreur lors de l'annulation de la commande." });
   }
 };
+
+
+
 
 // let totalPurchasePrice = 0;
 //     items.forEach((item: any, index: number) => {

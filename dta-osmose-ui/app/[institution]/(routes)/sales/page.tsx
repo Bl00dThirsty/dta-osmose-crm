@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useGetProductsQuery, useCreateSaleMutation, useGetCustomerDebtStatusQuery, useGetActivePromotionsQuery } from '@/state/api';
+import { useGetProductsQuery, useCreateSaleMutation, useGetCustomerDebtStatusQuery, useGetActivePromotionsQuery, useGetSalePromiseByIdQuery } from '@/state/api';
 import { useGetCustomersQuery } from '@/state/api';
 import { useGetUsersQuery } from '@/state/api';
 import { useRouter, useParams } from 'next/navigation';
@@ -11,6 +11,7 @@ import { toast } from "react-toastify";
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
+import { useSearchParams } from "next/navigation";
 
 
 export interface Product {
@@ -33,6 +34,7 @@ export interface NewSaleInvoice {
   totalAmount: number;
   discount: number;
   finalAmount: number;
+  salePromiseId?: number;
   items: SaleItemCreateInput[];
 }
 
@@ -49,7 +51,7 @@ const CreateSalePage = () => {
   const productsPerPage = 8;
   const indexOfLastProduct = currentPage * productsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-  
+  const params = useSearchParams();
   const [discount, setDiscount] = useState(0);
   const [customerId, setCustomerId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -62,6 +64,10 @@ const CreateSalePage = () => {
   const userRole = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
   const isParticulier = userRole === "Particulier";
   const userId = typeof window !== 'undefined' ? localStorage.getItem('id') : null;
+  const salePromiseId = params?.get("salePromiseId");
+  const { data: salePromise } = useGetSalePromiseByIdQuery(Number(salePromiseId), {
+    skip: !salePromiseId,
+  });
 
   //dette de plus d'un mois d'un customer
  const { data: debtStatus } = useGetCustomerDebtStatusQuery(
@@ -166,9 +172,27 @@ const handleRemoveProduct = (id: string) => {
     setSelectedProducts(prev => prev.filter(p => p.id !== id));
 };
 
+// Pré-remplissage en cas de promesse de vente
+useEffect(() => {
+  if (!salePromise) return;
+  setCustomerId(salePromise.customerId ?? null);
+  setSelectedProducts(
+    salePromise.items.map((it: any) => ({
+      id: it.product.id,
+      designation: it.product.designation,
+      quantity: it.product_quantity,
+      unitPrice: it.product_sale_price,
+      totalPrice: it.product_quantity * it.product_sale_price,
+    }))
+  );
+}, [salePromise]);
+
   const handleCreateSale = async () => {
-    if (!customerId || selectedProducts.length === 0) return;
-  
+    if (!customerId || selectedProducts.length === 0) {
+      
+      toast.error("Veuillez remplir tous les champs obligatoires.");
+      return;
+    };
   // Vérification explicite des IDs
     const creatorId = currentUserId || customerId;
     if (!creatorId) return; // Au moins un des deux doit exister
@@ -186,6 +210,7 @@ const handleRemoveProduct = (id: string) => {
         })),
         discount,
         paymentMethod: "mobile",
+        salePromiseId: salePromise ? salePromise.id : undefined,
         institution: institution, // L'institution actuelle
       }).unwrap();
   
@@ -223,9 +248,9 @@ const handleRemoveProduct = (id: string) => {
   </div>
 )}
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Liste des produits */}
-        <div className="lg:col-span-2 bg-gray p-4 rounded-lg shadow">
+        <div className="lg:col-span-3 bg-gray p-4 rounded-lg shadow">
           <div className="mb-4">
             <Input
               type="text"
@@ -238,52 +263,52 @@ const handleRemoveProduct = (id: string) => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {currentProducts.map(product => {
-  const promo = getPromoForProduct(product.id);
-  const finalPrice = promo 
-    ? product.sellingPriceTTC * (1 - promo.discount / 100) 
-    : product.sellingPriceTTC;
+              const promo = getPromoForProduct(product.id);
+                const finalPrice = promo 
+                  ? product.sellingPriceTTC * (1 - promo.discount / 100) 
+                  : product.sellingPriceTTC;
 
-  return (
-    <div
-      key={product.id}
-      className={`border p-3 rounded cursor-pointer ${
-        product.quantity <= 0
-          ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-          : "hover:bg-gray-50 hover:text-red-700"
-      }`}
-      onClick={() => product.quantity > 0 && handleAddProduct({
-        ...product,
-        sellingPriceTTC: finalPrice // ⚡️ Utiliser le prix promo si actif
-      })}
-    >
-      {promo ? ( 
-        <Badge className="top-3 left-3 bg-red-500">-{promo.discount}%</Badge>
-      ) :(
-        <p> </p>
-      )}
-      <h3 className="font-bold">{product.designation}</h3>
+              return (
+                  <div
+                    key={product.id}
+                    className={`border p-3 rounded cursor-pointer  ${
+                     product.quantity <= 0
+                         ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                         : "hover:bg-gray-50 hover:text-red-700"
+                    }`}
+                   onClick={() => product.quantity > 0 && handleAddProduct({
+                   ...product,
+                    sellingPriceTTC: finalPrice // ⚡️ Utiliser le prix promo si actif
+                   })}
+                   >
+                {promo ? ( 
+                  <Badge className="top-3 left-3 bg-red-500">-{promo.discount}%</Badge>
+                ) :(
+                 <p> </p>
+                )}
+              <h3 className="font-bold">{product.designation}</h3>
 
-      {promo ? (
-        <p>
-          <span className="line-through text-gray-500 mr-2">
-            {product.sellingPriceTTC} F
-          </span>
-          <span className="text-green-600 font-bold mr-2">{finalPrice.toFixed(2)} F</span>
-          {/* <span className='text-red-600'>-{promo.discount}%</span> */}
-        </p>
-      ) : (
-        <p>Prix: {product.sellingPriceTTC} F</p>
-      )}
+              {promo ? (
+                <p>
+                  <span className="line-through text-gray-500 mr-2">
+                     {product.sellingPriceTTC} F
+                  </span>
+                  <span className="text-green-600 font-bold mr-2">{finalPrice.toFixed(2)} F</span>
+          {/* <span className='text-red-600'>-{promo.discount}%</span>⚠️ */}
+                </p>
+              ) : (
+                <p>Prix: {product.sellingPriceTTC} F</p>
+              )}
 
-      <p className="font-normal text-gray-500">
-        Stock: {product.quantity}{" "}
-        {product.quantity <= 0 && (
-          <span className="text-red-500 font-bold">(Épuisé)</span>
-        )}
-      </p>
-    </div>
-  );
-})}
+                <p className="font-normal text-gray-500">
+                Stock: {product.quantity}{" "}
+                {product.quantity <= 0 && (
+                  <span className="text-red-500 font-bold">(Épuisé)</span>
+                )}
+                </p>
+            </div>
+         );
+        })}
 
           </div>
           <div className="flex justify-center mt-4 space-x-2">
@@ -316,7 +341,7 @@ const handleRemoveProduct = (id: string) => {
         </div>
         
         {/* Panier */}
-        <div className="bg-gray p-4 rounded-lg shadow">
+        <div className="lg:col-span-2 bg-gray p-4 rounded-lg shadow">
           <h2 className="text-xl font-semibold mb-4">Récapitulatif</h2>
           
           {/* <div className="mb-4">
@@ -343,7 +368,7 @@ const handleRemoveProduct = (id: string) => {
   
             {isParticulier && currentCustomer ? (
                  // Si c'est un client connecté
-                <div className="p-2 border rounded bg-white-100">
+                <div className="p-2 border rounded">
                    <p>{currentCustomer.name} - {currentCustomer.phone}</p>
                 </div>
             ) : (
@@ -356,7 +381,7 @@ const handleRemoveProduct = (id: string) => {
             >
            <option value="">Sélectionner un client</option>
             {customers.map(customer => (
-          <option key={customer.id} value={customer.id}>
+           <option key={customer.id} value={customer.id}>
             {customer.name} - {customer.phone}
           </option>
           ))}

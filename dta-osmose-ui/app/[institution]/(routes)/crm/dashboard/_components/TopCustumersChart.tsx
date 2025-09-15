@@ -1,12 +1,32 @@
-'use client';
+"use client";
 
 import React from "react";
-import {LineChart, Line, XAxis, YAxis, Tooltip,Legend,ResponsiveContainer,} from "recharts";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { TrendingUp } from "lucide-react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface CustomerHistory {
-  date: string;
-  amount: number;
+  count: number;
+  month: string; // format "MMM yyyy" (comme généré par ton controller)
+  total: number;
 }
 
 interface TopCustomer {
@@ -23,89 +43,150 @@ interface TopCustomersChartProps {
   isLoading?: boolean;
 }
 
-export default function TopCustomersChart({ data = [], isLoading = false }: TopCustomersChartProps) {
+const COLORS = [
+  "var(--chart-1)", // bleu
+  "var(--chart-2)", // vert
+  "var(--chart-3)", // orange
+  "var(--chart-4)", // rouge
+  "var(--chart-5)", // violet
+];
+
+interface MergedHistoryItem {
+  month: string;
+  [clientName: string]: number | string;
+}
+
+export default function TopCustomersChart({
+  data = [],
+  isLoading = false,
+}: TopCustomersChartProps) {
   if (isLoading) return <div>Chargement...</div>;
   if (!data.length) return <div>Aucune donnée disponible</div>;
-
-   /// Fusionner les historiques pour un graphique multi-clients
-const mergedHistory: { month: string; [key: string]: number | string }[] = [];
-
-// 1️⃣ Créer un set de tous les mois des 6 derniers mois
+  // Générer historiques des 6 derniers mois fixes
+const mergedHistory: MergedHistoryItem[] = [];
 const today = new Date();
-const monthsSet = new Set<string>();
+const months: string[] = [];
+
 for (let i = 5; i >= 0; i--) {
-  const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
-  const monthKey = date.toLocaleDateString("fr-FR", { month: "short", year: "numeric" });
-  monthsSet.add(monthKey);
+  const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+  const monthKey = d.toLocaleString("default", { month: "short", year: "numeric" }); 
+  months.push(monthKey);
   mergedHistory.push({ month: monthKey });
 }
 
-// 2️⃣ Remplir les valeurs pour chaque client
-data.forEach((customer: TopCustomer) => {
+// Remplir les données de chaque client
+data.forEach((customer) => {
   const historyMap: Record<string, number> = {};
-  (customer.history ?? []).forEach((h: CustomerHistory) => {
-    if (!h.date || h.amount == null) return;
-    const monthKey = new Date(h.date).toLocaleDateString("fr-FR", { month: "short", year: "numeric" });
-    historyMap[monthKey] = (historyMap[monthKey] || 0) + h.amount;
+  const invoicesMap: Record<string, number> = {};
+  (customer.history ?? []).forEach((h) => {
+    historyMap[h.month] = h.total;
+    invoicesMap[h.month] = h.count ?? 0;
   });
 
-  // 3️⃣ Ajouter les montants dans mergedHistory
   mergedHistory.forEach((m) => {
-    m[customer.customerName] = historyMap[m.month] ?? 0; // 0 si aucune vente ce mois
+    m[customer.customerName] = historyMap[m.month] ?? 0; // 0 si aucune vente
+    m[`${customer.customerName}_count`] = invoicesMap[m.month] ?? 0; // Nombre de ventes
   });
 });
+// DEBUG console.log
+console.log("=== DEBUG: Merged History (LineChart) ===");
+mergedHistory.forEach((m) => {
+  console.log(m);
+  });
 
-// 4️⃣ Tri déjà garanti car on a créé mergedHistory dans l’ordre des 6 derniers mois
+  console.log("PieChart data (top clients):", data);
+  console.log("Merged History (LineChart):", mergedHistory);
 
+  // PieChart top clients
+  const pieData = data.map((c, i) => ({
+    name: c.customerName,
+    value: c.totalAmount ?? 0,
+    invoices: c.invoiceCount ?? 0,
+    fill: COLORS[i % COLORS.length],
+  }));
+  
 
   return (
     <div className="grid gap-6 md:grid-cols-2">
-      {/* Tableau Top Clients */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl font-semibold mb-4"> Top Clients</CardTitle>
+      {/* ---------------- PieChart Top Clients ---------------- */}
+      <Card className="flex flex-col">
+        <CardHeader className="items-center pb-0">
+          <CardTitle>Top Clients</CardTitle>
+          <CardDescription>
+            Montant total et nombre de factures
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left border-b">
-                <th>Client</th>
-                <th>Email</th>
-                <th>Factures</th>
-                <th>Total (€)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.map((c) => (
-                <tr key={c.customerId} className="border-b">
-                  <td>{c.customerName}</td>
-                  <td>{c.customerEmail || "-"}</td>
-                  <td>{c.invoiceCount ?? 0}</td>
-                  <td>{(c.totalAmount ?? 0).toLocaleString()} €</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <CardContent className="flex-1 pb-0">
+          <div className="mx-auto" style={{ width: 300, height: 300 }}>
+            <PieChart width={300} height={300}>
+              <Tooltip
+                formatter={(value, name, entry: any) =>
+                  `${Number(value).toLocaleString()} € • ${entry.payload.invoices} factures`
+                }
+              />
+              <Pie
+                data={pieData}
+                dataKey="value"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                outerRadius={100}
+                paddingAngle={0}     // supprime les espaces blancs
+                stroke="none"        // supprime la bordure autour des secteurs
+              >
+                {pieData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                ))}
+              </Pie>
+            </PieChart>
+          </div>
         </CardContent>
+        <CardFooter className="flex-col gap-2 text-sm">
+          <div className="flex items-center gap-2 leading-none font-medium">
+            Top clients du mois <TrendingUp className="h-4 w-4" />
+          </div>
+          <div className="text-muted-foreground leading-none">
+            Montant total et nombre de factures pour chaque client
+          </div>
+        </CardFooter>
       </Card>
-      {/* Graphique historique (LineChart) */}
+
+      {/* ---------------- LineChart Historique ---------------- */}
       <Card className="shadow-md rounded-2xl">
         <CardHeader>
-          <CardTitle className="text-xl font-semibold mb-4">📈 Historique d’achats (6 mois)</CardTitle>
+          <CardTitle className="text-xl font-semibold mb-4">
+            Historique d’achats (6 mois)
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={mergedHistory}>
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
+            <LineChart
+              data={mergedHistory}
+              margin={{ top: 5, right: 20, bottom: 5, left: 0 }}
+            >
+              <XAxis
+                dataKey="month"
+                tick={{ fill: "var(--text-primary)", fontSize: 12 }}
+              />
+              <YAxis tick={{ fill: "var(--text-primary)", fontSize: 12 }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "var(--card-bg)",
+                  borderRadius: 8,
+                }}
+                itemStyle={{ color: "var(--text-primary)" }}
+                formatter={(value, name, entry: any) => {
+                  const count = entry.payload[`${name}_count`] ?? 0;
+                  return `${Number(value).toLocaleString('fr-FR')} € (${count} ventes)`;
+                }}
+              />
+              {/*<Legend />*/}
               {data.map((c, i) => (
                 <Line
                   key={c.customerId}
                   type="monotone"
                   dataKey={c.customerName}
-                  stroke={`hsl(${(i * 70) % 360}, 70%, 50%)`}
+                  stroke={COLORS[i % COLORS.length]}
                   strokeWidth={2}
                   dot={{ r: 4 }}
                   activeDot={{ r: 6 }}

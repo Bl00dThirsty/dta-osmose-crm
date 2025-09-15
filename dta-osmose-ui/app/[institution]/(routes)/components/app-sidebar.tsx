@@ -29,11 +29,11 @@ import { AppSwitcher } from "./app-switcher";
 import { NavUser } from "@/app/[institution]/(routes)/components/nav-user";
 import {
   navUser,
-  navCustomer,
+  getNavCustomer ,
   NavMainItem,
   NavSubItem,
 } from "@/navigation/sidebar/sidebar_items";
-
+const id = typeof window !== 'undefined' ? localStorage.getItem('id') : null;
 const data = {
   user: {
     name: "john",
@@ -53,6 +53,7 @@ export function AppSidebar({
   institution,
   ...props
 }: { institution: string } & React.ComponentProps<typeof Sidebar>) {
+  const navCustomer = getNavCustomer(); 
   const pathname = usePathname();
 
   const userType =

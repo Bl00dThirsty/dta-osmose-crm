@@ -36,6 +36,7 @@ export const authorize = (permission: string): RequestHandler[] => {
       if (payload.userType === "customer") {
         if (!payload.permissions?.includes(permission)) {
            res.status(403).json({ message: "Permission insuffisante (customer)" });
+           return
         }
       }
 
@@ -43,6 +44,7 @@ export const authorize = (permission: string): RequestHandler[] => {
       if (payload.userType === "user") {
         if (!payload.permissions?.includes(permission)) {
            res.status(403).json({ message: "Permission insuffisante (user)" });
+           return
         }
       }
 

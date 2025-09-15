@@ -51,8 +51,8 @@ export default function DetailUserPage() {
       {/* Message Promo si actif */}
       {hasPromo && currentPromo && (
         <div className="mb-4 p-4 rounded-lg bg-green-100 border border-green-300 text-green-800 shadow">
-          🎉 Promo en cours : <span className="font-semibold">{currentPromo.title}</span>  
-           <span className="font-semibold"> -{discountPercentage}%</span> de remise !
+          Promo en cours : <span className="font-semibold">{currentPromo.title}</span>  
+           <span className="font-semibold"> -{discountPercentage}%</span> de remise sur le produit <span className="font-semibold">{product.designation}</span> !
         </div>
       )}
 

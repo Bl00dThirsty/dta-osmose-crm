@@ -2,19 +2,20 @@
 
 import { useCreateClaimMutation, useGetSaleByIdQuery } from '@/state/api';
 import { useParams, useRouter } from 'next/navigation';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Container from "../../../components/ui/Container";
+import { toast } from "react-toastify";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function CreateClaimForm() {
+  console.log('ClaimPage rendered');
   const [createClaim] = useCreateClaimMutation();
   const [form, setForm] = useState({ productId: '', quantity: 1, reason: '', description: '' });
   const [quantityError, setQuantityError] = useState("");
   const router = useRouter();
-  const { institution } = useParams<{ institution: string }>();
-  const params = useParams();
-  const id = params?.id as string;
+  const { id, institution } = useParams<{ id: string; institution: string }>();
 
   const { data: invoice, isLoading } = useGetSaleByIdQuery(id);
 
@@ -25,7 +26,11 @@ export default function CreateClaimForm() {
   const total = unitPrice * form.quantity;
 
   const isQuantityInvalid = form.quantity > maxQuantity;
-  if (isLoading || !invoice) return <div>Chargement...</div>;
+  if (isLoading || !invoice) return <div>Vous n'avez pas accès à ces informations. Chargement...</div>;
+
+  useEffect(() => {
+    console.log('ClaimPage mounted');
+  }, []);
 
   const handleClaimSubmit = async () => {
     if (isQuantityInvalid) {
@@ -33,6 +38,7 @@ export default function CreateClaimForm() {
       return;
     }
     console.log("numero de facture:", invoice.id)
+    try{
     await createClaim({
       institution,
       invoiceId: invoice.id,
@@ -43,10 +49,14 @@ export default function CreateClaimForm() {
       unitPrice,
       
     }).unwrap();
-    alert("Réclamation créée !");
+    toast.success("Réclamation créée et envoyée!");
     setForm({ productId: '', quantity: 1, reason: '', description: '' });
-     setQuantityError("");
+    setQuantityError("");
     router.push(`/${institution}/sales/${id}`);
+    } catch (error){
+      console.log('Erreur création reclam:', error);
+      toast.error("Échec de l'enregistrement");
+    }
   };
 
   return (
@@ -120,7 +130,7 @@ export default function CreateClaimForm() {
       </select>
 
       <Label className='mb-2'>Description</Label>
-      <textarea
+      <Textarea
         value={form.description}
         onChange={e => setForm({...form, description: e.target.value})}
         placeholder="Description…"

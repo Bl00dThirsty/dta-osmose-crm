@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { useForm } from "react-hook-form"
-import { User} from "@/types"
+import { User, useGetDepartmentsQuery, useGetDesignationsQuery, useGetRolesQuery } from "@/state/api"
 
 export function UpdateUserForm({
   user,
@@ -18,8 +18,13 @@ export function UpdateUserForm({
   onUpdate: (data: Partial<User>) => Promise<void>
 }) {
   const { register, handleSubmit, reset } = useForm<User>({
-    defaultValues: User
+    defaultValues: user
   })
+
+  const { data: roles = [] } = useGetRolesQuery()
+  const { data: departments = [] } = useGetDepartmentsQuery()
+  const { data: designations = [] } = useGetDesignationsQuery()
+
 
   const onSubmit = async (data: User) => {
     await onUpdate(data)
@@ -28,22 +33,22 @@ export function UpdateUserForm({
 
   // Liste des champs avec leur typage correct
   const fields =[
-              { label: "Prénom", name: "firstName" },
-              { label: "Nom", name: "lastName" },
-              { label: "Nom d'utilisateur", name: "userName", disabled: true },
+              { label: "Prénom", name: "firstName", type: "text" },
+              { label: "Nom", name: "lastName", type: "text" },
+              { label: "Nom d'utilisateur", name: "userName", disabled: true, type: "text" },
               { label: "Nouveau mot de passe", name: "password", type: "password", optional: true },
               { label: "Email 📩", name: "email", type: "email" },
-              { label: "Téléphone 📞", name: "phone" },
-              { label: "Adresse", name: "street" },
-              { label: "Ville", name: "city" },
-              { label: "Code postal", name: "zipCode" },
+              { label: "Téléphone 📞", name: "phone", type: "text" },
+              { label: "Adresse", name: "street", type: "text" },
+              { label: "Ville", name: "city", type: "text" },
+              { label: "Code postal", name: "zipCode", type: "text" },
               { label: "Date de naissance", name: "birthday", type: "date" },
               { label: "Date d'embauche", name: "joinDate", type: "date" },
-              { label: "Matricule CNPS", name: "CnpsId" },
+              { label: "Matricule CNPS", name: "CnpsId", type: "text" },
               { label: "Salaire 💰", name: "salary", type: "number" },
-              { label: "Numéro d'urgence", name: "emergencyPhone1" },
-              { label: "Contact d'urgence", name: "emergencyname1" },
-              { label: "Lien de parenté", name: "emergencylink1" }] as const
+              { label: "Numéro d'urgence", name: "emergencyPhone1", type: "text" },
+              { label: "Contact d'urgence", name: "emergencyname1", type: "text" },
+              { label: "Lien de parenté", name: "emergencylink1", type: "text" }] as const
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -59,9 +64,10 @@ export function UpdateUserForm({
             </Label>
             <Input
               id="userId"
-              value={User.userId}
+              value={user.id}
               readOnly
               className="col-span-3 bg-gray-100"
+              disabled
             />
           </div>
 
@@ -79,6 +85,92 @@ export function UpdateUserForm({
               />
             </div>
           ))}
+
+           {/* === Champs Selects === */}
+
+          {/* Sexe */}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="gender" className="text-right">Sexe</Label>
+            <select
+              id="gender"
+              className="col-span-3 border rounded-md p-2"
+              {...register("gender")}
+              defaultValue={user.gender || ""}
+            >
+              <option value="">Sélectionner</option>
+              <option value="masculin">Homme</option>
+              <option value="feminin">Femme</option>
+            </select>
+          </div>
+
+          {/* Rôle */}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="role" className="text-right">Rôle</Label>
+            <select
+              id="role"
+              className="col-span-3 border rounded-md p-2"
+              {...register("role")}
+              defaultValue={user.role || ""}
+            >
+              <option value="">Sélectionner</option>
+              {roles.map((r: any) => (
+                <option key={r.id} value={r.name}>{r.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Département */}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="departmentId" className="text-right">Département</Label>
+            <select
+              id="departmentId"
+              className="col-span-3 border rounded-md p-2"
+              {...register("departmentId")}
+              defaultValue={user.departmentId || ""}
+            >
+              <option value="">Sélectionner</option>
+              {departments.map((d: any) => (
+                <option key={d.id} value={d.id}>{d.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Poste */}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="designationId" className="text-right">Poste</Label>
+            <select
+              id="designationId"
+              className="col-span-3 border rounded-md p-2"
+              {...register("designationId")}
+              defaultValue={user.designationId || ""}
+            >
+              <option value="">Sélectionner</option>
+              {designations.map((des: any) => (
+                <option key={des.id} value={des.id}>{des.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Groupe Sanguin */}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="bloodGroup" className="text-right">Groupe Sanguin 🩸</Label>
+            <select
+              id="bloodGroup"
+              className="col-span-3 border rounded-md p-2"
+              {...register("bloodGroup")}
+              defaultValue={user.bloodGroup || ""}
+            >
+              <option value="">Sélectionner</option>
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="O-">O-</option>
+              <option value="O+">O+</option>
+            </select>
+          </div>
 
           <div className="flex justify-end gap-2">
             <Button

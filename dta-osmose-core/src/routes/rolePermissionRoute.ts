@@ -1,13 +1,13 @@
 import { Router } from "express";
 import { createRolePermission, getAllRolePermission, getSingleRolePermission, updateRolePermission, deleteSingleRolePermission} from "../controllers/rolePermissionControllers";
-const authorize = require("../authorize");
+import authorize from "../authorize";
 
 const router = Router();
 
-router.post("/", createRolePermission);
-router.get("/", getAllRolePermission);
-router.get('/:id', getSingleRolePermission);
-router.put("/:id", updateRolePermission)
-router.delete("/:id", deleteSingleRolePermission)
+router.post("/", authorize("create-rolePermission"), createRolePermission);
+router.get("/", authorize("readAll-rolePermission"), getAllRolePermission);
+router.get('/:id', authorize("view-rolePermission"), getSingleRolePermission);
+router.put("/:id", authorize("update-rolePermission"), updateRolePermission)
+router.delete("/:id", authorize("delete-rolePermission"), deleteSingleRolePermission)
 
 export default router;

@@ -27,8 +27,9 @@ export function DataTableToolbar<TData>({
   const isFiltered = table.getState().columnFilters.length > 0;
   const { data: Allpromotions } = useGetAllPromotionsQuery({institution})
   const products = Array.from(new Set(Allpromotions?.map((c:any) => c.product?.designation).filter(Boolean))) ?? ["..."];
-  const Status = Array.from(new Set(Allpromotions?.map((c:any) => c.status).filter(Boolean))) ?? ["..."];
-  
+  const Status = Array.from(
+    new Set(Allpromotions?.map((c: any) => (c.status ? "Active" : "Inactive")).filter(Boolean))
+  ) ?? ["..."];
   const [file, setFile] = useState<File | null>(null)   
   
   return (
@@ -53,11 +54,7 @@ export function DataTableToolbar<TData>({
         {table.getColumn("status") && (
           <DataTableFacetedFilter
               column={table.getColumn("status")}
-              title="Statut"
-              // options={[
-              // { label: "Active", value: true },
-              // { label: "Inactive", value: false },
-              // ]}
+              title="Status"
               options={Status.map((s:any) => ({ label: s, value: s }))}
           />
         )}

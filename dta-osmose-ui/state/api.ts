@@ -91,6 +91,57 @@ export interface NewRole {
 
 }
 
+export interface salePromiseProduct{
+  id: number;
+  product_id: string;
+  product_quantity: number;
+  product_sale_price: number;
+  totalPrice: number;
+  product?:{
+    designation: string;
+    quantity: number;
+    EANCode?: string;
+    sellingPriceTTC: number;
+  }
+}
+
+export interface salePromise {
+  id: number;
+  dueDate: Date;
+  reminderDate: Date;
+  createdAt: Date;
+  customerId?: number;
+  userId?: number;
+  customerCreatorId?:  number;
+  saleId: string;
+  institutionId?: string;
+  customer_address?: string;
+  customer_name?: string;
+  customer_phone?: string;
+  total_amount: number;
+  discount: number;
+  note: string;
+  status: string;
+  items: salePromiseProduct[];
+  user: {
+    id: number;
+    firstName: string;
+    lastName: string;
+  } 
+  customer:{
+    id: number;
+    customId: string;
+    name: string;
+    phone: string;
+    email: string;
+    type_customer?: string;
+    ville?: string;
+    quarter?: string;
+    credits?: Credit[];
+
+  }
+}
+
 export interface SaleItemInput {
   id: string;
   productId: string;
@@ -124,6 +175,7 @@ export interface SaleInvoice{
   profit: number;
   createdAt:  Date;
   date?: Date;
+  salePromiseId?: number;
   items: SaleItemInput[];
   user: {
     id: number;
@@ -164,6 +216,7 @@ export interface NewSaleInvoice{
   profit: number;
   createdAt?:  Date;
   date?: Date;
+  salePromiseId?: number;
   items: SaleItemInput[];
   user?: {
     id: number;
@@ -390,6 +443,29 @@ export interface NewPromotion {
   }
 }
 
+export interface Report{
+  id: number;
+  prospectName: string;
+  date: Date;
+  userId?: number
+  degree?: string;
+  responsable?: string;
+  rdvObject: string;
+  nextRdv?: Date;
+  time: string;
+  contact: string;
+  address: string;
+  email?: string;
+  pharmacoVigilance?: string;
+  institution:   string;
+  createdAt: Date;
+  user?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+  }
+}
+
 export type MetricItem = {
   count: number;
   type: string; // "Ventes" | "Profits" | "nombre de facture"
@@ -442,6 +518,7 @@ chartData?: {
   favoriteProductsByCustomer: any;
   topCustomers: any;
   topProducts: any;
+  lowProducts: any;
   salesByProduct: {
     totalSales: any;
     productId: string;
@@ -459,11 +536,14 @@ chartData?: {
   }[];
 
   salesByCity: {
-    totalSales: any;
-    cityName: string;
-    totalQuantity: number;
-    totalAmount: number;
-  }[];
+  cityName: string;
+  totalSales: number;
+  totalQuantity: number;
+  invoiceCount: number;
+  percentage: number;
+  growth: string;
+  isPositive: boolean;
+}[];
   customers?: Array<{
     id: string;
     name: string;
@@ -481,9 +561,11 @@ export const api = createApi({
         return headers;
       }, }),
     reducerPath: "api",
-    tagTypes: ["DashboardMetrics", "DashboardSales","getTopProducts","getTopCustomers", "Products", "Users", "Departments", "Designations", "Roles", "Customers", "Sales", "AppSettings", "Claims", "Notifications", "Inventorys", "Promotions"],
+    tagTypes: ["DashboardMetrics", "DashboardSales","getTopProducts","getTopCustomers", "Products", "Users", "Departments", "Designations", "Roles", "Customers", "SalePromise", "Sales", "AppSettings", "Claims", "Notifications", 
+      "Inventorys", "Promotions", "Reports"],
 
     endpoints: (build) => ({
+      // dashboard principal
         getDashboardMetrics: build.query<DashboardMetrics, { institution: string, startDate?: string; endDate?: string  }>({
             query: ({ institution, startDate, endDate }) => {
               const params = new URLSearchParams();
@@ -494,40 +576,73 @@ export const api = createApi({
             },
             providesTags: ["DashboardMetrics"]
         }),
+        //dashboard des des ventes
+        getDashboardSales: build.query< DashboardSales,  { institution?: string; startDate?: string; endDate?: string; customerId?: string } | void>({
+        query: (args) => {
+          if (!args?.institution) {
+            // valeur par défaut si rien n’est passé
+            return `/dashboard/iba/sales`;
+          }
 
-         getDashboardSales: build.query<DashboardSales, { institution: string, startDate?: string; endDate?: string,customerId?: string  }>({
-            query: ({ institution, startDate, endDate,customerId }) => {
-              const params = new URLSearchParams();
-              if (startDate) params.append("startDate", startDate);
-              if (endDate) params.append("endDate", endDate);
-              if (customerId) params.append("customerId", customerId);
-          
-              return `/dashboard/${institution}/sales?${params.toString()}`;
-            },
-            providesTags: ["DashboardSales"]
+          const { institution, startDate, endDate, customerId } = args;
+
+          const params = new URLSearchParams();
+          if (startDate) params.append("startDate", startDate);
+          if (endDate) params.append("endDate", endDate);
+          if (customerId) params.append("customerId", customerId);
+
+          return `/dashboard/${institution}/sales?${params.toString()}`;
+        },
+        providesTags: ["DashboardSales"],
+      }),
+        
+        //Reporting
+        createReport: build.mutation<Report, { institution: string; prospectName: string;
+  date: Date; userId?: number; responsable?: string; email?: string; degree: string; rdvObject: string; nextRdv: Date; time: string; contact: string;
+  address: string; pharmacoVigilance: string}>({
+            query: ({ institution, ...data }) => ({
+              url: `/report/${institution}/`,
+              method: "POST",
+              body: data,
+            }),
+            invalidatesTags: ["Reports"],
+        }), 
+        getReportById: build.query<Report, number>({
+          query: (id) => `/report/${id}`, // Construire l'URL avec l'ID de l'utilisateur
+          providesTags: (result, error, id) => [{ type: "Reports", id }], // Associer un tag pour l'invalidation
+        }),
+        getReport: build.query<Report[], { institution: string, startDate?: string; endDate?: string }>({
+          query: ({institution, startDate, endDate}) => {
+            const params = new URLSearchParams();
+            if (startDate) params.append("startDate", startDate);
+            if (endDate) params.append("endDate", endDate);
+        
+            return `/report/${institution}/all?${params.toString()}`;
+          },
+          providesTags: ['Reports']
         }),
 
-        /*getTopProducts: build.query<{ name: string; value: number }[], { institution: string }>({
-        query: ({ institution }) => `/dashboard/${institution}/top-products`,
-        providesTags: ["getTopProducts"],
-      }),
-
-      getTopCustomers: build.query<{
-        history: never[];
-        totalAmount: any;
-        invoicesCount: ReactNode;
-        customerEmail: string;
-        customerName: DataKey<any>;
-        customerId: Key | null | undefined; name: string; value: number 
-}[], { institution: string }>({
-        query: ({ institution }) => `/dashboard/${institution}/top-customers`,
-        providesTags: ["getTopCustomers"],
-      }),*/
+        getReportByStaff: build.query<Report[], { startDate?: string; endDate?: string }>({
+          query: ({startDate, endDate}) => {
+            const params = new URLSearchParams();
+            if (startDate) params.append("startDate", startDate);
+            if (endDate) params.append("endDate", endDate);
         
+            return `/report/staff?${params.toString()}`;
+          },
+          providesTags: ['Reports']
+        }),
+        deleteReport: build.mutation<void, number>({
+          query: (id) => ({
+            url: `/report/${id}`, 
+            method: "DELETE",
+          }),
+          invalidatesTags: (result, error, id ) => [{ type: "Reports", id }],
+        }),
 
         //Promotion
         createPromotions: build.mutation<Promotion, { institution: string; title?: string;
-  discount: number; startDate: Date; endDate: Date; status: boolean; creatorId?: number; productId: string }>({
+  discount: number; startDate: Date; endDate: Date; status: boolean; creatorId?: number; productId: string;}>({
             query: ({ institution, ...data }) => ({
               url: `/promotions/${institution}/`,
               method: "POST",
@@ -594,12 +709,12 @@ export const api = createApi({
             }),
             invalidatesTags: ["Products"],
         }), 
-        getProductById: build.query<Product, string>({
-          query: (id) => `/institutions/${id}`, // Construire l'URL avec l'ID de l'utilisateur
-          providesTags: (result, error, id) => [{ type: "Products", id }], // Associer un tag pour l'invalidation
+        getProductById: build.query<Product, { institution: string; id: string }>({
+          query: ({ institution, id }) => `/institutions/${institution}/products/${id}`, // Construire l'URL avec l'ID de l'utilisateur
+          providesTags: (result, error, { id }) => [{ type: "Products", id }], // Associer un tag pour l'invalidation
         }),
 
-        deleteProduct: build.mutation<void, string>({
+        /*deleteProduct: build.mutation<void, string>({
             query: (id) => ({
               url: `/${id}`,
               method: 'DELETE',
@@ -615,7 +730,22 @@ export const api = createApi({
               body: data,
             }),
             invalidatesTags: (result, error, { id }) => [{ type: 'Products' }],
-          }),
+          }),*/
+          deleteProduct: build.mutation<void, { institution: string; id: string }>({
+              query: ({ institution, id }) => ({
+                url: `/institutions/${institution}/products/${id}`,
+                method: "DELETE",
+              }),
+            }),
+
+            updateProduct: build.mutation<Product, { institution: string; id: string; }>({
+              query: ({ institution, id, ...data }) => ({
+                url: `/institutions/${institution}/products/${id}`,
+                method: "PUT",
+                body: data,
+              }),
+            }),
+
 
 
         importProducts: build.mutation<void, { data: NewProduct[]; institution: string }>({
@@ -693,6 +823,76 @@ export const api = createApi({
           invalidatesTags: (result, error, id ) => [{ type: "Inventorys", id }],
         }),
 
+        //SalesPromise
+        createSalePromise: build.mutation<salePromise, { 
+          customerId?: number;
+          userId?: number;
+          customerCreatorId?: number;
+          items: Array<{
+          product_id: string;
+          product_quantity: number;
+          product_sale_price: number;
+          }>;
+          discount?: number;
+          dueDate: Date;
+          reminderDate: Date;
+          note?: string;
+          customer_address?: string;
+          customer_name?: string;
+          customer_phone?: string;
+          institution: string;
+         }>({
+          query: ({ institution, ...data }) => ({
+              url: `/salepromise/${institution}/promiseSale`,
+              method: 'POST',
+              body: data
+          }),
+          invalidatesTags: ['SalePromise', 'Products']
+        }),
+
+        getSalePromise: build.query<salePromise[], { institution: string, startDate?: string; endDate?: string }>({
+          query: ({institution, startDate, endDate}) => {
+            const params = new URLSearchParams();
+            if (startDate) params.append("startDate", startDate);
+            if (endDate) params.append("endDate", endDate);
+        
+            return `/salepromise/${institution}/all?${params.toString()}`;
+          },
+          providesTags: ['SalePromise']
+        }),
+
+        getSalePromiseByCustomer: build.query<salePromise[], { startDate?: string; endDate?: string }>({
+          query: ({startDate, endDate}) => {
+            const params = new URLSearchParams();
+            if (startDate) params.append("startDate", startDate);
+            if (endDate) params.append("endDate", endDate);
+        
+            return `/salepromise/customer?${params.toString()}`;
+          },
+          providesTags: ['SalePromise']
+        }),
+
+        // getSalePromiseByCustomer: build.query<salePromise[], { search?: string }>({
+        //     query: ({ search }) => ({
+        //         url: `/salepromise/customer`,
+        //         params: search ? { search } : {}
+        //     }),
+        //     providesTags: ["SalePromise"]
+        // }),
+
+        getSalePromiseById: build.query<salePromise, number>({
+          query: (id) => `/salepromise/${id}`,
+          providesTags: (result, error, id) => [{ type: 'SalePromise', id }]
+        }),
+
+        deleteSalePromise: build.mutation<void, number>({
+        query: (id) => ({
+          url: `/salepromise/${id}`, 
+          method: "DELETE",
+        }),
+        invalidatesTags: (result, error, id ) => [{ type: "SalePromise", id }, "Products"],
+      }),
+
         // Sales
         
         createSale: build.mutation<SaleInvoice, { 
@@ -706,6 +906,7 @@ export const api = createApi({
           }>;
           discount?: number;
           paymentMethod?: string;
+          salePromiseId?: number;
           institution: string;
          }>({
           query: ({ institution, ...data }) => ({
@@ -713,7 +914,7 @@ export const api = createApi({
               method: 'POST',
               body: data
           }),
-          invalidatesTags: ['DashboardSales','Sales', 'Products']
+          invalidatesTags: ['DashboardSales','Sales', 'Products', 'SalePromise']
         }),
 
         getCustomerDebtStatus: build.query<{ hasDebt: boolean}, {customerId: number, institution: string}>({
@@ -819,6 +1020,15 @@ export const api = createApi({
               : [{ type: 'Claims', id: 'LIST' }],
       }),
 
+      getClaimPending: build.query<Claim[], { institution: string }>({  
+            query: ({ institution }) => ({
+                url: `/claim/${institution}/pendingClaim`,
+                //params: search ? { search } : {}
+            }),
+            providesTags: ["Claims"]
+      }), 
+          
+
       getClaimById: build.query<Claim, string>({
         query: (id) => `/claim/${id}`,
         providesTags: (result, error, id) => [{ type: 'Claims', id }]
@@ -920,7 +1130,7 @@ export const api = createApi({
           }),
           updateUser: build.mutation<User, { id: number; data: Partial<User> }>({
             query: ({ id, data }) => ({
-              url: `/User/${id}`,
+              url: `/user/${id}`,
               method: "PUT",
               body: data,
             }),
@@ -1043,15 +1253,16 @@ export const api = createApi({
 });
 
 
-export const { useGetDashboardMetricsQuery,useGetDashboardSalesQuery, 
+export const { useGetDashboardMetricsQuery,useGetDashboardSalesQuery, useCreateReportMutation, useGetReportByIdQuery, useGetReportQuery, useGetReportByStaffQuery, useDeleteReportMutation,
   useCreatePromotionsMutation, useGetActivePromotionsQuery, useUpdatePromotionStatusMutation, useGetAllPromotionsQuery, useGetPromotionsByIdQuery, useUpdatePromotionsMutation, useDeletePromotionsMutation, 
   useGetProductsQuery, useCreateProductMutation, useGetProductByIdQuery, useDeleteProductMutation,useUpdateProductMutation, useImportProductsMutation,
-  useCreateInventoryMutation, useGetInventoryQuery, useGetInventoryIdQuery, useUpdateInventoryMutation, useDeleteInventoryMutation, useCreateSaleMutation, useGetCustomerDebtStatusQuery, useGetSalesQuery,
+  useCreateInventoryMutation, useGetInventoryQuery, useGetInventoryIdQuery, useUpdateInventoryMutation, useDeleteInventoryMutation, useCreateSaleMutation, useGetCustomerDebtStatusQuery, 
+  useCreateSalePromiseMutation, useGetSalePromiseQuery, useGetSalesQuery, useGetSalePromiseByIdQuery, useDeleteSalePromiseMutation, useGetSalePromiseByCustomerQuery,
     useGetSaleByIdQuery,useUpdateSaleStatusMutation, useUpdateSalePaymentMutation, useDeleteSaleInvoiceMutation, useCreateClaimMutation, 
-    useRespondToClaimMutation, useUpdateClaimResponseMutation, useGetClaimQuery, useGetClaimByIdQuery, useDeleteClaimMutation, useGetDepartmentsQuery, 
+    useRespondToClaimMutation, useUpdateClaimResponseMutation, useGetClaimQuery, useGetClaimPendingQuery, useGetClaimByIdQuery, useDeleteClaimMutation, useGetDepartmentsQuery, 
     useCreateDepartmentsMutation, useDeleteDepartmentsMutation,
     useGetDesignationsQuery, useCreateDesignationsMutation, useDeleteDesignationMutation,useGetRolesQuery, useCreateRolesMutation, 
-    useDeleteRoleMutation, useGetUsersQuery, useGetUserByIdQuery, useDeleteUserMutation,  useGetCustomersQuery, useCreateCustomersMutation,
+    useDeleteRoleMutation, useGetUsersQuery, useGetUserByIdQuery, useUpdateUserMutation, useDeleteUserMutation,  useGetCustomersQuery, useCreateCustomersMutation,
     useGetCustomerByIdQuery, useDeleteCustomerMutation,useUpdateCustomerMutation, useSendTokenResetPasswordMutation, useResetPasswordMutation, 
     useGetSettingsQuery, useUpdateSettingsMutation, useGetAllNotificationsQuery, useGetCustomerNotificationsQuery, useDeleteNotificationsMutation} = api;
 

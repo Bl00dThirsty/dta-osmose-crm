@@ -173,7 +173,7 @@ const handleMontantDonneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       <h2 className="text-xl mb-4 text-center">Paiement de la facture de vente</h2>
       
       <Label className='mb-3'>Montant total</Label>
-      <Input disabled value={sale.finalAmount} className="w-full mb-2" />
+      <Input disabled value={sale.finalAmount + " FCFA"} className="w-full mb-2" />
       {!isParticulier && (
         <Label className='mb-3'>Remise additionnelle</Label>
       )}
@@ -189,7 +189,7 @@ const handleMontantDonneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
      )}
 
       <Label className='mb-3'>Montant à payer</Label>
-      <Input value={dueAmount} disabled className="w-full mb-2" />
+      <Input value={dueAmount + " FCFA"} disabled className="w-full mb-2" />
 
       <Label className='mb-3'>Méthode de paiement</Label>
        <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)} className="w-full border rounded-md p-2 mb-3">

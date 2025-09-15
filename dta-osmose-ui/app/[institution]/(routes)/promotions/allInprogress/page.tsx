@@ -22,7 +22,7 @@ export default function PromotionsPage() {
       : "/logo/default-logo.png";
 
   if (isLoading) return <p>Chargement des promotions...</p>;
-  if (error) return <p>Erreur lors du chargement des promotions.</p>;
+  if (error) return <p>Vous n'avez pas accès à ces informations. Erreur lors du chargement des promotions.</p>;
 
   const handleDelete = async (id: string) => {
     try {
