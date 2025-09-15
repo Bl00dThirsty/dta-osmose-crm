@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useGetProductsQuery, useCreateSaleMutation, useGetCustomerDebtStatusQuery, useGetActivePromotionsQuery } from '@/state/api';
+import { useGetProductsQuery, useCreateSaleMutation, useGetCustomerDebtStatusQuery, useGetActivePromotionsQuery, useGetSalePromiseByIdQuery } from '@/state/api';
 import { useGetCustomersQuery } from '@/state/api';
 import { useGetUsersQuery } from '@/state/api';
 import { useRouter, useParams } from 'next/navigation';
@@ -11,6 +11,7 @@ import { toast } from "react-toastify";
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
+import { useSearchParams } from "next/navigation";
 
 
 export interface Product {
@@ -33,6 +34,7 @@ export interface NewSaleInvoice {
   totalAmount: number;
   discount: number;
   finalAmount: number;
+  salePromiseId?: number;
   items: SaleItemCreateInput[];
 }
 
@@ -49,7 +51,7 @@ const CreateSalePage = () => {
   const productsPerPage = 8;
   const indexOfLastProduct = currentPage * productsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-  
+  const params = useSearchParams();
   const [discount, setDiscount] = useState(0);
   const [customerId, setCustomerId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -62,6 +64,10 @@ const CreateSalePage = () => {
   const userRole = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
   const isParticulier = userRole === "Particulier";
   const userId = typeof window !== 'undefined' ? localStorage.getItem('id') : null;
+  const salePromiseId = params?.get("salePromiseId");
+  const { data: salePromise } = useGetSalePromiseByIdQuery(Number(salePromiseId), {
+    skip: !salePromiseId,
+  });
 
   //dette de plus d'un mois d'un customer
  const { data: debtStatus } = useGetCustomerDebtStatusQuery(
@@ -166,6 +172,21 @@ const handleRemoveProduct = (id: string) => {
     setSelectedProducts(prev => prev.filter(p => p.id !== id));
 };
 
+// Pré-remplissage en cas de promesse de vente
+useEffect(() => {
+  if (!salePromise) return;
+  setCustomerId(salePromise.customerId ?? null);
+  setSelectedProducts(
+    salePromise.items.map((it: any) => ({
+      id: it.product.id,
+      designation: it.product.designation,
+      quantity: it.product_quantity,
+      unitPrice: it.product_sale_price,
+      totalPrice: it.product_quantity * it.product_sale_price,
+    }))
+  );
+}, [salePromise]);
+
   const handleCreateSale = async () => {
     if (!customerId || selectedProducts.length === 0) return;
   
@@ -186,6 +207,7 @@ const handleRemoveProduct = (id: string) => {
         })),
         discount,
         paymentMethod: "mobile",
+        salePromiseId: salePromise ? salePromise.id : undefined,
         institution: institution, // L'institution actuelle
       }).unwrap();
   
@@ -246,7 +268,7 @@ const handleRemoveProduct = (id: string) => {
   return (
     <div
       key={product.id}
-      className={`border p-3 rounded cursor-pointer ${
+      className={`border p-3 rounded cursor-pointer  ${
         product.quantity <= 0
           ? "bg-gray-200 text-gray-500 cursor-not-allowed"
           : "hover:bg-gray-50 hover:text-red-700"
@@ -316,7 +338,7 @@ const handleRemoveProduct = (id: string) => {
         </div>
         
         {/* Panier */}
-        <div className="bg-gray p-4 rounded-lg shadow">
+        <div className="bg-gray p-4 rounded-lg shadow p-4 w-100">
           <h2 className="text-xl font-semibold mb-4">Récapitulatif</h2>
           
           {/* <div className="mb-4">
@@ -356,7 +378,7 @@ const handleRemoveProduct = (id: string) => {
             >
            <option value="">Sélectionner un client</option>
             {customers.map(customer => (
-          <option key={customer.id} value={customer.id}>
+           <option key={customer.id} value={customer.id}>
             {customer.name} - {customer.phone}
           </option>
           ))}

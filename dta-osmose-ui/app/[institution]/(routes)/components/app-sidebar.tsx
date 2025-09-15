@@ -41,6 +41,95 @@ const data = {
     avatar: "/avatars/shadcn.jpg",
   },
 };
+<<<<<<< HEAD
+=======
+ const  navUser = [
+    {
+      title: "Dashoard",
+      path: "#",
+      icon: () => <LayoutDashboard strokeWidth="1.5" className="w-5 h-5" />,
+      isActive: true,
+      items: [
+        { title: "Mon dashboard", path: "" },
+        { title: "Dashbord Ventes", path: "crm/dashboard" },       
+      ],
+    },
+    {
+      title: "Produits",
+      path: "products",
+      icon: () => <Package strokeWidth="1.5" className="w-5 h-5" />,
+      items: [
+        { title: "Listes des produits", path: "crm/products" },
+        { title: "Statistiques", path: "#" },
+      ],
+    },
+    {
+      title: "Stock de produits",
+      path: "#",
+      icon: () => <TrendingUp strokeWidth="1.5" className="w-5 h-5" />,
+      items: [
+        { title: "Tableau de rotation", path: "#" },
+        { title: "Inventaire", path: "inventory/all" },
+        { title: "Tableau des Pertes", path: "perte" }
+      ],
+      
+    },
+    {
+      title: "Ventes",
+      path: "sales",
+      icon: () => <ShoppingBag strokeWidth="1.5" className="w-5 h-5" />,
+      items: [
+        { title: "Ventes", path: "sales" },
+        { title: "Liste des ventes", path: "sales/all" },
+        {title:"Ajout Promesse d'achat", path:"salepromise"},
+        { title:"Liste promesse d'achat", path:"salepromise/all"}
+        
+      ],
+    },
+    {
+      title: "Réclamations",
+      path: "#",
+      icon: () => <BookAIcon strokeWidth="1.5" className="w-5 h-5" />,
+      items: [
+        { title: "Liste des Réclamations", path: "claims/all" },
+        
+      ],
+    },
+    {
+      title: "Marketing",
+      path: "#",
+      icon: () => <ArrowBigDownDash strokeWidth="1.5" className="w-5 h-5" />,
+      items: [
+        { title: "Ajouter une Promotion", path: "promotions" },
+        { title: "Promotions en Cours", path: "promotions/allInprogress" },
+        { title: "Liste des Promotions", path: "promotions/all" },
+      ],
+    },
+    {
+      title: "Comptes clients",
+      path: "customers",
+      icon: () => <Crown strokeWidth="1.5" className="w-5 h-5" />,
+      items: [
+        { title: "Liste des comptes clients", path: "crm/customers" },
+        { title: "Facturation", path: "sales/all" },
+      ],
+    },
+    {
+      title: "Utilisateurs",
+      url: "#",
+      icon: () => <User strokeWidth="1.5" className="w-5 h-5" />,
+      items: [
+        { title: "Ajouter un utilisateur", path: "user/add" },
+        { title: "Liste des utilisateurs", path: "user/all" },
+        { title: "Role & Permissions", path: "role" },
+        { title: "Designations", path: "rh/designation" },
+        { title: "Department", path: "rh/department" },
+        
+      ],
+    },
+    
+    {
+>>>>>>> origin/CRM-IBA-ASP-15
 
 // Petit badge "Soon"
 const IsComingSoon = () => (

@@ -91,6 +91,57 @@ export interface NewRole {
 
 }
 
+export interface salePromiseProduct{
+  id: number;
+  product_id: string;
+  product_quantity: number;
+  product_sale_price: number;
+  totalPrice: number;
+  product?:{
+    designation: string;
+    quantity: number;
+    EANCode?: string;
+    sellingPriceTTC: number;
+  }
+}
+
+export interface salePromise {
+  id: number;
+  dueDate: Date;
+  reminderDate: Date;
+  createdAt: Date;
+  customerId?: number;
+  userId?: number;
+  customerCreatorId?:  number;
+  saleId: string;
+  institutionId?: string;
+  customer_address?: string;
+  customer_name?: string;
+  customer_phone?: string;
+  total_amount: number;
+  discount: number;
+  note: string;
+  status: string;
+  items: salePromiseProduct[];
+  user: {
+    id: number;
+    firstName: string;
+    lastName: string;
+  } 
+  customer:{
+    id: number;
+    customId: string;
+    name: string;
+    phone: string;
+    email: string;
+    type_customer?: string;
+    ville?: string;
+    quarter?: string;
+    credits?: Credit[];
+
+  }
+}
+
 export interface SaleItemInput {
   id: string;
   productId: string;
@@ -124,6 +175,7 @@ export interface SaleInvoice{
   profit: number;
   createdAt:  Date;
   date?: Date;
+  salePromiseId?: number;
   items: SaleItemInput[];
   user: {
     id: number;
@@ -164,6 +216,7 @@ export interface NewSaleInvoice{
   profit: number;
   createdAt?:  Date;
   date?: Date;
+  salePromiseId?: number;
   items: SaleItemInput[];
   user?: {
     id: number;
@@ -485,7 +538,7 @@ export const api = createApi({
         return headers;
       }, }),
     reducerPath: "api",
-    tagTypes: ["DashboardMetrics", "DashboardSales","getTopProducts","getTopCustomers", "Products", "Users", "Departments", "Designations", "Roles", "Customers", "Sales", "AppSettings", "Claims", "Notifications", "Inventorys", "Promotions"],
+    tagTypes: ["DashboardMetrics", "DashboardSales","getTopProducts","getTopCustomers", "Products", "Users", "Departments", "Designations", "Roles", "Customers", "SalePromise", "Sales", "AppSettings", "Claims", "Notifications", "Inventorys", "Promotions"],
 
     endpoints: (build) => ({
       // dashboard principal
@@ -703,6 +756,68 @@ export const api = createApi({
           invalidatesTags: (result, error, id ) => [{ type: "Inventorys", id }],
         }),
 
+        //SalesPromise
+        createSalePromise: build.mutation<salePromise, { 
+          customerId?: number;
+          userId?: number;
+          customerCreatorId?: number;
+          items: Array<{
+          product_id: string;
+          product_quantity: number;
+          product_sale_price: number;
+          }>;
+          discount?: number;
+          dueDate: Date;
+          reminderDate: Date;
+          note?: string;
+          customer_address?: string;
+          customer_name?: string;
+          customer_phone?: string;
+          institution: string;
+         }>({
+          query: ({ institution, ...data }) => ({
+              url: `/salepromise/${institution}/promiseSale`,
+              method: 'POST',
+              body: data
+          }),
+          invalidatesTags: ['SalePromise', 'Products']
+        }),
+
+        getSalePromise: build.query<salePromise[], { institution: string, startDate?: string; endDate?: string }>({
+          query: ({institution, startDate, endDate}) => {
+            const params = new URLSearchParams();
+            if (startDate) params.append("startDate", startDate);
+            if (endDate) params.append("endDate", endDate);
+        
+            return `/salepromise/${institution}/all?${params.toString()}`;
+          },
+          providesTags: ['SalePromise']
+        }),
+
+        getSalePromiseByCustomer: build.query<salePromise[], { startDate?: string; endDate?: string }>({
+          query: ({startDate, endDate}) => {
+            const params = new URLSearchParams();
+            if (startDate) params.append("startDate", startDate);
+            if (endDate) params.append("endDate", endDate);
+        
+            return `/salepromise/customer?${params.toString()}`;
+          },
+          providesTags: ['SalePromise']
+        }),
+
+        getSalePromiseById: build.query<salePromise, number>({
+          query: (id) => `/salepromise/${id}`,
+          providesTags: (result, error, id) => [{ type: 'SalePromise', id }]
+        }),
+
+        deleteSalePromise: build.mutation<void, number>({
+        query: (id) => ({
+          url: `/salepromise/${id}`, 
+          method: "DELETE",
+        }),
+        invalidatesTags: (result, error, id ) => [{ type: "SalePromise", id }, "Products"],
+      }),
+
         // Sales
         
         createSale: build.mutation<SaleInvoice, { 
@@ -716,6 +831,7 @@ export const api = createApi({
           }>;
           discount?: number;
           paymentMethod?: string;
+          salePromiseId?: number;
           institution: string;
          }>({
           query: ({ institution, ...data }) => ({
@@ -723,7 +839,7 @@ export const api = createApi({
               method: 'POST',
               body: data
           }),
-          invalidatesTags: ['DashboardSales','Sales', 'Products']
+          invalidatesTags: ['DashboardSales','Sales', 'Products', 'SalePromise']
         }),
 
         getCustomerDebtStatus: build.query<{ hasDebt: boolean}, {customerId: number, institution: string}>({
@@ -1056,7 +1172,8 @@ export const api = createApi({
 export const { useGetDashboardMetricsQuery,useGetDashboardSalesQuery, 
   useCreatePromotionsMutation, useGetActivePromotionsQuery, useUpdatePromotionStatusMutation, useGetAllPromotionsQuery, useGetPromotionsByIdQuery, useUpdatePromotionsMutation, useDeletePromotionsMutation, 
   useGetProductsQuery, useCreateProductMutation, useGetProductByIdQuery, useDeleteProductMutation,useUpdateProductMutation, useImportProductsMutation,
-  useCreateInventoryMutation, useGetInventoryQuery, useGetInventoryIdQuery, useUpdateInventoryMutation, useDeleteInventoryMutation, useCreateSaleMutation, useGetCustomerDebtStatusQuery, useGetSalesQuery,
+  useCreateInventoryMutation, useGetInventoryQuery, useGetInventoryIdQuery, useUpdateInventoryMutation, useDeleteInventoryMutation, useCreateSaleMutation, useGetCustomerDebtStatusQuery, 
+  useCreateSalePromiseMutation, useGetSalePromiseQuery, useGetSalesQuery, useGetSalePromiseByIdQuery, useDeleteSalePromiseMutation, useGetSalePromiseByCustomerQuery,
     useGetSaleByIdQuery,useUpdateSaleStatusMutation, useUpdateSalePaymentMutation, useDeleteSaleInvoiceMutation, useCreateClaimMutation, 
     useRespondToClaimMutation, useUpdateClaimResponseMutation, useGetClaimQuery, useGetClaimByIdQuery, useDeleteClaimMutation, useGetDepartmentsQuery, 
     useCreateDepartmentsMutation, useDeleteDepartmentsMutation,
