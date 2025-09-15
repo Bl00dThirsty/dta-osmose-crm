@@ -10,9 +10,9 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { columns } from "./columns"
 import { DataTable } from "./data-table"
-import { useGetSalePromiseQuery, useGetSalePromiseByCustomerQuery } from '@/state/api';
+import { useGetReportQuery, useGetReportByStaffQuery } from '@/state/api';
 
-const SalesPage = () => {
+const ReportsPage = () => {
   const router = useRouter();
   const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
   const { institution } = useParams() as { institution: string }
@@ -28,10 +28,10 @@ const SalesPage = () => {
   const [startDate, setStartDate] = useState<string>(firstDayOfMonth.toISOString().split("T")[0]);
   const [endDate, setEndDate] = useState<string>(lastDayOfMonth.toISOString().split("T")[0]);
   const userRole = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
-  const isParticulier = userRole === "Particulier";
+  const isStaff = userRole === "staff";
 
-const { data: sales, isLoading, isError } = useGetSalePromiseQuery({ institution, startDate, endDate })
-const { data: PromiseCustomer } = useGetSalePromiseByCustomerQuery({ startDate, endDate })
+const { data: report, isLoading, isError } = useGetReportQuery({ institution, startDate, endDate })
+const { data: reportStaff } = useGetReportByStaffQuery({ startDate, endDate })
 
 if (isLoading) return <p>Chargement...</p>
 if (isError) return <p>Erreur lors du chargement.</p>
@@ -39,8 +39,8 @@ if (isError) return <p>Erreur lors du chargement.</p>
 
   return (
     <Container
-      title="Tableau des Promesses d'Achat"
-      description="Ce composant affiche une vue d'ensemble des ventes effectuées."
+      title="Tableau des Rapports"
+      description="Ce composant affiche une vue d'ensemble des rapports enregistrés."
     >
     <div className="h-full w-full overflow-x-auto">
       <section className="overflow-hidden rounded-[0.5rem] border bg-background shadow-zinc-50">
@@ -65,11 +65,11 @@ if (isError) return <p>Erreur lors du chargement.</p>
         
       </div>
     </div>
-    {!isParticulier && (
-      <DataTable data={sales || []} columns={columns} />
+    {!isStaff && (
+      <DataTable data={report || []} columns={columns} />
     )}
-    {isParticulier && (
-      <DataTable data={PromiseCustomer || []} columns={columns} />
+    {isStaff && (
+      <DataTable data={reportStaff || []} columns={columns} />
     )}
   </div>
         </section>
@@ -78,4 +78,4 @@ if (isError) return <p>Erreur lors du chargement.</p>
   );
 };
 
-export default SalesPage;
+export default ReportsPage;

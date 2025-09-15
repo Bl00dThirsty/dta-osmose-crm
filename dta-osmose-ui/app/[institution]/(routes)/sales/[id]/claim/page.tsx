@@ -2,20 +2,19 @@
 
 import { useCreateClaimMutation, useGetSaleByIdQuery } from '@/state/api';
 import { useParams, useRouter } from 'next/navigation';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Container from "../../../components/ui/Container";
 import { toast } from "react-toastify";
 
 export default function CreateClaimForm() {
+  console.log('ClaimPage rendered');
   const [createClaim] = useCreateClaimMutation();
   const [form, setForm] = useState({ productId: '', quantity: 1, reason: '', description: '' });
   const [quantityError, setQuantityError] = useState("");
   const router = useRouter();
-  const { institution } = useParams<{ institution: string }>();
-  const params = useParams();
-  const id = params?.id as string;
+  const { id, institution } = useParams<{ id: string; institution: string }>();
 
   const { data: invoice, isLoading } = useGetSaleByIdQuery(id);
 
@@ -27,6 +26,10 @@ export default function CreateClaimForm() {
 
   const isQuantityInvalid = form.quantity > maxQuantity;
   if (isLoading || !invoice) return <div>Chargement...</div>;
+
+  useEffect(() => {
+    console.log('ClaimPage mounted');
+  }, []);
 
   const handleClaimSubmit = async () => {
     if (isQuantityInvalid) {

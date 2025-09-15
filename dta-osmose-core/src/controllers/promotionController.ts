@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 
 /**
  * @desc    Crée une nouvelle promotion pour un produit
- * @route   POST /promotions/institutions/:institution/promotions
+ * @route   POST /promotions/:institution/
  * @access  Privé (Authentifié)
  * 
  * @body    {string}  productId   - ID du produit à promouvoir

@@ -102,7 +102,6 @@ export function OperationalCards({ salesByCity, isLoading }: OperationalCardsPro
         </CardFooter>
       </Card>
 
-
       <Card>
         <CardHeader>
           <CardTitle>Mesures à prendre</CardTitle>
@@ -138,4 +137,3 @@ export function OperationalCards({ salesByCity, isLoading }: OperationalCardsPro
     </div>
   );
 }
-

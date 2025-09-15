@@ -177,6 +177,11 @@ export const getSingleCustomer = async (
               lte: endDate ? new Date(endDate as string) : undefined,
             },
           },
+          include: {
+            items: {
+              include: { product: true }
+            },
+          },
           orderBy: {
             createdAt: "desc", 
           },

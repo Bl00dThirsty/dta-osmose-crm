@@ -15,6 +15,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+const id = typeof window !== 'undefined' ? localStorage.getItem('id') : null;
+
 export interface NavSubItem {
   title: string;
   path: string;          // ex: "crm/products" ou "user/:id"
@@ -75,6 +77,8 @@ export const navUser: NavMainItem[] = [
     items: [
       { title: "Ventes", path: "sales" },
       { title: "Liste des ventes", path: "sales/all" },
+      {title:"Ajout Promesse d'achat", path:"salepromise"},
+      { title:"Liste promesse d'achat", path:"salepromise/all"}
     ],
   },
   {
@@ -103,6 +107,15 @@ export const navUser: NavMainItem[] = [
     ],
   },
   {
+    title: "Rapports",
+    path: "#",
+    icon: BookOpen,
+    items: [
+      { title: "Ajout d'un rapport", path: "report" },
+      { title: "Liste des rapports", path: "report/all" },
+    ],
+  },
+  {
     title: "Utilisateurs",
     path: "#",
     icon: User,
@@ -119,7 +132,7 @@ export const navUser: NavMainItem[] = [
     path: "#",
     icon: Settings2,
     items: [
-      { title: "Compte", path: "user/:id" },
+      { title: "Compte", path: "user/all" },
       { title: "Facturation", path: "crm/setting" },
     ],
   },
@@ -143,21 +156,62 @@ export const navUser: NavMainItem[] = [
   },
 ];
 
-export const navCustomer: NavMainItem[] = [
-  {
-    title: "Dashboard",
-    path: "#",
-    icon: LayoutDashboard,
-    isActive: true,
-    items: [{ title: "Mon dashboard", path: "" }],
-  },
-  {
-    title: "Achats",
-    path: "sales",
-    icon: ShoppingBag,
-    items: [
-      { title: "Boutiques", path: "sales" },
-      { title: "Liste des Achats", path: "crm/customers/:id" },
-    ],
-  },
-];
+// export const navCustomer: NavMainItem[] = [
+//   {
+//     title: "Dashboard",
+//     path: "#",
+//     icon: LayoutDashboard,
+//     isActive: true,
+//     items: [{ title: "Mon dashboard", path: "" }],
+//   },
+//   {
+//     title: "Achats",
+//     path: "sales",
+//     icon: ShoppingBag,
+//     items: [
+//       { title: "Boutiques", path: "sales" },
+//       { title: "Liste des Achats", path: "crm/customers/:id" },
+//     ],
+//   },
+//   {
+//     title: "Promesse d'achats",
+//     path: "salepromise",
+//     icon: ShoppingBag,
+//     items: [
+//       {title:"Ajout Promesse d'achat", path:"salepromise"},
+//       { title:"Liste promesse d'achat", path:"salepromise/all"}
+//     ],
+//   },
+// ];
+
+export const getNavCustomer = (): NavMainItem[] => {
+  const id = typeof window !== "undefined" ? localStorage.getItem("id") : null;
+
+  return [
+    {
+      title: "Dashboard",
+      path: "#",
+      icon: LayoutDashboard,
+      isActive: true,
+      items: [{ title: "Mon dashboard", path: "" }],
+    },
+    {
+      title: "Achats",
+      path: "sales",
+      icon: ShoppingBag,
+      items: [
+        { title: "Boutiques", path: "sales" },
+        { title: "Liste des Achats", path: id ? `crm/customers/${id}` : "crm/customers" },
+      ],
+    },
+    {
+      title: "Promesse d'achats",
+      path: "salepromise",
+      icon: ShoppingBag,
+      items: [
+        { title: "Ajout Promesse d'achat", path: "salepromise" },
+        { title: "Liste promesse d'achat", path: "salepromise/all" },
+      ],
+    },
+  ];
+};

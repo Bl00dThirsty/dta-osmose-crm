@@ -22,19 +22,25 @@ model Reporting {
   id                Int      @id @default(autoincrement())
   prospectName      String
   date              DateTime
+  userId            Int?
   degree            String?
+  responsable       String?
   rdvObject         String
-  nextRdv           DateTime
-  time              String
-  contact           String
-  pharmacoVigilance String
-  latitude          Float
-  longitude         Float
+  nextRdv           DateTime?
+  time              String   @default("00:00")
+  email             String
+  contact           String?
+  address           String
+  pharmacoVigilance String?
+  latitude          Float?
+  longitude         Float?
   filePath          String?
+  institutionId   String
+  institution     institution @relation(fields: [institutionId], references: [id])
+  user            user?        @relation(fields: [userId], references: [id])
   createdAt         DateTime @default(now())
+  updatedAt       DateTime    @updatedAt
 }
-
-
 
 model announcement {
   id          Int      @id @default(autoincrement())
@@ -221,7 +227,6 @@ model institution {
 
 =======
   salePromise        salePromise[]
->>>>>>> origin/CRM-IBA-ASP-15
 }
 
 model product {
@@ -657,6 +662,7 @@ model user {
   inventory                    inventory[]
   Promotion          Promotion[]
   salePromise        salePromise[]
+  Reporting          Reporting[]
 }
 
 

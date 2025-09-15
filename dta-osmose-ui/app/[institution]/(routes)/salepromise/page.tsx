@@ -193,9 +193,9 @@ const CreateSalePage = () => {
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6">Nouvelle Promesse d'achat</h1>
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Liste des produits */}
-        <div className="lg:col-span-2 bg-gray p-4 rounded-lg shadow">
+        <div className="lg:col-span-3 bg-gray p-4 rounded-lg shadow">
           <div className="mb-4">
             <Input
               type="text"
@@ -251,14 +251,14 @@ const CreateSalePage = () => {
         </div>
         
         {/* Panier */}
-        <div className="bg-gray p-4 rounded-lg shadow">
+        <div className="lg:col-span-2 bg-gray p-4 rounded-lg shadow">
           <h2 className="text-xl font-semibold mb-4">Récapitulatif</h2>
           
           <div className="mb-4">
   <label className="block mb-2">Client</label>
 
   {isParticulier && currentCustomer ? (
-    <div className="p-2 border rounded bg-gray-100">
+    <div className="p-2 border rounded ">
       <p>{currentCustomer.name} - {currentCustomer.phone}</p>
     </div>
   ) : (

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronRight } from "lucide-react";
+import { ArrowBigDownDash, BookAIcon, ChevronRight, Crown, LayoutDashboard, Package, ShoppingBag, TrendingUp, User } from "lucide-react";
 
 import {
   Collapsible,
@@ -29,11 +29,12 @@ import { AppSwitcher } from "./app-switcher";
 import { NavUser } from "@/app/[institution]/(routes)/components/nav-user";
 import {
   navUser,
-  navCustomer,
+  getNavCustomer ,
   NavMainItem,
   NavSubItem,
 } from "@/navigation/sidebar/sidebar_items";
 
+const id = typeof window !== 'undefined' ? localStorage.getItem('id') : null;
 const data = {
   user: {
     name: "john",
@@ -41,8 +42,7 @@ const data = {
     avatar: "/avatars/shadcn.jpg",
   },
 };
-<<<<<<< HEAD
-=======
+
  const  navUser = [
     {
       title: "Dashoard",
@@ -127,21 +127,21 @@ const data = {
         
       ],
     },
-    
-    {
->>>>>>> origin/CRM-IBA-ASP-15
 
-// Petit badge "Soon"
+
 const IsComingSoon = () => (
   <span className="ml-auto rounded-md bg-gray-200 px-2 py-1 text-xs dark:text-gray-800">
     Soon
   </span>
 );
 
+
 export function AppSidebar({
   institution,
   ...props
 }: { institution: string } & React.ComponentProps<typeof Sidebar>) {
+
+  const navCustomer = getNavCustomer(); 
   const pathname = usePathname();
 
   const userType =

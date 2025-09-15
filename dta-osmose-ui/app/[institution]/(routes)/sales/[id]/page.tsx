@@ -246,7 +246,7 @@ const InvoicePage = () => {
           </div>
           <div>
             {/* <h2 className="font-bold mb-2">Client</h2> */}
-            <p className="mb-2">Remise: <b>{sale.discount} </b> </p>
+            <p className="mb-2">Remise: <b>{sale.discount} Fcfa</b> </p>
             <p className="mb-2">Methode de paiement: <b>{sale.paymentMethod || 'CASH'}</b></p>
             {/* <p className="mb-2"> <b>{sale.paymentStatus === 'PAID' ? 'Terminé' : 'En cours'}</b></p> */}
             <p>Statut de paiement: <button className={` px-1 py-1 rounded text-white ${sale.paymentStatus === 'PAID' ? 'bg-green-500' : 'bg-red-500'}`}>{sale.paymentStatus === 'PAID' ? "PAYÉ" : "IMPAYÉ"}</button></p>
