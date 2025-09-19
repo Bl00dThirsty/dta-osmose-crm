@@ -204,6 +204,7 @@ export const getAllPromotion = async (req: Request, res: Response): Promise<void
      await prisma.promotion.updateMany({
      where: {
        institutionId: institution.id,
+       startDate: { lte: now },
        status: false,
        endDate: { gte: now } // lt = superirieur à maintenant = expirées
       },

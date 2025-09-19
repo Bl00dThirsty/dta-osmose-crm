@@ -32,6 +32,7 @@ import {
 import { useState } from "react"
 import { useParams } from "next/navigation"
 import { toast } from "react-toastify";
+import UserPrivateComponent from "../../components/usePrivateComponent";
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>
@@ -96,7 +97,8 @@ export function DataTableRowActions<TData>({
         <DropdownMenuItem onClick={() => router.push(`/${institution}/sales/${saleId}`)}>
           Voir👀
         </DropdownMenuItem>
-        <DropdownMenuItem
+        <UserPrivateComponent permission="delete-sale">
+         <DropdownMenuItem
             onSelect={(e) => {
               e.preventDefault()
               if (delivred) {
@@ -110,8 +112,9 @@ export function DataTableRowActions<TData>({
           >
             {delivred ? "Commande Livrée" : "Annuler Commande"}
           </DropdownMenuItem>
-        {/* <DropdownMenuSeparator /> */}
+        </UserPrivateComponent>
       </DropdownMenuContent>
+    
     </DropdownMenu>
 
     <Dialog open={open} onOpenChange={setOpen}>

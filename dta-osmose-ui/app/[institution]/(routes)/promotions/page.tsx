@@ -51,7 +51,7 @@ const CreatePromotion = () => {
      const parsedStartDate = new Date(startDate);
      const parsedEndDate = new Date(endDate);
 
-    if (parsedStartDate < now || parsedEndDate < now) {
+    if ( parsedEndDate < now ) {
       toast.error("La date de début et de fin doivent être dans le futur.");
       return;
     }

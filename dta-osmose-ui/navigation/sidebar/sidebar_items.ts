@@ -22,6 +22,7 @@ export interface NavSubItem {
   title: string;
   path: string;          // ex: "crm/products" ou "user/:id"
   comingSoon?: boolean;
+  permission?: string;
   newTab?: boolean;
 }
 
@@ -30,7 +31,8 @@ export interface NavMainItem {
   path: string;          // utilisé si pas de sous-menus (items)
   icon?: LucideIcon;
   items?: NavSubItem[];  // sous-menus
-  comingSoon?: boolean;  // si true => bouton simple + badge "Soon", pas de collapsible
+  comingSoon?: boolean;
+  permission?: string;  // si true => bouton simple + badge "Soon", pas de collapsible
   isActive?: boolean;
   newTab?: boolean;
 }
@@ -49,13 +51,14 @@ export const navUser: NavMainItem[] = [
     isActive: true,
     items: [
       { title: "Mon dashboard", path: "" },
-      { title: "Dashboard Ventes", path: "crm/dashboard" },
+      { title: "Dashboard Ventes", path: "crm/dashboard", permission: "view-dashboardSale", },
     ],
   },
   {
     title: "Produits",
     path: "products",
     icon: Package,
+    permission: "view-product",
     items: [
       { title: "Liste des produits", path: "crm/products" },
       { title: "Statistiques", path: "#" },
@@ -67,14 +70,15 @@ export const navUser: NavMainItem[] = [
     icon: TrendingUp,
     items: [
       { title: "Tableau de rotation", path: "#" },
-      { title: "Inventaire", path: "inventory/all" },
-      { title: "Tableau des Pertes", path: "perte" },
+      { title: "Inventaire", path: "inventory/all", permission: "readAll-inventory" },
+      { title: "Tableau des Pertes", path: "perte", permission: "readAll-user" },
     ],
   },
   {
     title: "Ventes",
     path: "sales",
     icon: ShoppingBag,
+    permission: "create-sale",
     items: [
       { title: "Ventes", path: "sales" },
       { title: "Liste des ventes", path: "sales/all" },
@@ -86,6 +90,7 @@ export const navUser: NavMainItem[] = [
     title: "Réclamations",
     path: "#",
     icon: BookAIcon,
+    permission: "readAll-claim",
     items: [{ title: "Liste des Réclamations", path: "claims/all" }],
   },
   {
@@ -93,9 +98,9 @@ export const navUser: NavMainItem[] = [
     path: "#",
     icon: ArrowBigDownDash,
     items: [
-      { title: "Ajouter une Promotion", path: "promotions" },
+      { title: "Ajouter une Promotion", path: "promotions", permission: "create-promotion" },
       { title: "Promotions en Cours", path: "promotions/allInprogress" },
-      { title: "Liste des Promotions", path: "promotions/all" },
+      { title: "Liste des Promotions", path: "promotions/all", permission: "readAll-promotion" },
     ],
   },
   {
@@ -103,8 +108,8 @@ export const navUser: NavMainItem[] = [
     path: "customers",
     icon: Crown,
     items: [
-      { title: "Liste des comptes clients", path: "crm/customers" },
-      { title: "Facturation", path: "sales/all" },
+      { title: "Liste des comptes clients", path: "crm/customers", permission: "readAll-customer" },
+      { title: "Facturation", path: "sales/all", permission: "readAll-sale", },
     ],
   },
   {
@@ -112,8 +117,8 @@ export const navUser: NavMainItem[] = [
     path: "#",
     icon: BookOpen,
     items: [
-      { title: "Ajout d'un rapport", path: "report" },
-      { title: "Liste des rapports", path: "report/all" },
+      { title: "Ajout d'un rapport", path: "report", permission: "create-report" },
+      { title: "Liste des rapports", path: "report/all",  permission: "readAll-report"},
     ],
   },
   {
@@ -121,11 +126,11 @@ export const navUser: NavMainItem[] = [
     path: "#",
     icon: User,
     items: [
-      { title: "Ajouter un utilisateur", path: "user/add" },
-      { title: "Liste des utilisateurs", path: "user/all" },
-      { title: "Role & Permissions", path: "role" },
-      { title: "Designations", path: "rh/designation" },
-      { title: "Department", path: "rh/department" },
+      { title: "Ajouter un utilisateur", path: "user/add", permission: "create-user" },
+      { title: "Liste des utilisateurs", path: "user/all", permission: "readAll-user" },
+      { title: "Role & Permissions", path: "role", permission: "readAll-role" },
+      { title: "Designations", path: "rh/designation", permission: "readAll-designation" },
+      { title: "Department", path: "rh/department", permission: "readAll-department" },
     ],
   },
   {
@@ -133,8 +138,8 @@ export const navUser: NavMainItem[] = [
     path: "#",
     icon: Settings2,
     items: [
-      { title: "Compte", path: "user/all" },
-      { title: "Facturation", path: "crm/setting" },
+      { title: "Compte", path: "user/all", permission: "readAll-user" },
+      { title: "Facturation", path: "crm/setting", permission: "view-setting" },
     ],
   },
   {
@@ -156,6 +161,8 @@ export const navUser: NavMainItem[] = [
     comingSoon: true,
   },
 ];
+
+
 
 // export const navCustomer: NavMainItem[] = [
 //   {
@@ -211,7 +218,7 @@ export const getNavCustomer = (): NavMainItem[] => {
       icon: ShoppingBag,
       items: [
         { title: "Ajout Promesse d'achat", path: "salepromise" },
-        { title: "Liste promesse d'achat", path: "salepromise/all" },
+        { title: "Liste promesse d'achat", path: "salepromise/allCustomer" },
       ],
     },
   ];

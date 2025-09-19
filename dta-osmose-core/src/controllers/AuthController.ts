@@ -82,7 +82,8 @@ export const login = async (
   
       res.json({
         ...userWithoutPassword,
-        accessToken
+        accessToken,
+        permissions
       });
     }else{
       res

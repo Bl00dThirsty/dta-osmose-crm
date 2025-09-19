@@ -18,7 +18,7 @@ import { AddProductDialog } from "../../../components/AddProductDialog"
 
 import { useCreateProductMutation } from "@/state/api"
 import { quantityLevel, statuses } from "../data/data"
-
+import UserPrivateComponent from "../../../../components/usePrivateComponent";
 
 import { toast } from "react-toastify";
 import { saveAs } from "file-saver";
@@ -269,10 +269,11 @@ const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
               Importer Excel
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-md space-y-4">
-            <DialogHeader>
-              <DialogTitle>Importer un fichier Excel</DialogTitle>
-            </DialogHeader>
+          <UserPrivateComponent permission="import-product">
+              <DialogContent className="sm:max-w-md space-y-4">
+                <DialogHeader>
+                  <DialogTitle>Importer un fichier Excel</DialogTitle>
+               </DialogHeader>
             {/* <Input type="file" accept=".xlsx,.xls" onChange={handleFileChange} /> */}
             {/* <Button onClick={handleUpload} disabled={!file}>
               Envoyer
@@ -282,8 +283,8 @@ const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
               accept=".xlsx, .xls"
               onChange={handleUpload}
             />
-
           </DialogContent>
+          </UserPrivateComponent>
         </Dialog>
         <Button variant="outline" className="px-2 lg:px-3" onClick={handleExport}>
            Exporter Excel

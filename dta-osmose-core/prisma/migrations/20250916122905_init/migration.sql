@@ -10,7 +10,7 @@ CREATE TABLE "Reporting" (
     "degree" TEXT,
     "responsable" TEXT,
     "rdvObject" TEXT NOT NULL,
-    "nextRdv" TEXT,
+    "nextRdv" TIMESTAMP(3),
     "time" TEXT NOT NULL DEFAULT '00:00',
     "email" TEXT NOT NULL,
     "contact" TEXT,
@@ -206,8 +206,6 @@ CREATE TABLE "saleItem" (
 );
 
 -- CreateTable
-<<<<<<<< HEAD:dta-osmose-core/prisma/migrations/20250825003300_init/migration.sql
-========
 CREATE TABLE "salePromise" (
     "id" SERIAL NOT NULL,
     "dueDate" TIMESTAMP(3),
@@ -243,7 +241,6 @@ CREATE TABLE "salePromiseProduct" (
 );
 
 -- CreateTable
->>>>>>>> origin/CRM-IBA-ASP-16:dta-osmose-core/prisma/migrations/20250902093223_migration_1/migration.sql
 CREATE TABLE "Notification" (
     "id" TEXT NOT NULL,
     "title" TEXT,
@@ -513,8 +510,6 @@ ALTER TABLE "saleItem" ADD CONSTRAINT "saleItem_invoiceId_fkey" FOREIGN KEY ("in
 ALTER TABLE "saleItem" ADD CONSTRAINT "saleItem_productId_fkey" FOREIGN KEY ("productId") REFERENCES "product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-<<<<<<<< HEAD:dta-osmose-core/prisma/migrations/20250825003300_init/migration.sql
-========
 ALTER TABLE "salePromise" ADD CONSTRAINT "CustomerSalePromiseRelation" FOREIGN KEY ("customerId") REFERENCES "customer"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -533,7 +528,6 @@ ALTER TABLE "salePromiseProduct" ADD CONSTRAINT "salePromiseProduct_product_id_f
 ALTER TABLE "salePromiseProduct" ADD CONSTRAINT "salePromiseProduct_promise_id_fkey" FOREIGN KEY ("promise_id") REFERENCES "salePromise"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
->>>>>>>> origin/CRM-IBA-ASP-16:dta-osmose-core/prisma/migrations/20250902093223_migration_1/migration.sql
 ALTER TABLE "Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey

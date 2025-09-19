@@ -7,6 +7,8 @@ import { useParams } from "next/navigation"
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { toast } from "react-toastify";
+import UserPrivateComponent from "../../components/usePrivateComponent";
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 interface AppSettingForm {
@@ -71,9 +73,9 @@ export default function SettingsForm() {
         id: settingId,
         data: formData
       }).unwrap();
-      alert('Paramètres mis à jour avec succès!');
+      toast.success('Paramètres mis à jour avec succès!');
     } catch (error) {
-      alert('Erreur lors de la mise à jour des paramètres');
+      toast.error('Erreur lors de la mise à jour des paramètres');
     }
   };
 
@@ -160,12 +162,13 @@ export default function SettingsForm() {
               />
             </div>
           </div>
-          
-          <div className="flex justify-end">
-            <Button type="submit" variant="default">
-              Modifier
-            </Button>
-          </div>
+          <UserPrivateComponent permission="update-setting">
+            <div className="flex justify-end">
+              <Button type="submit" variant="default">
+                Modifier
+              </Button>
+            </div>
+          </UserPrivateComponent>
         </form>
       </CardContent>
     </Card>
