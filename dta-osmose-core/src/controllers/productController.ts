@@ -101,8 +101,7 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-export const importProducts = async (req: Request, res: Response): Promise<void> => {
-
+//export const importProducts = async (req: Request, res: Response): Promise<void> => {
   // try {
   //   const institutionSlug = req.params.institution;
   //   const products: any[] = req.body;
@@ -157,6 +156,8 @@ export const importProducts = async (req: Request, res: Response): Promise<void>
   //   console.error(error);
   //   res.status(500).json({ message: "Erreur lors de l'import." });
   // }
+
+export const importProducts = async (req: Request, res: Response): Promise<void> => {
  try {
     const products = Array.isArray(req.body)
       ? req.body

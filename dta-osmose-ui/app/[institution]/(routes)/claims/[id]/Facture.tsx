@@ -5,7 +5,7 @@ import { useGetSaleByIdQuery, useGetSettingsQuery } from "@/state/api";
 import { useParams } from "next/navigation";
 import { useReactToPrint } from "react-to-print";
 import { Button } from "@/components/ui/button";
-import "./style.css";
+
 
 interface PrintToPdfProps {
    claim: any;
@@ -96,7 +96,7 @@ const PrintToPdf = forwardRef<HTMLDivElement, PrintToPdfProps>(({ claim }, ref) 
   );
 });
 
-const PrintUserSheet = ({ claim }: any) => {
+const PrintClaimSheet = ({ claim }: any) => {
 	const contentRef = useRef<HTMLDivElement>(null);
 	const handlePrint = useReactToPrint({ contentRef });
 
@@ -116,7 +116,7 @@ const PrintUserSheet = ({ claim }: any) => {
 	);
 };
 
-export default PrintUserSheet;
+export default PrintClaimSheet;
 
 {/* <th className="text-center p-2 border w-[15%]">DESIGNATION</th>
               <th className="text-center p-2 border w-[8%]">Code produit</th>

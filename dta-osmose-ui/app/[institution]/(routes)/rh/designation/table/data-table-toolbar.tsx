@@ -15,6 +15,7 @@ import { NewDesignation, useCreateDesignationsMutation } from "@/state/api"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import Papa from "papaparse"
 import { useState } from "react"
+import UserPrivateComponent from "../../../components/usePrivateComponent";
 
 type DesignationFormData = {
   name: string;
@@ -91,7 +92,9 @@ export function DataTableToolbar<TData>({
           </Button>
         )}
       </div>
-      <AddDesignationDialog onCreate={handleCreateDesignation} />
+      <UserPrivateComponent permission="create-designation">
+          <AddDesignationDialog onCreate={handleCreateDesignation} />
+      </UserPrivateComponent>
       <DataTableViewOptions table={table} />
     </div>
   )

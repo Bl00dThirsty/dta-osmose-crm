@@ -31,9 +31,7 @@ export default function PromotionsPage() {
         router.push('/');
       }
   }, [token]);
-  const handleGoBack = () => {
-    router.back();
-  };
+  
   const [openUpdate, setOpenUpdate] = useState(false);
   const [updatePromotion] = useUpdatePromotionsMutation()
    const { data: products = [] } = useGetProductsQuery({ institution });

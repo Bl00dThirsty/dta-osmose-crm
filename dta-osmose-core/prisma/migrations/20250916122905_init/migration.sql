@@ -6,16 +6,22 @@ CREATE TABLE "Reporting" (
     "id" SERIAL NOT NULL,
     "prospectName" TEXT NOT NULL,
     "date" TIMESTAMP(3) NOT NULL,
+    "userId" INTEGER,
     "degree" TEXT,
+    "responsable" TEXT,
     "rdvObject" TEXT NOT NULL,
-    "nextRdv" TIMESTAMP(3) NOT NULL,
-    "time" TEXT NOT NULL,
-    "contact" TEXT NOT NULL,
-    "pharmacoVigilance" TEXT NOT NULL,
-    "latitude" DOUBLE PRECISION NOT NULL,
-    "longitude" DOUBLE PRECISION NOT NULL,
+    "nextRdv" TIMESTAMP(3),
+    "time" TEXT NOT NULL DEFAULT '00:00',
+    "email" TEXT NOT NULL,
+    "contact" TEXT,
+    "address" TEXT NOT NULL,
+    "pharmacoVigilance" TEXT,
+    "latitude" DOUBLE PRECISION,
+    "longitude" DOUBLE PRECISION,
     "filePath" TEXT,
+    "institutionId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Reporting_pkey" PRIMARY KEY ("id")
 );
@@ -168,6 +174,7 @@ CREATE TABLE "saleInvoice" (
     "customerId" INTEGER NOT NULL,
     "userId" INTEGER,
     "institutionId" TEXT NOT NULL,
+    "salePromiseId" INTEGER,
     "customerCreatorId" INTEGER,
     "totalAmount" DOUBLE PRECISION NOT NULL,
     "discount" DOUBLE PRECISION NOT NULL,
@@ -196,6 +203,41 @@ CREATE TABLE "saleItem" (
     "totalPrice" DOUBLE PRECISION NOT NULL,
 
     CONSTRAINT "saleItem_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "salePromise" (
+    "id" SERIAL NOT NULL,
+    "dueDate" TIMESTAMP(3),
+    "reminderDate" TIMESTAMP(3),
+    "customerId" INTEGER,
+    "userId" INTEGER,
+    "customerCreatorId" INTEGER,
+    "institutionId" TEXT NOT NULL,
+    "customer_address" TEXT,
+    "customer_name" TEXT,
+    "customer_phone" TEXT,
+    "total_amount" DOUBLE PRECISION NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'pending',
+    "restocked" BOOLEAN NOT NULL DEFAULT false,
+    "discount" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "note" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "salePromise_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "salePromiseProduct" (
+    "id" SERIAL NOT NULL,
+    "product_id" TEXT NOT NULL,
+    "promise_id" INTEGER NOT NULL,
+    "product_quantity" INTEGER NOT NULL,
+    "product_sale_price" DOUBLE PRECISION NOT NULL,
+    "totalPrice" DOUBLE PRECISION NOT NULL,
+
+    CONSTRAINT "salePromiseProduct_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -417,6 +459,12 @@ CREATE INDEX "_claimTocustomer_B_index" ON "_claimTocustomer"("B");
 CREATE INDEX "_claimTouser_B_index" ON "_claimTouser"("B");
 
 -- AddForeignKey
+ALTER TABLE "Reporting" ADD CONSTRAINT "Reporting_institutionId_fkey" FOREIGN KEY ("institutionId") REFERENCES "institution"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Reporting" ADD CONSTRAINT "Reporting_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "claim" ADD CONSTRAINT "claim_institutionId_fkey" FOREIGN KEY ("institutionId") REFERENCES "institution"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -453,10 +501,31 @@ ALTER TABLE "saleInvoice" ADD CONSTRAINT "saleInvoice_userId_fkey" FOREIGN KEY (
 ALTER TABLE "saleInvoice" ADD CONSTRAINT "saleInvoice_institutionId_fkey" FOREIGN KEY ("institutionId") REFERENCES "institution"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "saleInvoice" ADD CONSTRAINT "saleInvoice_salePromiseId_fkey" FOREIGN KEY ("salePromiseId") REFERENCES "salePromise"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "saleItem" ADD CONSTRAINT "saleItem_invoiceId_fkey" FOREIGN KEY ("invoiceId") REFERENCES "saleInvoice"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "saleItem" ADD CONSTRAINT "saleItem_productId_fkey" FOREIGN KEY ("productId") REFERENCES "product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "salePromise" ADD CONSTRAINT "CustomerSalePromiseRelation" FOREIGN KEY ("customerId") REFERENCES "customer"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "salePromise" ADD CONSTRAINT "CustomerCreatorSalePromiseRelation" FOREIGN KEY ("customerCreatorId") REFERENCES "customer"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "salePromise" ADD CONSTRAINT "salePromise_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "salePromise" ADD CONSTRAINT "salePromise_institutionId_fkey" FOREIGN KEY ("institutionId") REFERENCES "institution"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "salePromiseProduct" ADD CONSTRAINT "salePromiseProduct_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "salePromiseProduct" ADD CONSTRAINT "salePromiseProduct_promise_id_fkey" FOREIGN KEY ("promise_id") REFERENCES "salePromise"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;

@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table"
 
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-
+import UserPrivateComponent from "../../../components/usePrivateComponent";
 import { Department } from "@/state/api"
 import { DataTableColumnHeader } from "../../../user/all/table/components/data-table-column-header"
 import { DataTableRowActions } from "./data-table-row-actions"
@@ -60,6 +60,7 @@ export const columns: ColumnDef<Department>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Actions" />
     ),
+    
     cell: ({ row }) => <DataTableRowActions row={row} />,
   },
 ]

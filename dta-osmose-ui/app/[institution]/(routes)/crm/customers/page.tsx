@@ -24,7 +24,7 @@ const CustomersPage = () => {
 const { data: customer, isLoading, isError } = useGetCustomersQuery()
 
 if (isLoading) return <p>Chargement...</p>
-if (isError) return <p>Erreur lors du chargement.</p>
+if (isError) return <p>Vous n'avez pas accès à ces informations. Erreur lors du chargement.</p>
 
 
   return (

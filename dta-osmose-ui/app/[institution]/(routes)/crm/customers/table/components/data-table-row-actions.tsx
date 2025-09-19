@@ -32,7 +32,7 @@ import {
   DialogAction,
 } from "@/components/ui/dialog"
 import { ToastContainer, toast } from 'react-toastify';
-
+import UserPrivateComponent from "../../../../components/usePrivateComponent";
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>
 }
@@ -78,10 +78,11 @@ export function DataTableRowActions<TData>({
         <DropdownMenuItem onClick={() => router.push(`/${institution}/crm/customers/${cutomerId}`)}>
           Voir
         </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => setOpen(true)} className="text-red-600">
-              Supprimer🗑
-            
-        </DropdownMenuItem>
+        <UserPrivateComponent permission="delete-customer">
+          <DropdownMenuItem onSelect={() => setOpen(true)} className="text-red-600">
+              Supprimer🗑  
+          </DropdownMenuItem>
+        </UserPrivateComponent>
       </DropdownMenuContent>
     </DropdownMenu>
 

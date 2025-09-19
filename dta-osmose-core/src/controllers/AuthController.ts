@@ -82,7 +82,8 @@ export const login = async (
   
       res.json({
         ...userWithoutPassword,
-        accessToken
+        accessToken,
+        permissions
       });
     }else{
       res
@@ -228,6 +229,22 @@ export const register = async (
       res.status(401).json({ message: "Token invalide ou expiré" });
     }
   };
+
+  /**
+ * @route GET /auth/me
+ * @desc Récupère les informations de l'utilisateur actuellement authentifié
+ * @access Privé (Requiert un token JWT valide)
+ * 
+ * Cet endpoint est utilisé pour:
+ * 1. Vérifier la validité du token JWT
+ * 2. Récupérer les infos de l'utilisateur depuis la base de données
+ * 3. Retourner les infos sans données sensibles (comme le password)
+ * 
+ * Le frontend appelle cet endpoint au:
+ * - Chargement de l'application (checkAuth dans AuthContext)
+ * - Lors de la navigation pour vérifier que l'utilisateur est toujours connecté
+ * - Après une connexion pour récupérer les infos fraîches
+ */
 
   interface JwtPayload {
     sub: number;

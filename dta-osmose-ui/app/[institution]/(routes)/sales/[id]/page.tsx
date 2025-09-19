@@ -8,7 +8,7 @@ import PrintUserSheet from "./Facture"
 import { Row } from "@tanstack/react-table"
 import { useDeleteSaleInvoiceMutation, useUpdateSaleStatusMutation, useGetActivePromotionsQuery } from '@/state/api';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import Container from "../../components/ui/Container";
+import UserPrivateComponent from "../../components/usePrivateComponent";
 import { toast } from "react-toastify";
 import { useReactToPrint } from "react-to-print";
 import { Button } from "@/components/ui/button"
@@ -49,7 +49,8 @@ const InvoicePage = () => {
       toast.error("ID de la commande introuvable.")
       return
     }
-    if((sale?.paymentStatus == "PARTIAL") || (sale?.paymentStatus == "PAID")){
+    
+    if(((sale?.paymentStatus == "PARTIAL") || (sale?.paymentStatus == "PAID")) && (sale?.paidAmount !== 0)){
       toast.error("Impossible de supprimé la commande, paiement déja entamé")
       return
     }
@@ -57,7 +58,7 @@ const InvoicePage = () => {
     try {
       await deleteSaleInvoice(id).unwrap()
       console.log("Commande supprimé avec succès")
-      router.push(`/${institution}/sales/all`);
+      router.push(`/${institution}/sales/`);
       toast.success("Commande annulée")
     } catch (error) {
       console.log("Erreur lors de la suppression :")
@@ -103,14 +104,14 @@ const InvoicePage = () => {
   ) ?? 0;
  
   if (isLoading) return <div>Chargement...</div>;
-  if (!sale) return <div>Facture non trouvée</div>;
+  if (!sale) return <div>Vous n'avez pas accès à ces informations. Facture non trouvée</div>;
 
   return (
     <>
     <div className="mb-3 ml-4 pt-4">
         <button
           onClick={handleGoBack}
-          className="flex items-center gap-2 text-white-600 hover:bg-blue-500 transition-colors bg-blue-800 px-2 py-1 rounded"
+          className="flex items-center gap-2 hover:bg-blue-500 transition-colors bg-blue-800 px-2 py-1 rounded"
         >
           <ArrowLeft className="w-5 h-5" />
           <span>Retour</span>
@@ -168,18 +169,19 @@ const InvoicePage = () => {
             </button>
           </div>
         )}
-        {!isParticulier && (
+         <UserPrivateComponent permission="update-saleStatus">
           <div>
             <button 
               onClick={handleMarkDelivered}
               className={`px-4 py-2 rounded text-white print:hidden ${
                sale.delivred ? 'bg-green-500 hover:bg-gray-400' : 'bg-green-600 hover:bg-green-500 print:hidden'
               }`}
+              disabled={sale?.delivred}
             >
               {sale.delivred ? "Déjà livrée" : "Confirmer la livraison"}
             </button>
           </div>
-          )}
+        </UserPrivateComponent>
           <div>
              <button  
                 onClick={() => router.push(`/${institution}/payment/${sale.id}`)}
@@ -196,7 +198,7 @@ const InvoicePage = () => {
              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-500 disabled:bg-red-400"
              disabled={sale?.delivred}
             >
-               {sale?.delivred ? "Déjà livrée" : "Annuler la commande"}
+               {sale?.delivred ? "Annuler la commande" : "Annuler la commande"}
             </button>
           </div>
           
@@ -224,7 +226,7 @@ const InvoicePage = () => {
           <div>
             <button 
               onClick={() => router.push(`/${institution}/sales/${sale.id}/claim/all`)}
-              className="px-4 py-2 rounded ml-8 text-white bg-yellow-500 hover:bg-yellow-200 ">
+              className="px-4 py-2 rounded ml-8 text-white bg-blue-500 hover:bg-blue-200 ">
                 Liste des Réclamations
             </button>
           </div>
@@ -246,7 +248,7 @@ const InvoicePage = () => {
           </div>
           <div>
             {/* <h2 className="font-bold mb-2">Client</h2> */}
-            <p className="mb-2">Remise: <b>{sale.discount} </b> </p>
+            <p className="mb-2">Remise: <b>{sale.discount} Fcfa</b> </p>
             <p className="mb-2">Methode de paiement: <b>{sale.paymentMethod || 'CASH'}</b></p>
             {/* <p className="mb-2"> <b>{sale.paymentStatus === 'PAID' ? 'Terminé' : 'En cours'}</b></p> */}
             <p>Statut de paiement: <button className={` px-1 py-1 rounded text-white ${sale.paymentStatus === 'PAID' ? 'bg-green-500' : 'bg-red-500'}`}>{sale.paymentStatus === 'PAID' ? "PAYÉ" : "IMPAYÉ"}</button></p>
@@ -283,9 +285,9 @@ const InvoicePage = () => {
             {sale.items.map(item => (
               <tr key={item.id} className="border">
                 <td className="py-2 text-center">{item.product?.designation}</td>
-                <td className="py-2 text-center border">{item.quantity}</td>
-                <td className="py-2 text-center border">{item.unitPrice} FCFA</td>
-                <td className="py-2 text-center border">{item.totalPrice} FCFA</td>
+                <td className="py-3 text-center border">{item.quantity}</td>
+                <td className="py-3 text-center border">{item.unitPrice} FCFA</td>
+                <td className="py-3 text-center border">{item.totalPrice} FCFA</td>
               </tr>
             ))}
           </tbody>

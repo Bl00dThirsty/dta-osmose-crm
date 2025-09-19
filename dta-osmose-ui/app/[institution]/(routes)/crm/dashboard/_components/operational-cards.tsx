@@ -9,10 +9,26 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { formatCurrency, cn } from "@/lib/utils";
 
-import { salesPipelineChartData, salesPipelineChartConfig, regionSalesData, actionItems } from "./crm.confg";
+import { salesPipelineChartData, salesPipelineChartConfig, actionItems } from "./crm.confg";
+import { number } from "zod";
+import { useGetDashboardSalesQuery } from "@/state/api";
 
-export function OperationalCards() {
-  const totalSales = regionSalesData.reduce((sum, region) => sum + region.sales, 0);
+interface OperationalCardsProps {
+  salesByCity: {
+    cityName: string;
+    totalSales: number;
+    totalQuantity: number;
+    invoiceCount: number;
+    percentage: number;
+    growth: string;
+    isPositive: boolean;
+  }[];
+  isLoading: boolean; 
+}
+
+
+export function OperationalCards({ salesByCity, isLoading }: OperationalCardsProps) {
+  const totalSales = salesByCity.reduce((sum, city) => sum + city.totalSales, 0);
   return (
     <div className="grid grid-cols-1 gap-4 *:data-[slot=card]:shadow-xs sm:grid-cols-2 xl:grid-cols-3">
       <Card>
@@ -33,8 +49,7 @@ export function OperationalCards() {
           <p className="text-muted-foreground text-xs">Les prospects ont augmenté de 18,2 % depuis le mois dernier.</p>
         </CardFooter>
       </Card>
-
-      <Card>
+     <Card>
         <CardHeader>
           <CardTitle>Vente par Ville</CardTitle>
           <CardDescription className="font-medium tabular-nums">
@@ -42,38 +57,47 @@ export function OperationalCards() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2.5">
-            {regionSalesData.map((region) => (
-              <div key={region.region} className="space-y-0.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">{region.region}</span>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-sm font-semibold tabular-nums">
-                      {formatCurrency(region.sales, { noDecimals: true })}
-                    </span>
-                    <span
-                      className={cn(
-                        "text-xs font-medium tabular-nums",
-                        region.isPositive ? "text-green-500" : "text-destructive",
-                      )}
-                    >
-                      {region.growth}
+          {isLoading ? (
+            <p className="text-sm text-muted-foreground">Chargement...</p>
+          ) : (
+            <div className="space-y-2.5">
+              {salesByCity.map((city: any) => (
+                <div key={city.cityName} className="space-y-0.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">{city.cityName}</span>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-sm font-semibold tabular-nums">
+                        {formatCurrency(city.totalSales, { noDecimals: true })}
+                      </span>
+                      <span className="text-xs font-medium tabular-nums">
+                       ({city.totalQuantity} ventes)
+                     </span>
+                      <span
+                        className={cn(
+                          "text-xs font-medium tabular-nums",
+                          city.isPositive ? "text-green-500" : "text-destructive"
+                        )}
+                      >
+                        {city.growth}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Progress value={city.percentage} />
+                    <span className="text-muted-foreground text-xs font-medium tabular-nums">
+                      {city.percentage}%
                     </span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Progress value={region.percentage} />
-                  <span className="text-muted-foreground text-xs font-medium tabular-nums">{region.percentage}%</span>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
         <CardFooter>
           <div className="text-muted-foreground flex justify-between gap-1 text-xs">
-            <span>{regionSalesData.length} villes surveillées</span>
+            <span>{salesByCity.length} villes surveillées</span>
             <span>•</span>
-            <span>{regionSalesData.filter((r) => r.isPositive).length} villes en croissance</span>
+            <span>{salesByCity.filter((r: any) => r.isPositive).length} villes en croissance</span>
           </div>
         </CardFooter>
       </Card>

@@ -32,6 +32,7 @@ import {
 import { useState } from "react"
 import { useParams } from "next/navigation"
 import { toast } from "react-toastify";
+import UserPrivateComponent from "../../components/usePrivateComponent";
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>
@@ -79,10 +80,11 @@ export function DataTableRowActions<TData>({
         <DropdownMenuItem onClick={() => router.push(`/${institution}/inventory/${inventoryId}`)}>
           Voir👀
         </DropdownMenuItem>
-        
-        <DropdownMenuItem onSelect={() => setOpen(true)} className="text-red-600">
+        <UserPrivateComponent permission="delete-inventory">
+           <DropdownMenuItem onSelect={() => setOpen(true)} className="text-red-600">
               Supprimer🗑
             </DropdownMenuItem>
+          </UserPrivateComponent>
         {/* <DropdownMenuSeparator /> */}
       </DropdownMenuContent>
     </DropdownMenu>

@@ -33,7 +33,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import { useDeleteDepartmentsMutation, } from "@/state/api"
 import { useParams } from "next/navigation";
 import { labels } from "@/app/[institution]/(routes)/crm/products/table/data/data"
-
+import UserPrivateComponent from "../../../components/usePrivateComponent";
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>
 }
@@ -78,11 +78,11 @@ export function DataTableRowActions<TData>({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[160px]">
         
-        
+        <UserPrivateComponent permission="delete-department">
             <DropdownMenuItem onSelect={() => setOpen(true)} className="text-red-600">
               Supprimer🗑
             </DropdownMenuItem>
-          
+         </UserPrivateComponent> 
         <DropdownMenuSeparator />
       </DropdownMenuContent>
     </DropdownMenu>

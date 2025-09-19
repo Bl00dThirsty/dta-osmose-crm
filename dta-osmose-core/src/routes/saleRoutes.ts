@@ -6,15 +6,15 @@ import authorize from "../authorize";
 
 const router = express.Router();
 
-router.post("/:institution/sale", authorize("view-product"), createSaleInvoice);
-router.get('/:institution/sale', getSaleInvoices);
-router.get('/:id', getSaleInvoiceById);
+router.post("/:institution/sale", authorize("create-sale"), createSaleInvoice);
+router.get('/:institution/sale', authorize("readAll-sale"), getSaleInvoices);
+router.get('/:id', authorize("view-sale"), getSaleInvoiceById);
 router.get('/:institution/:customerId/debt-status', checkCustomerDebtStatus)
 router.patch('/:institution/sale/:id/status',
-    authorize("create-product"), 
+    authorize("update-saleStatus"), 
     updateSaleStatus
 );
-router.patch('/:id/payment', updatePayment);
-router.delete("/:id", deleteSaleInvoice);
+router.patch('/:id/payment', authorize("update-salePayment"), updatePayment);
+router.delete("/:id", authorize("delete-sale"), deleteSaleInvoice);
 
 export default router;

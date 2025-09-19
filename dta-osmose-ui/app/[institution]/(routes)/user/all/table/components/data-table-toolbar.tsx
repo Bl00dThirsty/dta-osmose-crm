@@ -15,6 +15,7 @@ import Modal from "@/components/ui/modal";
 import { useAuth } from "@/app/[institution]/(auth)/sign-in/context/authContext";
 import Papa from "papaparse"
 import { useState } from "react"
+import { useRouter, useParams } from 'next/navigation';
 
 
 type UserFormData = {
@@ -54,6 +55,8 @@ export function DataTableToolbar<TData>({
   const handleCreateProduct = async (userData: UserFormData) => {
     await register(userData);
   }
+  const { institution } = useParams() as { institution: string }
+  const router = useRouter();
   
   const [file, setFile] = useState<File | null>(null)
   const {register} = useAuth()
@@ -98,9 +101,7 @@ export function DataTableToolbar<TData>({
         )}
       </div>
       {/* <Button variant="outline">Ajouter <RegisterComponent /><PlusIcon /></Button> */}
-      <Button variant="outline" onClick={() => setOpen(true)}>
-        Ajouter <PlusIcon className="ml-2" />
-      </Button>
+      <Button variant="outline" className=" mr-2 bg-blue-500 hover:bg-blue-200" onClick={() => router.push(`/${institution}/user/add/`)}>Ajouter <PlusIcon className="ml-2" /></Button>
 
       {open && (
         <Modal onClose={() => setOpen(false)}>

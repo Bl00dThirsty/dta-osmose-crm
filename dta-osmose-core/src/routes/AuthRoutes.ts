@@ -2,6 +2,7 @@ import { Router } from "express";
 import { login, register, logout, refreshToken, getCurrentUser} from "../controllers/AuthController";
 import { expressjwt as jwt } from "express-jwt";
 import dotenv from "dotenv";
+import authorize from "../authorize"; 
 
 dotenv.config();
 
@@ -14,7 +15,7 @@ const authMiddleware = jwt({
   });
 
 router.post("/login", login);
-router.post("/register", register);
+router.post("/register", authorize("create-user"), register);
 router.post('/logout', logout);
 router.post("/refresh-token", refreshToken);
 router.get("/me", authMiddleware, getCurrentUser);
