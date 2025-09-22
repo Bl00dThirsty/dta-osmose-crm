@@ -156,7 +156,7 @@ export default function RolePermissionsPage() {
     <div className="p-4">
       <button
         onClick={handleGoBack}
-        className="flex items-center gap-2 hover:bg-blue-500 transition-colors bg-blue-800 px-2 py-1 rounded"
+        className="flex items-center gap-2 mb-5 hover:bg-blue-500 transition-colors bg-blue-800 px-2 py-1 rounded"
       >
         <ArrowLeft className="w-5 h-5" />
         <span>Retour</span>

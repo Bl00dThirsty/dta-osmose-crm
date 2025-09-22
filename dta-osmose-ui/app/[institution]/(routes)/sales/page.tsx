@@ -82,7 +82,7 @@ const CreateSalePage = () => {
 
 //promotion valide
  const { data: activePromotions = [] } = useGetActivePromotionsQuery({institution});
- const getPromoForProduct = (productId: string) => {
+const getPromoForProduct = (productId: string) => {
   return activePromotions.find(promo => promo.productId === productId && promo.status);
 };
 

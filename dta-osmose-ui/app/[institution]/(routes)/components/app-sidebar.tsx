@@ -33,6 +33,7 @@ import {
   NavMainItem,
   NavSubItem,
 } from "@/navigation/sidebar/sidebar_items";
+import { usePermissions } from "@/hooks/usePermissions";
 const id = typeof window !== 'undefined' ? localStorage.getItem('id') : null;
 const data = {
   user: {
@@ -74,6 +75,33 @@ export function AppSidebar({
     return items?.some((sub) => pathname.startsWith(`/${institution}/${sub.path}`)) ?? false;
   };
 
+const permissions = usePermissions();
+
+const filterMenu = (items: NavMainItem[]): NavMainItem[] => {
+  return items
+    .map((item) => {
+      // filtre sur l'item principal
+      if (item.permission && !permissions.includes(item.permission)) {
+        return null;
+      }
+
+      // filtre sur les sous-items
+      const subItems = item.items?.filter(
+        (sub) => !sub.permission || permissions.includes(sub.permission)
+      );
+
+      // si l'item n’a pas de sous-items autorisés, et que c’était censé être un menu avec enfants → on l’enlève aussi
+      if (item.items && (!subItems || subItems.length === 0)) {
+        return null;
+      }
+
+      return { ...item, items: subItems };
+    })
+    .filter(Boolean) as NavMainItem[];
+};
+
+const filteredMenuItems = filterMenu(menuItems);
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -86,7 +114,7 @@ export function AppSidebar({
         <SidebarGroup>
           <SidebarGroupLabel>Menu</SidebarGroupLabel>
           <SidebarMenu>
-            {menuItems.map((item) => (
+            {filteredMenuItems.map((item) => (
               <Collapsible
                 key={item.title}
                 asChild

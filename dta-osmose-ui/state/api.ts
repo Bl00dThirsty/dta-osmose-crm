@@ -709,12 +709,12 @@ export const api = createApi({
             }),
             invalidatesTags: ["Products"],
         }), 
-        getProductById: build.query<Product, { institution: string; id: string }>({
-          query: ({ institution, id }) => `/institutions/${institution}/products/${id}`, // Construire l'URL avec l'ID de l'utilisateur
-          providesTags: (result, error, { id }) => [{ type: "Products", id }], // Associer un tag pour l'invalidation
+        getProductById: build.query<Product, string>({
+          query: (id) => `/institutions/${id}`, // Construire l'URL avec l'ID de l'utilisateur
+          providesTags: (result, error, id) => [{ type: "Products", id }], // Associer un tag pour l'invalidation
         }),
 
-        /*deleteProduct: build.mutation<void, string>({
+        deleteProduct: build.mutation<void, string>({
             query: (id) => ({
               url: `/${id}`,
               method: 'DELETE',
@@ -722,7 +722,7 @@ export const api = createApi({
             invalidatesTags: (result, error, id ) => [{ type: "Products", id }]
         }),
 
-         updateProduct: build.mutation<Product, { id: string; EANCode: string; quantity: number; brand: string; designation: string;
+        updateProduct: build.mutation<Product, { id: string; EANCode: string; quantity: number; brand: string; designation: string;
   sellingPriceTTC: number; purchase_price: number; restockingThreshold: number; warehouse: string;}>({
             query: ({ id, ...data }) => ({
               url: `/${id}`,
@@ -730,23 +730,8 @@ export const api = createApi({
               body: data,
             }),
             invalidatesTags: (result, error, { id }) => [{ type: 'Products' }],
-          }),*/
-          deleteProduct: build.mutation<void, { institution: string; id: string }>({
-              query: ({ institution, id }) => ({
-                url: `/institutions/${institution}/products/${id}`,
-                method: "DELETE",
-              }),
-            }),
-
-            updateProduct: build.mutation<Product, { institution: string; id: string; }>({
-              query: ({ institution, id, ...data }) => ({
-                url: `/institutions/${institution}/products/${id}`,
-                method: "PUT",
-                body: data,
-              }),
-            }),
-
-
+        }),
+         
 
         importProducts: build.mutation<void, { data: NewProduct[]; institution: string }>({
           query: ({ data, institution }) => ({

@@ -222,11 +222,8 @@ model institution {
   notification       Notification[]
   inventory          inventory[]
   Promotion          Promotion[]
-<<<<<<< HEAD
-
-
-=======
   salePromise        salePromise[]
+  Reporting          Reporting[]
 }
 
 model product {

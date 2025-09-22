@@ -72,7 +72,7 @@ const generateChartData = async (startDate: Date, endDate: Date, institutionId: 
     where: {
       institutionId,
       delivred: true,
-      paymentStatus: "PAID",
+      paymentStatus: 'PAID',
       createdAt: { gte: startDate, lte: endDate },
     },
     select: { createdAt: true, finalAmount: true },
@@ -99,14 +99,16 @@ const generateChartData = async (startDate: Date, endDate: Date, institutionId: 
 
   return data;
 };
+
 //regroupe ventes, profits et factures par jour
-const getData = async (startDate: Date, endDate: Date, institutionId: string) => {
+const getData = async (startDate: Date, endDate: Date, institutionId: string, paymentStatuses: ('PAID' | 'PARTIAL')[] = ['PAID', 'PARTIAL']) => {
+  
   const allSaleInvoice = await prisma.saleInvoice.groupBy({
     orderBy: { createdAt: "asc" },
     by: ["createdAt"],
     where: {
       delivred: true,
-      paymentStatus: "PAID",
+      paymentStatus: { in: paymentStatuses },
       institutionId, 
       createdAt: { gte: startDate, lte: endDate },
     },
@@ -134,6 +136,7 @@ const getData = async (startDate: Date, endDate: Date, institutionId: string) =>
 
   return { formattedData1, formattedData2, formattedData3 };
 };
+
 export const getDashboardMetrics = async (req: Request, res: Response): Promise<void> => {
   try {
     const { startDate, endDate } = req.query;

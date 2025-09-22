@@ -12,7 +12,9 @@ import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import { Customer } from "@/state/api"
 import Link from "next/link";
-import * as XLSX from 'xlsx'
+import * as XLSX from 'xlsx';
+import UserPrivateComponent from "../../../components/usePrivateComponent";
+
 
 
 export default function DetailCustomerPage() {
@@ -149,6 +151,7 @@ export default function DetailCustomerPage() {
           >
             ← Retour
           </Button>
+          <UserPrivateComponent permission="update-user">
           <Button 
             onClick={() => setIsUpdateDialogOpen(true)}
             className="ml-auto bg-blue-600 text-white hover:bg-blue-700"
@@ -156,6 +159,7 @@ export default function DetailCustomerPage() {
           >
             {isUpdating ? "Enregistrement..." : "Modifier"}
           </Button>
+          </UserPrivateComponent>
         </div>
 
         <CardHeader>

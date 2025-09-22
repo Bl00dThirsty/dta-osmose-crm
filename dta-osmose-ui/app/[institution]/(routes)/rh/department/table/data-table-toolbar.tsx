@@ -14,6 +14,7 @@ import { AddDepartmentDialog } from "../../../crm/components/AddDepartment"
 import { useCreateDepartmentsMutation, useCreateDesignationsMutation } from "@/state/api"
 import Papa from "papaparse"
 import { useState } from "react"
+import UserPrivateComponent from "../../../components/usePrivateComponent";
 
 type DepartmentFormData = {
  
@@ -58,7 +59,9 @@ export function DataTableToolbar<TData>({
           </Button>
         )}
       </div>
-      <AddDepartmentDialog onCreate={handleCreateDesignation} />
+       <UserPrivateComponent permission="create-department">
+          <AddDepartmentDialog onCreate={handleCreateDesignation} />
+       </UserPrivateComponent>
       <DataTableViewOptions table={table} />
     </div>
   )

@@ -168,7 +168,7 @@ const staffPermissions = ["create-product", "readAll-product", "view-product",
   "view-Claim", "create-customer", "readAll-customer", "view-Customer", "view-dashboard",
   "view-dashboardSale", "readAll-designation", "readAll-inventory", "view-inventory",
    "readAll-notification", "create-promiseSale", "readAll-promiseSale", "view-promiseSale",
-   "readAll-activePromotion", "create-report", "view-report", "readAll-reportBystaff",
+   "readAll-activePromotion", "create-report", "view-report", "readAll-reportBystaff", "readAll-report",
   "delete-report", "create-sale", "readAll-sale", "view-sale", "view-setting"
   
 ];
@@ -178,7 +178,7 @@ const particularPermissions = ["create-sale", "view-sale", "update-salePayment",
   "delete-sale", "create-promiseSale", "view-promiseSale", "readAll-salePromiseBycustomer",
   "delete-salePromise", "readAll-activePromotion", "readAll-product", "create-customer",
   "readAll-customer", "view-Customer", "update-customer", "view-dashboard", "create-claim",
-  "readAll-claim", "delete-claim","readAll-notificationCustomer", "view-setting"
+  "readAll-claim", "delete-claim", "readAll-notificationCustomer", "view-setting"
 ];
 
 const rolePermissionsMap: Record<string, string[]> = {

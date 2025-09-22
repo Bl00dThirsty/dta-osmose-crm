@@ -8,7 +8,7 @@ import PrintUserSheet from "./Facture"
 import { Row } from "@tanstack/react-table"
 import { useDeleteSaleInvoiceMutation, useUpdateSaleStatusMutation, useGetActivePromotionsQuery } from '@/state/api';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import Container from "../../components/ui/Container";
+import UserPrivateComponent from "../../components/usePrivateComponent";
 import { toast } from "react-toastify";
 import { useReactToPrint } from "react-to-print";
 import { Button } from "@/components/ui/button"
@@ -169,18 +169,19 @@ const InvoicePage = () => {
             </button>
           </div>
         )}
-        {!isParticulier && (
+         <UserPrivateComponent permission="update-saleStatus">
           <div>
             <button 
               onClick={handleMarkDelivered}
               className={`px-4 py-2 rounded text-white print:hidden ${
                sale.delivred ? 'bg-green-500 hover:bg-gray-400' : 'bg-green-600 hover:bg-green-500 print:hidden'
               }`}
+              disabled={sale?.delivred}
             >
               {sale.delivred ? "Déjà livrée" : "Confirmer la livraison"}
             </button>
           </div>
-          )}
+        </UserPrivateComponent>
           <div>
              <button  
                 onClick={() => router.push(`/${institution}/payment/${sale.id}`)}
@@ -225,7 +226,7 @@ const InvoicePage = () => {
           <div>
             <button 
               onClick={() => router.push(`/${institution}/sales/${sale.id}/claim/all`)}
-              className="px-4 py-2 rounded ml-8 text-white bg-yellow-500 hover:bg-yellow-200 ">
+              className="px-4 py-2 rounded ml-8 text-white bg-blue-500 hover:bg-blue-200 ">
                 Liste des Réclamations
             </button>
           </div>

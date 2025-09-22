@@ -43,21 +43,10 @@ import { Button } from "@/components/ui/button"
 import { useRouter } from 'next/navigation';
 import { columns } from "./columns"
 import { DataTable } from "./data-table"
-import { toast } from "react-toastify";
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogFooter,
-  DialogTitle,
-  DialogDescription,
-  DialogCancel,
-  DialogAction,
-} from "@/components/ui/dialog"
 
 
-import { useGetAllNotificationsQuery, useDeleteNotificationsMutation, useGetCustomerNotificationsQuery } from "@/state/api";
+
+import { useGetAllNotificationsQuery, } from "@/state/api";
 
 const NotificationAdmin = () => {
   const router = useRouter();
@@ -70,11 +59,6 @@ const NotificationAdmin = () => {
     }
   }, [token]);
 
-  const [userId, setUserId] = useState<number | null>(null);
-  const [customerId, setCustomerId] = useState<number | null>(null);
-  const userRole = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
-  const isParticulier = userRole === "Particulier";
-  const { data: NotificationCustomer } = useGetCustomerNotificationsQuery();
   const { data: notifications, isLoading, isError } = useGetAllNotificationsQuery({institution});
   
 
@@ -99,12 +83,10 @@ if (isError) return <p>Vous n'avez pas accès à ces informations. Erreur lors d
           <Button onClick={() => setOpen(true)} className="bg-red-700 text-white hover:bg-red-400">🗑️ Tous Supprimer</Button>      
     </div>
     )} */}
-    {!isParticulier && (
+   
     <DataTable data={notifications || []} columns={columns} />
-    )}
-    {isParticulier && (
-      <DataTable data={NotificationCustomer || []} columns={columns} />
-      )}
+  
+   
   </div>
         </section>
       </div>

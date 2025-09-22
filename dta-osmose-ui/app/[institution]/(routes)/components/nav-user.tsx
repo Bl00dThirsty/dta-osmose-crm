@@ -46,8 +46,7 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar();
-  const userRole = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
-  const userName = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+ 
   const { user: authUser, logout } = useAuth(); // Appel de la fonction logout depuis le contexte
   const router = useRouter();
   const { institution } = useParams() as { institution: string }
@@ -61,6 +60,8 @@ export function NavUser({
   const userName1 = authUser?.email?.split('@')[0] || user.name;
   const userRole1 = authUser?.role || 'Utilisateur';
   const userId = authUser?.id;
+
+  // console.log("ah", userId, "voici", userRole1)
 
    const getAccountRoute = () => {
     if (!userId) return '/'; // Fallback si pas d'ID
@@ -77,8 +78,27 @@ export function NavUser({
     return `/${institution}/`;
   };
 
+  const getNotifRoute = () => {
+    if (!userId) return '/'; // Fallback si pas d'ID
+    
+    // Rôles qui vont vers /user
+    if (['admin', 'staff', 'manager'].includes(userRole1.toLowerCase())) {
+      return `/${institution}/notification/`;
+    }
+    // Rôles qui vont vers /customer
+    else if (['particulier', 'grossiste'].includes(userRole1.toLowerCase())) {
+      return `/${institution}/notification/customerNotif`;
+    }
+    // Fallback par défaut
+    return `/${institution}/sales`;
+  };
+
   const handleAccountClick = () => {
     router.push(getAccountRoute());
+  };
+
+  const handleNotifClick = () => {
+    router.push(getNotifRoute());
   };
   
   return (
@@ -130,7 +150,7 @@ export function NavUser({
                 <BadgeCheck />
                 Compte
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => router.push(`/${institution}/notification`)}>
+              <DropdownMenuItem onClick={handleNotifClick}>
                 <Bell />
                 Notifications
               </DropdownMenuItem>

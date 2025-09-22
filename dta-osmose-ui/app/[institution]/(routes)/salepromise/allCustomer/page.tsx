@@ -6,14 +6,13 @@ import { useParams } from "next/navigation"
 import { redirect } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { columns } from "./columns"
-import { DataTable } from "./data-table"
-import { useGetSalePromiseQuery} from '@/state/api';
+import { columns } from "../all/columns"
+import { DataTable } from "../all/data-table"
+import { useGetSalePromiseByCustomerQuery } from '@/state/api';
 
 const SalesPage = () => {
   const router = useRouter();
   const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-  const { institution } = useParams() as { institution: string }
   useEffect(() => {
     if (!token) {
       router.push('/');
@@ -25,7 +24,9 @@ const SalesPage = () => {
 
   const [startDate, setStartDate] = useState<string>(firstDayOfMonth.toISOString().split("T")[0]);
   const [endDate, setEndDate] = useState<string>(lastDayOfMonth.toISOString().split("T")[0]);
-  const { data: sales, isLoading, isError } = useGetSalePromiseQuery({ institution, startDate, endDate })
+
+
+const { data: PromiseCustomer, isLoading, isError} = useGetSalePromiseByCustomerQuery({ startDate, endDate })
 
 if (isLoading) return <p>Chargement...</p>
 if (isError) return <p>Vous n'avez pas accès à ces informations. Erreur lors du chargement.</p>
@@ -33,8 +34,8 @@ if (isError) return <p>Vous n'avez pas accès à ces informations. Erreur lors d
 
   return (
     <Container
-      title="Tableau des Promesses d'Achat"
-      description="Ce composant affiche une vue d'ensemble des promesses enregistrées."
+      title="Vos Promesses d'Achat"
+      description="Ce composant affiche une vue d'ensemble de vos promesses d'achat."
     >
     <div className="h-full w-full overflow-x-auto">
       <section className="overflow-hidden rounded-[0.5rem] border bg-background shadow-zinc-50">
@@ -59,8 +60,10 @@ if (isError) return <p>Vous n'avez pas accès à ces informations. Erreur lors d
         
       </div>
     </div>
-      <DataTable data={sales || []} columns={columns} />
-      
+   
+   
+      <DataTable data={PromiseCustomer || []} columns={columns} />
+    
   </div>
         </section>
       </div>

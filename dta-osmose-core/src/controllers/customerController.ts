@@ -43,16 +43,11 @@ export const getCustomers = async (
     console.log("Received payload:", req.body);
     try {
     // 2. Nettoyage des données
-    const userAuth = req.auth as { sub?: number };
-    if (!userAuth?.sub) {
-      res.status(401).json({ error: "Utilisateur non authentifié" });
-      return;
-    }
+    
     
     const hash = await bcrypt.hash(req.body.password, saltRounds);
     const payload = {
       ...req.body,
-      userId: userAuth.sub,
       password: hash, // Force l'utilisation de l'UUID auto-généré
       created_at: undefined,
       updated_at: undefined

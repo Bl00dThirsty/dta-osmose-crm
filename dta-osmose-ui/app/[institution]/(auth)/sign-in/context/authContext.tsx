@@ -13,6 +13,7 @@ interface User {
   id: string;
   email: string;
   role: string;
+  permissions:string[];
   userType: "user" | "customer";
 }
 
@@ -142,21 +143,21 @@ useEffect(() => {
   
       const response = await api.post('/auth/login', { email, password });
   
-      const { accessToken, userType, ...userData } = response.data;
+      const { accessToken, ...userData } = response.data;
   
       // Stockage du token et du nom d'utilisateur
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('user', userData.userName);
       localStorage.setItem('id', userData.id);
       localStorage.setItem('role', userData.role);
-      localStorage.setItem('userType', userType);
+      
+      localStorage.setItem("permissions", JSON.stringify(userData.permissions));
 
   
       // Mise à jour du contexte utilisateur
       //setUser(userData);
       setUser({
         ...userData,
-        userType
       });
   
       return response.data;
