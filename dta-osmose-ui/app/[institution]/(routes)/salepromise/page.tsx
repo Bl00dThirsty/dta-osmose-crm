@@ -1,17 +1,19 @@
-
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useGetProductsQuery, useCreateSalePromiseMutation, useGetSalePromiseQuery } from '@/state/api';
+import { useState, useEffect, useMemo } from 'react';
+import { useGetProductsQuery, useCreateSalePromiseMutation } from '@/state/api';
 import { useGetCustomersQuery } from '@/state/api';
 import { useGetUsersQuery } from '@/state/api';
 import { useRouter, useParams } from 'next/navigation';
 import { Input } from "@/components/ui/input";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Badge } from "@/components/ui/badge";
-
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Search, PlusCircle } from 'lucide-react';
+import { DatePicker } from "../crm/dashboard/_components/date-picker";
 
 export interface Product {
   id: string;
@@ -19,19 +21,21 @@ export interface Product {
   sellingPriceTTC: number;
   quantity: number;
 }
-export interface salePromiseProduct{
+
+export interface salePromiseProduct {
   id: number;
   product_id: string;
   product_quantity: number;
   product_sale_price: number;
   totalPrice: number;
 }
+
 export interface salePromise {
   dueDate: Date;
   reminderDate: Date;
   customerId: number;
   userId?: number;
-  customerCreatorId?:  number;
+  customerCreatorId?: number;
   saleId?: string;
   institutionId?: string;
   customer_address: string;
@@ -44,7 +48,11 @@ export interface salePromise {
 }
 
 
-const CreateSalePage = () => {
+// Cette fonction est un composant React qui gère la création de promesses d'achat
+  // Elle permet aux utilisateurs de sélectionner des produits, choisir un client,
+  // configurer les dates et enregistrer une promesse d'achat
+
+const CreateSalePromisePage = () => {
   const [selectedProducts, setSelectedProducts] = useState<Array<{
     id: string;
     designation: string;
@@ -52,102 +60,24 @@ const CreateSalePage = () => {
     product_sale_price: number;
     totalPrice: number;
   }>>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const productsPerPage = 8;
-  const indexOfLastProduct = currentPage * productsPerPage;
-  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
   
   const [discount, setDiscount] = useState(0);
   const [customerId, setCustomerId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const { institution } = useParams() as { institution: string }
+  
+  // API Queries
   const { data: products = [], isLoading } = useGetProductsQuery({ institution });
   const { data: customers = [] } = useGetCustomersQuery();
-  const { data: users= [] } = useGetUsersQuery();
-  const user = users[0];
+  const { data: users = [] } = useGetUsersQuery();
+  const [createSalePromise] = useCreateSalePromiseMutation();
+  
+  // États utilisateur
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const userRole = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
   const isParticulier = userRole === "Particulier";
-  const userId = typeof window !== 'undefined' ? localStorage.getItem('id') : null;
-
-  useEffect(() => {
-    // Accéder à localStorage uniquement côté client
-    const idFromStorage = localStorage.getItem("id");
-    setCurrentUserId(idFromStorage ? parseInt(idFromStorage) : null);
-  }, []);
-
-   useEffect(() => {
-    // Accéder à localStorage uniquement côté client
-    const idFromStorage = localStorage.getItem("id");
-    setCurrentUserId(idFromStorage ? parseInt(idFromStorage) : null);
-  }, []);
-   const handleCustomerChange = (selectedId: number) => {
-    setCustomerId(selectedId);
-  };
-
-  const [createSale] = useCreateSalePromiseMutation();
-  const router = useRouter();
-
-  const filteredProducts = products.filter(product =>
-    product.designation.toLowerCase().includes(searchTerm.toLowerCase())
-  );
   
-  const currentCustomer = customers.find(c => c.id === Number(userId));
-  useEffect(() => {
-    const idFromStorage = localStorage.getItem("id");
-    const numericId = idFromStorage ? parseInt(idFromStorage) : null;
-    setCurrentUserId(numericId);
-  
-    if (userRole === "Particulier" && numericId) {
-      setCustomerId(numericId); // C’est ici que le customerId est défini automatiquement
-    }
-  }, []);
-  
-  const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
-  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-
-  const total = selectedProducts.reduce((sum, item) => sum + item.totalPrice, 0);
-  const total_amount = total - discount;
-
-  const handleAddProduct = (product: Product) => {
-    setSelectedProducts(prev => {
-      const existing = prev.find(p => p.id === product.id);
-      if (existing) {
-        return prev.map(p =>
-          p.id === product.id 
-            ? { ...p, quantity: p.product_quantity + 1, totalPrice: (p.product_quantity + 1) * p.product_sale_price } 
-            : p
-        );
-      }
-      return [
-        ...prev,
-        {
-          id: product.id,
-          designation: product.designation,
-          product_quantity: 1,
-          product_sale_price: product.sellingPriceTTC,
-          totalPrice: product.sellingPriceTTC
-        }
-      ];
-    });
-  };
-
-  const handleQuantityChange = (id: string, product_quantity: number) => {
-    if (product_quantity < 1) return;
-    
-    setSelectedProducts(prev =>
-      prev.map(p =>
-        p.id === id 
-          ? { ...p, product_quantity, totalPrice: product_quantity * p.product_sale_price } 
-          : p
-      )
-    );
-  };
-
-  const handleRemoveProduct = (id: string) => {
-    setSelectedProducts(prev => prev.filter(p => p.id !== id));
-  };
-
+  // États du formulaire
   const [note, setNote] = useState("");
   const [dueDate, setDueDate] = useState<Date | null>(null);
   const [reminderDate, setReminderDate] = useState<Date | null>(null);
@@ -157,28 +87,127 @@ const CreateSalePage = () => {
     customer_phone: "",
     customer_address: "",
   });
+  
+  const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
+  const [quantity, setQuantity] = useState(1);
 
-  const handleCreateSale = async () => {
-    if ( !currentUserId || selectedProducts.length === 0 || !dueDate || !reminderDate) {
+  const router = useRouter();
+
+  // Initialisation utilisateur
+  useEffect(() => {
+    const idFromStorage = typeof window !== "undefined" ? localStorage.getItem("id") : null;
+    setCurrentUserId(idFromStorage ? parseInt(idFromStorage) : null);
+
+    if (userRole === "Particulier" && idFromStorage) {
+      setCustomerId(parseInt(idFromStorage));
+    }
+  }, [userRole]);
+
+  // Filtrage des produits
+  const filteredProducts = useMemo(() => {
+    if (!searchTerm) return [];
+    return products.filter(product =>
+      product.designation.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm, products]);
+
+  // Calcul des totaux
+  const totalAmount = selectedProducts.reduce((sum, item) => sum + item.totalPrice, 0);
+  const finalAmount = totalAmount - discount;
+
+  // Handlers
+  const handleAddProduct = () => {
+    if (!selectedProduct) {
+      toast.error("Veuillez sélectionner un produit");
+      return;
+    }
+
+    const product = products.find(p => p.id === selectedProduct);
+    if (!product) {
+      toast.error("Produit introuvable");
+      return;
+    }
+
+    if (product.quantity <= 0) {
+      toast.error(`Le produit "${product.designation}" est en rupture de stock !`);
+      return;
+    }
+
+    setSelectedProducts(prev => {
+      const existing = prev.find(p => p.id === product.id);
+      if (existing) {
+        return prev.map(p =>
+          p.id === product.id
+            ? {
+                ...p,
+                product_quantity: p.product_quantity + quantity,
+                product_sale_price: product.sellingPriceTTC,
+                totalPrice: (p.product_quantity + quantity) * product.sellingPriceTTC
+              }
+            : p
+        );
+      }
+      return [
+        ...prev,
+        {
+          id: product.id,
+          designation: product.designation,
+          product_quantity: quantity,
+          product_sale_price: product.sellingPriceTTC,
+          totalPrice: product.sellingPriceTTC * quantity
+        }
+      ];
+    });
+
+    setSelectedProduct(null);
+    setSearchTerm(""); // Réinitialiser la recherche après ajout
+    setQuantity(1);
+    toast.success("Produit ajouté");
+  };
+
+  const handleQuantityChange = (id: string, product_quantity: number) => {
+    if (product_quantity < 1) return;
+    
+    setSelectedProducts(prev =>
+      prev.map(p =>
+        p.id === id
+          ? { ...p, product_quantity, totalPrice: product_quantity * p.product_sale_price }
+          : p
+      )
+    );
+  };
+
+  const handleRemoveProduct = (id: string) => {
+    setSelectedProducts(prev => prev.filter(p => p.id !== id));
+    toast.success("Produit retiré");
+  };
+
+  const handleCreateSalePromise = async () => {
+    // MÊME LOGIQUE QUE VOTRE CODE ORIGINAL
+    if (!currentUserId || selectedProducts.length === 0 || !dueDate || !reminderDate) {
       toast.error("Veuillez remplir tous les champs obligatoires.");
       return;
     }
+
     const now = new Date();
     const maxDueDate = new Date();
     maxDueDate.setDate(now.getDate() + 30);
-    if(dueDate > maxDueDate){
+    
+    if (dueDate > maxDueDate) {
       toast.error("La date d'échéance ne peut pas dépasser 30 jours.");
       return;
     }
-     if (dueDate < now || reminderDate < now) {
-    toast.error("La date d'échéance et de rappel doivent être dans le futur.");
-    return;
+
+    if (dueDate < now || reminderDate < now) {
+      toast.error("La date d'échéance et de rappel doivent être dans le futur.");
+      return;
     }
+
     try {
-      const result = await createSale({
-        customerId: useTemporaryCustomer ? undefined : customerId!, // ceci passes 0 si pas de compte
-        userId: currentUserId ?? 0,
-        customerCreatorId: isParticulier ? customerId ?? undefined : undefined,
+      const result = await createSalePromise({
+        customerId: useTemporaryCustomer ? undefined : customerId!, // Même logique
+        userId: currentUserId ?? 0, // Même logique
+        customerCreatorId: isParticulier ? customerId ?? undefined : undefined, // Même logique
         items: selectedProducts.map(p => ({
           product_id: p.id,
           product_quantity: p.product_quantity,
@@ -197,234 +226,326 @@ const CreateSalePage = () => {
       toast.success("Promesse d'achat enregistrée avec succès");
       router.push(`/${institution}/salepromise/${result.id}`);
     } catch (error) {
-      console.log('Erreur création vente:', error);
+      console.log('Erreur création promesse:', error);
       toast.error("Échec de l'enregistrement");
     }
   };
 
+  const currentCustomer = customers.find(c => c.id === customerId);
+
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6">Nouvelle Promesse d'achat</h1>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        {/* Liste des produits */}
-        <div className="lg:col-span-3 bg-gray p-4 rounded-lg shadow">
-          <div className="mb-4">
-            <Input
-              type="text"
-              placeholder="Rechercher un produit..."
-              className="w-full p-2 border rounded"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-             {currentProducts.map(product => (
-            <div 
-               key={product.id} 
-               className="border p-3 rounded cursor-pointer hover:bg-gray-50 hover:text-red-700"
-               onClick={() => handleAddProduct(product)}
-            >
-            <h3 className="font-medium">{product.designation}</h3>
-            <p>Prix: {product.sellingPriceTTC} FCFA</p>
-            <p>Stock: {product.quantity}</p>
-            </div>
-           ))}
-          </div>
-          <div className="flex justify-center mt-4 space-x-2">
-  <button
-    disabled={currentPage === 1}
-    onClick={() => setCurrentPage(currentPage - 1)}
-    className="px-3 py-1 bg-blue-500 text-white-500 rounded disabled:opacity-50"
-  >
-    ← Précédent
-  </button>
 
-  {Array.from({ length: totalPages }, (_, i) => (
-    <button
-      key={i + 1}
-      onClick={() => setCurrentPage(i + 1)}
-      className={`px-3 py-1 rounded ${currentPage === i + 1 ? 'bg-blue-600 text-gray' : 'bg-gray-200'}`}
-    >
-      {i + 1}
-    </button>
-  ))}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Formulaire */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Formulaire Promesse d'achat</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Client */}
+            <div>
+              <Label>Client</Label>
+              {isParticulier && currentCustomer ? (
+                <div className="p-2 border rounded bg-gray-50">
+                  <p className="font-medium">{currentCustomer.name} - {currentCustomer.phone}</p>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center mb-2">
+                    <input
+                      type="checkbox"
+                      checked={useTemporaryCustomer}
+                      onChange={() => setUseTemporaryCustomer(!useTemporaryCustomer)}
+                      className="mr-2"
+                    />
+                    <Label className="text-sm">Le client n'est pas enregistré</Label>
+                  </div>
 
-  <button
-    disabled={currentPage === totalPages}
-    onClick={() => setCurrentPage(currentPage + 1)}
-    className="px-3 py-1 bg-blue-500 text-white-500 rounded disabled:opacity-10"
-  >
-    Suivant →
-  </button>
-</div>
-
-
-        </div>
-        
-        {/* Panier */}
-        <div className="lg:col-span-2 bg-gray p-4 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-4">Récapitulatif</h2>
-          
-          <div className="mb-4">
-  <label className="block mb-2">Client</label>
-
-  {isParticulier && currentCustomer ? (
-    <div className="p-2 border rounded ">
-      <p>{currentCustomer.name} - {currentCustomer.phone}</p>
-    </div>
-  ) : (
-    <>
-      <div className="flex items-center mb-2">
-        <input
-          type="checkbox"
-          checked={useTemporaryCustomer}
-          onChange={() => setUseTemporaryCustomer(!useTemporaryCustomer)}
-        />
-        <span className="ml-2">Le client n'est pas enregistré</span>
-      </div>
-
-      {useTemporaryCustomer ? (
-        <div className="space-y-2">
-          <Input
-            placeholder="Nom du client"
-            value={tempCustomer.customer_name}
-            onChange={(e) => setTempCustomer({ ...tempCustomer, customer_name: e.target.value })}
-          />
-          <Input
-            placeholder="Téléphone du client"
-            value={tempCustomer.customer_phone}
-            onChange={(e) => setTempCustomer({ ...tempCustomer, customer_phone: e.target.value })}
-          />
-          <Input
-            placeholder="Adresse du client"
-            value={tempCustomer.customer_address}
-            onChange={(e) => setTempCustomer({ ...tempCustomer, customer_address: e.target.value })}
-          />
-        </div>
-      ) : (
-        <select
-          className="w-full p-2 border rounded"
-          value={customerId || ''}
-          onChange={(e) => handleCustomerChange(Number(e.target.value))}
-        >
-          <option value="">Sélectionner un client</option>
-          {customers.map(customer => (
-            <option key={customer.id} value={customer.id}>
-              {customer.name} - {customer.phone}
-            </option>
-          ))}
-        </select>
-      )}
-    </>
-  )}
-</div>
-
-{/* Champ note */}
-<div className="mb-4">
-  <label className="block mb-2">Note</label>
-  <textarea
-    className="w-full p-2 border rounded"
-    value={note}
-    onChange={(e) => setNote(e.target.value)}
-  />
-</div>
-
-{/* Champ dates */}
-<div className="mb-4 grid grid-cols-2 gap-4">
-  <div>
-    <label className="block mb-2">Date d’échéance</label>
-    <Input
-      type="date"
-      value={dueDate ? dueDate.toISOString().split("T")[0] : ""}
-      onChange={(e) => setDueDate(new Date(e.target.value))}
-    />
-  </div>
-  <div>
-    <label className="block mb-2">Date de rappel</label>
-    <Input
-      type="date"
-      value={reminderDate ? reminderDate.toISOString().split("T")[0] : ""}
-      onChange={(e) => setReminderDate(new Date(e.target.value))}
-    />
-  </div>
-</div>
-          
-          <div className="mb-4">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-2">Produit</th>
-                  <th className="text-left py-2">Qté</th>
-                  <th className="text-left py-2">Prix</th>
-                  <th className="text-left py-2">Total</th>
-                  <th className="text-left py-2"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {selectedProducts.map(item => (
-                  <tr key={item.id} className="border-b">
-                    <td className="py-2">{item.designation}</td>
-                    <td className="py-2">
-                      <input
-                        type="number"
-                        min="1"
-                        value={item.product_quantity}
-                        onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value))}
-                        className="w-16 p-1 border rounded"
+                  {useTemporaryCustomer ? (
+                    <div className="space-y-2">
+                      <Input
+                        placeholder="Nom du client"
+                        value={tempCustomer.customer_name}
+                        onChange={(e) => setTempCustomer({ ...tempCustomer, customer_name: e.target.value })}
                       />
-                    </td>
-                    <td className="py-2">{item.product_sale_price} </td>
-                    <td className="py-2">{item.totalPrice} </td>
-                    <td className="py-2">
-                      <button 
-                        onClick={() => handleRemoveProduct(item.id)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        X
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          
-          <div className="space-y-3">
-            <div className="flex justify-between">
-              <span className="font-medium">Total:</span>
-              <span>{total_amount} FCFA</span>
+                      <Input
+                        placeholder="Téléphone du client"
+                        value={tempCustomer.customer_phone}
+                        onChange={(e) => setTempCustomer({ ...tempCustomer, customer_phone: e.target.value })}
+                      />
+                      <Input
+                        placeholder="Adresse du client"
+                        value={tempCustomer.customer_address}
+                        onChange={(e) => setTempCustomer({ ...tempCustomer, customer_address: e.target.value })}
+                      />
+                    </div>
+                  ) : (
+                    <Select value={customerId?.toString() || ""} onValueChange={val => setCustomerId(Number(val))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner un client" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {customers.map(c => (
+                          <SelectItem key={c.id} value={c.id.toString()}>
+                            {c.name} - {c.phone}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </>
+              )}
             </div>
-            
-            <div className="flex justify-between">
-              <label className="font-medium">Remise:</label>
+
+            {/* Dates */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label>Date d'échéance</Label>
+                <DatePicker
+                  label=""
+                  date={dueDate ?? undefined}
+                  onSelect={(date) => date && setDueDate(date)}
+                />
+              </div>
+              <div>
+                <Label>Date de rappel</Label>
+                <DatePicker
+                  label=""
+                  date={reminderDate ?? undefined}
+                  onSelect={(date) => date && setReminderDate(date)}
+                />
+              </div>
+            </div>
+
+            {/* Note */}
+            <div>
+              <Label>Note</Label>
+              <Textarea
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Notes supplémentaires..."
+              />
+            </div>
+
+            {/* Remise */}
+            <div>
+              <Label>Remise (FCFA)</Label>
               <Input
                 type="number"
                 min="0"
                 value={discount}
-                onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
-                className="w-24 p-1 border rounded text-right"
+                onChange={(e) => setDiscount(Number(e.target.value))}
+                placeholder="Montant de la remise"
               />
             </div>
-            
-            <div className="flex justify-between font-bold text-lg">
-              <span>Montant final:</span>
-              <span>{total_amount} FCFA</span>
+
+            {/* Recherche produit */}
+            <div className="space-y-3">
+              <Label>Rechercher un produit</Label>
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Tapez pour rechercher un produit..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8"
+                />
+              </div>
+
+              {/* Liste des produits filtrés UNIQUEMENT quand il y a une recherche */}
+              {searchTerm && filteredProducts.length > 0 && (
+                <div className="border rounded-md max-h-40 overflow-y-auto">
+                  {filteredProducts.map(product => (
+                    <div
+                      key={product.id}
+                      className={`p-2 cursor-pointer hover:bg-gray-50 ${
+                        product.quantity <= 0 ? "bg-gray-100 text-gray-400 cursor-not-allowed" : ""
+                      }`}
+                      onClick={() => product.quantity > 0 && setSelectedProduct(product.id)}
+                    >
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <span className="font-medium">{product.designation}</span>
+                        </div>
+                        <div className="text-right">
+                          <span>{product.sellingPriceTTC} F</span>
+                          <div className="text-xs text-gray-500">
+                            Stock: {product.quantity}
+                            {product.quantity <= 0 && <span className="text-red-500 ml-1">(Épuisé)</span>}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Message si aucun produit trouvé */}
+              {searchTerm && filteredProducts.length === 0 && (
+                <div className="text-center p-2 text-muted-foreground text-sm">
+                  Aucun produit trouvé
+                </div>
+              )}
+
+              {/* Sélection produit */}
+              <div className="flex items-end gap-2">
+                <div className="flex-1">
+                  <Label>Produit sélectionné</Label>
+                  <Input
+                    value={selectedProduct ? products.find(p => p.id === selectedProduct)?.designation || '' : ''}
+                    readOnly
+                    placeholder="Aucun produit sélectionné"
+                  />
+                </div>
+                <div>
+                  <Label>Stock</Label>
+                  <Input
+                    value={selectedProduct ? products.find(p => p.id === selectedProduct)?.quantity ?? 0 : 0}
+                    readOnly
+                    className="w-20 bg-gray-100"
+                  />
+                </div>
+                <div>
+                  <Label>Quantité</Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    value={quantity}
+                    onChange={(e) => setQuantity(Number(e.target.value))}
+                    className="w-20"
+                  />
+                </div>
+                <Button className="mt-6" onClick={handleAddProduct}>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Ajouter
+                </Button>
+              </div>
             </div>
-            
-            <button
-              onClick={handleCreateSale}
-              disabled={ selectedProducts.length === 0}
-              className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
+
+            {/* Tableau produits */}
+            <div className="mt-4">
+              {selectedProducts.length === 0 ? (
+                <p className="text-muted-foreground text-sm">Aucun produit ajouté</p>
+              ) : (
+                <table className="w-full text-left text-sm border">
+                  <thead className="bg-muted">
+                    <tr>
+                      <th className="p-2">Produit</th>
+                      <th className="p-2">Quantité</th>
+                      <th className="p-2">Prix Unitaire</th>
+                      <th className="p-2">Total</th>
+                      <th className="p-2">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {selectedProducts.map(item => (
+                      <tr key={item.id}>
+                        <td className="p-2">{item.designation}</td>
+                        <td className="p-2">
+                          <Input
+                            type="number"
+                            min="1"
+                            value={item.product_quantity}
+                            onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value))}
+                            className="w-16"
+                          />
+                        </td>
+                        <td className="p-2">{item.product_sale_price.toFixed(2)} F</td>
+                        <td className="p-2">{item.totalPrice.toFixed(2)} F</td>
+                        <td className="p-2">
+                          <Button variant="outline" size="sm" onClick={() => handleRemoveProduct(item.id)}>
+                            Supprimer
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+            {/* Totaux */}
+            <div className="mt-4 space-y-1 text-sm border-t pt-4">
+              <div className="flex justify-between">
+                <span>Sous-total:</span>
+                <span>{totalAmount.toFixed(2)} F</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Remise:</span>
+                <span>-{discount.toFixed(2)} F</span>
+              </div>
+              <div className="flex justify-between font-bold text-lg">
+                <span>Montant final:</span>
+                <span>{finalAmount.toFixed(2)} F</span>
+              </div>
+            </div>
+            {/* Bouton créer promesse */}
+            <Button
+              className="mt-4 w-full"
+              onClick={handleCreateSalePromise}
+              disabled={selectedProducts.length === 0} // Même condition que votre code original
             >
-              Ajouter une promesse d'achat
-            </button>
-          </div>
-        </div>
+              Créer la Promesse d'achat
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Aperçu Promesse */}
+        <Card className="bg-muted/10">
+          <CardHeader>
+            <CardTitle>Aperçu Promesse d'achat</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <div><strong>Client:</strong> {currentCustomer?.name || tempCustomer.customer_name || 'Non spécifié'}</div>
+              <div><strong>Téléphone:</strong> {currentCustomer?.phone || tempCustomer.customer_phone || 'Non spécifié'}</div>
+              <div><strong>Date d'échéance:</strong> {dueDate ? dueDate.toLocaleDateString() : 'Non définie'}</div>
+              <div><strong>Date de rappel:</strong> {reminderDate ? reminderDate.toLocaleDateString() : 'Non définie'}</div>
+              <div><strong>Note:</strong> {note || 'Aucune note'}</div>
+            </div>
+
+            <table className="w-full text-left text-sm border">
+              <thead className="bg-muted">
+                <tr>
+                  <th className="p-2">Produit</th>
+                  <th className="p-2">Quantité</th>
+                  <th className="p-2">PU</th>
+                  <th className="p-2">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {selectedProducts.map(item => (
+                  <tr key={item.id}>
+                    <td className="p-2">{item.designation}</td>
+                    <td className="p-2">{item.product_quantity}</td>
+                    <td className="p-2">{item.product_sale_price.toFixed(2)} F</td>
+                    <td className="p-2">{item.totalPrice.toFixed(2)} F</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            <div className="space-y-1 text-sm border-t pt-2">
+              <div className="flex justify-between">
+                <span>Sous-total:</span>
+                <span>{totalAmount.toFixed(2)} F</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Remise:</span>
+                <span>-{discount.toFixed(2)} F</span>
+              </div>
+              <div className="flex justify-between font-bold text-lg">
+                <span>Total:</span>
+                <span>{finalAmount.toFixed(2)} F</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
 };
 
-export default CreateSalePage;
+export default CreateSalePromisePage;

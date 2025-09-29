@@ -4,9 +4,7 @@ import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useRouter } from 'next/navigation';
-import {
-  ArrowLeft,  
-} from "lucide-react";
+import { ArrowBigLeft, ChevronLeft, StepBack } from "lucide-react";
 
 
 interface Permission {
@@ -158,8 +156,7 @@ export default function RolePermissionsPage() {
         onClick={handleGoBack}
         className="flex items-center gap-2 hover:bg-blue-500 transition-colors bg-blue-800 px-2 py-1 rounded"
       >
-        <ArrowLeft className="w-5 h-5" />
-        <span>Retour</span>
+       <ChevronLeft className="w-5 h-5" />
       </button>
       <h1 className="text-xl font-bold mb-4">Permissions du rôle {name}</h1>
       <div className="mb-6">

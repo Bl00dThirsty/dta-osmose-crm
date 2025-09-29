@@ -101,6 +101,7 @@ export default function ProductsChart({
     return entry;
   });
 
+  console.log( "liste des produits:",favoriteProductsByCustomer);
   return (
     <div className="grid gap-6 md:grid-cols-3">
       {/* PieChart Vente par produit */}

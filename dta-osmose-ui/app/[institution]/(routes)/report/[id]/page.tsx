@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import {
   Card, CardContent, CardFooter, CardHeader, CardTitle
 } from "@/components/ui/card";
-import { ArrowLeft } from "lucide-react";
+import { ArrowBigLeft, ChevronLeft,  } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -39,8 +39,7 @@ const ReportPage = () => {
             variant="outline"
             className="flex items-center gap-2"
           >
-         <ArrowLeft className="w-5 h-5" />
-            Retour
+         <ChevronLeft className="w-5 h-5" />
           </Button>
           <PrintreportSheet report={report} />
         </div>

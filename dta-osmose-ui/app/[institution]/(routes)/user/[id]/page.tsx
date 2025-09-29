@@ -21,9 +21,9 @@ import {
   ShieldCheck,
   HeartPulse,
   Contact,
-  ArrowLeft,
   DollarSignIcon,
-  User2
+  User2,
+  ChevronLeft
 } from "lucide-react";
 
 export default function DetailUserPage() {
@@ -48,13 +48,13 @@ export default function DetailUserPage() {
     router.back();
   };
   const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
-   const handleUpdate = async (updatedData: Partial<User>) => {
+   const handleUpdate = async (updatedData: Partial<User>): Promise<void> => {
     try {
       if (!user?.id) {
         throw new Error("ID utilisateur manquant");
       }
 
-      const response = await updateUser({
+      await updateUser({
         id: user.id,
         data: updatedData  // Correction ici pour matcher votre API
       }).unwrap();
@@ -62,8 +62,6 @@ export default function DetailUserPage() {
       toast.success("Utilisateur mis à jour avec succès");
       await refetch();
       setIsUpdateDialogOpen(false);
-      
-      return response;
     } catch (error: any) {
       console.error("Échec de la mise à jour:", error);
       const errorMessage = error.data?.message || 
@@ -106,7 +104,7 @@ export default function DetailUserPage() {
           </div>
           <div className="flex gap-2">
             <Button onClick={() => router.back()} variant="outline" className="bg- hover:bg-gray-100">
-              <ArrowLeft className="mr-2 h-4 w-4" /> Retour
+              <ChevronLeft className="mr-2 h-4 w-4" /> Retour
             </Button>
             <Button 
               onClick={() => setIsUpdateDialogOpen(true)} 
@@ -159,7 +157,15 @@ export default function DetailUserPage() {
                     label="Salaire Mensuelle" 
                     value={`${(user.salary ?? 0).toLocaleString('fr-FR')} F CFA`} 
                   />
-                 <InfoItem icon={Calendar} label="Date d'embauche" value={new Date(user.joinDate ).toLocaleDateString()} />
+                 <InfoItem
+                   icon={Calendar}
+                   label="Date d'embauche"
+                   value={
+                     user.joinDate
+                       ? new Date(user.joinDate).toLocaleDateString()
+                       : "Non renseigné"
+                   }
+                 />
                 </div>
               </div>
 
@@ -182,7 +188,6 @@ export default function DetailUserPage() {
           open={isUpdateDialogOpen}
           onOpenChange={setIsUpdateDialogOpen}
           onUpdate={handleUpdate}
-          isLoading={isUpdating}
         />
       )}
     </div>

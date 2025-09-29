@@ -75,7 +75,10 @@ const handleOpenUpdate = () => {
 };
 const handleUpdate = async () => {
   try {
-    await updateProduct({ id: productId, ...formData }).unwrap();
+    await updateProduct({
+      id: productId, ...formData,
+      institution: ""
+    }).unwrap();
     toast.success("Produit mis à jour avec succès");
     setOpenUpdate(false);
     setTimeout(() => {

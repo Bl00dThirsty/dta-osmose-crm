@@ -592,6 +592,49 @@ const favoriteProductsByCustomer = Object.entries(preferredByCustomer).map(([cus
 
 console.log(favoriteProductsByCustomer);
 
+// --------------------- PIPELINE COMMERCIAL ---------------------
+    const stages = [
+      "CAPTURED",
+      "CONTACTED",
+      "QUALIFIED",
+      "PROPOSAL_SENT",
+      "NEGOTIATION",
+      "CLOSED_WON",
+      "CLOSED_LOST",
+    ];
+
+    const now = new Date();
+    const currentMonthStart = startOfMonth(now);
+    const currentMonthEnd = endOfMonth(now);
+    const prevMonthStart = startOfMonth(subMonths(now, 1));
+    const prevMonthEnd = endOfMonth(subMonths(now, 1));
+
+    const pipeline = await Promise.all(
+      stages.map(async (stage) => {
+        const currentCount = await prisma.salePromise.count({
+          where: {
+            status: stage,
+            createdAt: { gte: currentMonthStart, lte: currentMonthEnd },
+          },
+        });
+        const prevCount = await prisma.salePromise.count({
+          where: {
+            status: stage,
+            createdAt: { gte: prevMonthStart, lte: prevMonthEnd },
+          },
+        });
+
+        let trend = 0;
+        if (prevCount > 0) trend = ((currentCount - prevCount) / prevCount) * 100;
+        else if (currentCount > 0) trend = 100;
+
+        return {
+          stage,
+          value: currentCount,
+          trend: parseFloat(trend.toFixed(1)),
+        };
+      })
+    );
 
 
     // ------------------ RÉPONSE ------------------
@@ -604,6 +647,7 @@ console.log(favoriteProductsByCustomer);
       topCustomers,
       favoriteProductsByCustomer,
       customers,
+      pipeline,
     });
   } catch (error) {
     console.error("Dashboard ventes error:", error);
