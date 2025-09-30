@@ -15,8 +15,9 @@ import {
   Grip,
   type LucideIcon,
 } from "lucide-react";
+import { useState, useEffect} from 'react';
 
-const id = typeof window !== 'undefined' ? localStorage.getItem('id') : null;
+//const id = typeof window !== 'undefined' ? localStorage.getItem('id') : null;
 
 export interface NavSubItem {
   title: string;
@@ -193,7 +194,11 @@ export const navUser: NavMainItem[] = [
 // ];
 
 export const getNavCustomer = (): NavMainItem[] => {
-  const id = typeof window !== "undefined" ? localStorage.getItem("id") : null;
+  const [Id, setId] = useState<string | null>(null);
+      useEffect(() => {
+          setId(localStorage.getItem('id'));
+      }, []);
+  const id = Id;
 
   return [
     {

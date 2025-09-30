@@ -4,7 +4,7 @@ import React from "react";
 import Container from "../../components/ui/Container";
 //import UserPage from "./table/page";
 import { redirect } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { columns } from "./columns"
 import { DataTable } from "./data-table"
@@ -13,13 +13,17 @@ import { useGetAllPromotionsQuery } from "@/state/api"
 const PromotionsPage = () => {
   const router = useRouter();
   const { institution } = useParams() as { institution: string }
-  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-
+  const [token, setToken] = useState<string | null>(null);
   useEffect(() => {
-    if (!token) {
-      router.push('/');
+      // Tout ce code ne s'exécute QUE côté client
+    const accessToken = localStorage.getItem('accessToken');
+    setToken(accessToken);
+  
+    if (!accessToken) {
+        router.push(`/${institution}/sign-in`);
     }
-  }, [token]);
+  }, [router, institution]); // token retiré des dépendances
+
 const { data: Allpromotions, isLoading, isError } = useGetAllPromotionsQuery({institution})
 
 if (isLoading) return <p>Chargement...</p>

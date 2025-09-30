@@ -120,7 +120,7 @@ function NotificationBell() {
       {/* Icône de cloche */}
       <button onClick={() => setShowNotifications(!showNotifications)}>
         <BellIcon className="w-6 h-6" />
-        {unreadNotifications.length >= 0 && (
+        {unreadNotifications.length > 0 && (
           <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-1">
             {unreadNotifications.length}
           </span>

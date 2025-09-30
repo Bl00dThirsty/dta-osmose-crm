@@ -45,7 +45,7 @@ export default function PromotionsPage() {
       <h1 className="text-3xl font-bold mb-6 text-center">🔥 Promotions en cours</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {promotions?.map((promo) => {
-          const discountPrice = (promo.product?.sellingPriceTTC ?? 0) * (1 - promo.discount / 100);
+          const discountPrice = (promo.product?.sellingPriceCFA ?? 0) * (1 - promo.discount / 100);
           return (
             <Card key={promo.id} className="relative shadow-lg rounded-2xl overflow-hidden">
               <Badge className="absolute top-8 left-3 bg-red-500">-{promo.discount}%</Badge>
@@ -82,7 +82,7 @@ export default function PromotionsPage() {
                 />
 
                 <div className="mt-4 text-center">
-                  <p className="line-through text-gray-500">{promo.product?.sellingPriceTTC.toFixed(2)} €</p>
+                  <p className="line-through text-gray-500">{promo.product?.sellingPriceCFA.toFixed(2)} €</p>
                   <p className="text-xl font-bold text-green-600">{discountPrice.toFixed(2)} €</p>
                 </div>
 

@@ -35,7 +35,7 @@ const CreatePromotion = () => {
 
    //  Récupérer le produit sélectionné
   const selectedProduct = products.find((p: any) => String(p.id) === productId);
-  const productPrice = selectedProduct?.sellingPriceTTC ?? 0;
+  const productPrice = selectedProduct?.sellingPriceCFA ?? 0;
 
   // Calcul du prix final avec remise
   const finalPrice = productPrice - (productPrice * discount) / 100;
@@ -103,7 +103,7 @@ const CreatePromotion = () => {
               <option value="">-- Sélectionner --</option>
               {products.map((p: any) => (
                 <option key={p.id} value={p.id}>
-                  {p.designation} ({p.sellingPriceTTC} FCFA)
+                  {p.designation} ({p.sellingPriceCFA} FCFA)
                 </option>
               ))}
             </select>

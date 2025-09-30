@@ -43,7 +43,7 @@ const CrmDashboardPage = () => {
     if (!token) router.push("/sign-in");
   }, [token]);
 
-  const { data: customersData } = useGetCustomersQuery();
+  const { data: customersData } = useGetCustomersQuery({ institution });
   const [customerId, setCustomerId] = useState<string | null>(null);
   const { data: dashboardData, isLoading, error } = useGetDashboardSalesQuery(
     {

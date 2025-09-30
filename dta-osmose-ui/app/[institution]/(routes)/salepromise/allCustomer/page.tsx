@@ -12,12 +12,17 @@ import { useGetSalePromiseByCustomerQuery } from '@/state/api';
 
 const SalesPage = () => {
   const router = useRouter();
-  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-  useEffect(() => {
-    if (!token) {
-      router.push('/');
-    }
-  }, [token]);
+  const { institution } = useParams() as { institution: string }
+  const [token, setToken] = useState<string | null>(null);
+    useEffect(() => {
+      // Tout ce code ne s'exécute QUE côté client
+      const accessToken = localStorage.getItem('accessToken');
+      setToken(accessToken);
+  
+      if (!accessToken) {
+        router.push(`/${institution}/sign-in`);
+      }
+    }, [router, institution]); // token retiré des dépendances
   const now = new Date();
   const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);

@@ -33,8 +33,9 @@ import {
   NavMainItem,
   NavSubItem,
 } from "@/navigation/sidebar/sidebar_items";
+import { useState, useEffect} from 'react';
 import { usePermissions } from "@/hooks/usePermissions";
-const id = typeof window !== 'undefined' ? localStorage.getItem('id') : null;
+
 const data = {
   user: {
     name: "john",
@@ -57,8 +58,10 @@ export function AppSidebar({
   const navCustomer = getNavCustomer(); 
   const pathname = usePathname();
 
-  const userType =
-    typeof window !== "undefined" ? localStorage.getItem("role") : null;
+  const [userType, setUserType] = useState<string | null>(null);
+      useEffect(() => {
+          setUserType(localStorage.getItem('role'));
+      }, []);
 
   const menuItems: NavMainItem[] =
     userType === "Particulier" ? navCustomer : navUser;

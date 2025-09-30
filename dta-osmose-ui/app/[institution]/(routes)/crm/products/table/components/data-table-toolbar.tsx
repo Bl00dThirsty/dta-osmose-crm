@@ -90,12 +90,15 @@ export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>)
     const selectedFile = e.target.files?.[0] ?? null
     setFile(selectedFile)
   }
- 
+ console.log(process.env.NEXT_PUBLIC_API_BASE_URL, institution)
 
 const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
   const file = event.target.files?.[0];
-  if (!file) return;
-
+   if (!file) {
+    toast.error("❌ Aucun fichier sélectionné");
+    return;
+  }
+   console.log("📁 Fichier sélectionné:", file.name, file.size, file.type);
   try {
     // Lire le fichier Excel
     const data = await file.arrayBuffer();
@@ -125,13 +128,15 @@ const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
       return;
     }
     console.log(jsonData); // brut depuis XLSX
+    
     // Envoi au backend
      // ou récupérer dynamiquement depuis l’URL
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/institutions/${institution}/products/import`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-      },
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+            'Content-Type': 'application/json'
+          },
       body: JSON.stringify({ products }),
     });
 
@@ -148,54 +153,7 @@ const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
   }
 };
 
-  // const handleCreateProduct = (productData: ProductFormData) => {
-  //   // Ensure institutionId is set
-  //   const dataWithInstitution = { ...productData, institutionId: institution };
-  //   createProduct({ data: dataWithInstitution, institution })
-  //     .unwrap()
-  //     .then(() => {
-  //       toast.success("Produit ajouté");
-  //     })
-  //     .catch((error: any) => {
-  //       console.error("Erreur lors de la création :", error?.data || error.message || error);
-  //       toast.error("Erreur lors de l'ajout d'un produit, essayez à nouveau");
-  //     });
-  // };
-
-
-
-  // const handleExport = () => {
-  //   const rows = table.getFilteredRowModel().rows
   
-  //   const exportData = rows.map(row => {
-  //     const original = row.original as any
-  //     return {
-  //       EANCode: original.EANCode,
-  //       brand: original.brand,
-  //       designation: original.designation,
-  //       quantity: original.quantity,
-  //       purchase_price: original.purchase_price,
-  //       sellingPriceTTC: original.sellingPriceTTC,
-  //       restockingThreshold: original.restockingThreshold,
-  //       warehouse: original.warehouse,
-  //     }
-  //   })
-  
-  //   const csv = Papa.unparse(exportData)
-  
-  //   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
-  //   const url = URL.createObjectURL(blob)
-  
-  //   const link = document.createElement("a")
-  //   link.href = url
-  //   link.setAttribute("download", "produits.csv")
-  //   document.body.appendChild(link)
-  //   link.click()
-  //   setTimeout(() => {
-  //     document.body.removeChild(link)
-  //     URL.revokeObjectURL(url)
-  //   }, 100)
-  // }
   const handleExport = () => {
    const rows = table.getFilteredRowModel().rows;
 
@@ -239,13 +197,19 @@ const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
           onChange={(e) => table.getColumn("designation")?.setFilterValue(e.target.value)}
           className="h-8 w-[150px] lg:w-[250px]"
         />
-        {table.getColumn("quantity") && (
+        <Input
+          placeholder="Rechercher par marque..."
+          value={(table.getColumn("brand")?.getFilterValue() as string) ?? ""}
+          onChange={(e) => table.getColumn("brand")?.setFilterValue(e.target.value)}
+          className="h-8 w-[150px] lg:w-[250px]"
+        />
+        {/* {table.getColumn("quantity") && (
           <DataTableFacetedFilter
             column={table.getColumn("quantity")}
             title="Quantité"
             options={quantityLevel}
           />
-        )}
+        )} */}
         {isFiltered && (
           <Button
             variant="ghost"
@@ -274,21 +238,25 @@ const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
                 <DialogHeader>
                   <DialogTitle>Importer un fichier Excel</DialogTitle>
                </DialogHeader>
-            {/* <Input type="file" accept=".xlsx,.xls" onChange={handleFileChange} /> */}
-            {/* <Button onClick={handleUpload} disabled={!file}>
-              Envoyer
-            </Button> */}
-            <Input
-              type="file"
-              accept=".xlsx, .xls"
-              onChange={handleUpload}
-            />
+                <div className="space-y-4">
+                  <Input
+                   type="file"
+                   accept=".xlsx, .xls"
+                   onChange={handleUpload}
+                   id="file-upload"
+                  />
+                   <Button 
+                    onClick={() => document.getElementById('file-upload')?.click()}
+                    variant="outline"
+                   >
+                     Sélectionner un fichier
+                   </Button>
+                </div>
           </DialogContent>
           </UserPrivateComponent>
         </Dialog>
         <Button variant="outline" className="px-2 lg:px-3" onClick={handleExport}>
            Exporter Excel
-
         </Button>
         <DataTableViewOptions table={table} />
       </div>

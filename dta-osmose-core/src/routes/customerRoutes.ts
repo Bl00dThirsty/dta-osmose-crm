@@ -4,10 +4,10 @@ import { getCustomers, createCustomer, getSingleCustomer, sendTokenResetPassword
 import authorize from "../authorize";
 const router = Router();
 
-router.get("/", ...authorize("readAll-customer"), getCustomers);
+router.get("/:institution", ...authorize("readAll-customer"), getCustomers);
 router.post("/:institution/sendTokenResetPassword", sendTokenResetPassword);
 router.post("/:institution/resetPassword", resetPassword);
-router.post("/", createCustomer);
+router.post("/:institution", createCustomer);
 router.get("/:id", ...authorize("view-Customer"), getSingleCustomer);
 router.put("/:id", ...authorize("update-customer"), updateSingleCustomer)
 router.delete("/:id", ...authorize("delete-customer"), deleteSingleCustomer)

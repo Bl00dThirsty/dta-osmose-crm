@@ -14,20 +14,28 @@ import { useGetReportQuery, useGetReportByStaffQuery } from '@/state/api';
 
 const ReportsPage = () => {
   const router = useRouter();
-  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
   const { institution } = useParams() as { institution: string }
-  useEffect(() => {
-    if (!token) {
-      router.push('/');
-    }
-  }, [token]);
+  const [token, setToken] = useState<string | null>(null);
+    useEffect(() => {
+      // Tout ce code ne s'exécute QUE côté client
+      const accessToken = localStorage.getItem('accessToken');
+      setToken(accessToken);
+  
+      if (!accessToken) {
+        router.push(`/${institution}/sign-in`);
+      }
+    }, [router, institution]); // token retiré des dépendances
   const now = new Date();
   const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
   const [startDate, setStartDate] = useState<string>(firstDayOfMonth.toISOString().split("T")[0]);
   const [endDate, setEndDate] = useState<string>(lastDayOfMonth.toISOString().split("T")[0]);
-  const userRole = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+    useEffect(() => {
+      setUserRole(localStorage.getItem('role'));
+    }, []);
   const isStaff = userRole === "staff";
 
 const { data: report, isLoading, isError } = useGetReportQuery({ institution, startDate, endDate })

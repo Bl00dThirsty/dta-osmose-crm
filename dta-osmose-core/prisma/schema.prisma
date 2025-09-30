@@ -235,6 +235,8 @@ model product {
   restockingThreshold          Int
   sellingPriceTTC              Float
   purchase_price               Float
+  sellingPriceCFA     Float   @default(0)       // Prix en FCFA
+  purchasePriceCFA    Float   @default(0)       // Prix en FCFA
   warehouse                    String
   created_at                   DateTime       @default(now())
   updated_at                   DateTime       @default(now())

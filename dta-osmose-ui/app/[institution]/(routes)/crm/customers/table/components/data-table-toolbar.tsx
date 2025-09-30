@@ -2,8 +2,6 @@
 
 import { Table } from "@tanstack/react-table"
 import { X, Upload } from "lucide-react"
-
-
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DataTableViewOptions } from "@/app/[institution]/(routes)/crm/products/table/components/data-table-view-options"
@@ -12,9 +10,10 @@ import { quantityLevel, statuses } from "@/app/[institution]/(routes)/crm/produc
 import { DataTableFacetedFilter } from "./data-table-faceted-filter"
 import { AddCustomerDialog } from "../../../components/AddCustomer"
 import { NewProduct, useCreateCustomersMutation } from "@/state/api"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+
 import Papa from "papaparse"
 import { useState } from "react"
+import { useParams } from "next/navigation"
 
 type CustomerFormData = {
   customId: string;
@@ -27,6 +26,7 @@ type CustomerFormData = {
   ville?: string;
   website: string;
   status?: boolean;
+  institution?: string;
   type_customer?: string;
   role: string;
   quarter?: string;
@@ -40,17 +40,39 @@ export function DataTableToolbar<TData>({
   table,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
+  const { institution } = useParams() as { institution: string };
 
   const handleCreateProduct = async (customerData: CustomerFormData) => {
-    await createCustomer(customerData);
+      await createCustomer({
+    newCustomer: customerData,
+    institution: institution 
+  });
   }
-  const { data: customer } = useGetCustomersQuery()
+  const { data: customer } = useGetCustomersQuery({ institution })
   const [file, setFile] = useState<File | null>(null)
   const [createCustomer] = useCreateCustomersMutation()
-  const regions = Array.from(new Set(customer?.map((c:any) => c.region).filter(Boolean))) ?? ["Littoral", "Centre", "Nord-Ouest", "Ouest", "Est", "Sud-OUest", "Adamaoua", "Extreme-Nord", "Nord", "Sud"];
-  const villes = Array.from(new Set(customer?.map((c:any) => c.ville).filter(Boolean))) ?? ["Douala", "Yaoundé", "Bafoussam", "Bertoua", "Dschang", "Mbalmayo","Buea","Maroua","Garoua","Ngaoundere","..."];
-  
-   
+function normalizeText(text: string) {
+  return text
+    .trim()
+    .toLowerCase()
+    .normalize("NFD") // décompose les lettres accentuées (é → e +  ́ )
+    .replace(/[\u0300-\u036f]/g, ""); // supprime les diacritiques
+}
+
+const regions = Array.from(
+  new Set(customer?.map((c: any) => normalizeText(c.region ?? "")).filter(Boolean))
+).map((r) => r.charAt(0).toUpperCase() + r.slice(1)) ?? [
+  "Littoral", "Centre", "Nord-Ouest", "Ouest", "Est", 
+  "Sud-Ouest", "Adamaoua", "Extrême-Nord", "Nord", "Sud"
+];
+
+const villes = Array.from(
+  new Set(customer?.map((c: any) => normalizeText(c.ville ?? "")).filter(Boolean))
+).map((v) => v.charAt(0).toUpperCase() + v.slice(1)) ?? [
+  "Douala", "Yaoundé", "Bafoussam", "Bertoua", "Dschang", 
+  "Mbalmayo","Buea","Maroua","Garoua","Ngaoundere","..."
+];
+
   
   return (
     <div className="flex items-center justify-between">

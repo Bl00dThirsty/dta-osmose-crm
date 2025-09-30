@@ -108,11 +108,11 @@ export const columns: ColumnDef<Claim>[] = [
       const getStatusConfig = (status: typeof response) => {
         switch (status) {
           case 'ACCEPTED':
-            return { className: 'bg-green-500', label: 'ACCEPTÉ' };
+            return { className: 'bg-green-400 text-green-800', label: 'ACCEPTÉ' };
           case 'REJECTED':
-            return { className: 'bg-red-500', label: 'REJETÉ' };
+            return { className: 'bg-red-400 text-red-800', label: 'REJETÉ' };
           default:
-            return { className: 'bg-yellow-500', label: 'EN ATTENTE' };
+            return { className: 'bg-yellow-400 text-yellow-800', label: 'EN ATTENTE' };
         }
       };
       
@@ -120,9 +120,9 @@ export const columns: ColumnDef<Claim>[] = [
   
       return (
         <Button
-          className={`px-2 py-1 rounded text-white ${className}`}
-          size="sm"
-          variant="outline"
+          className={`px-2 py-1 rounded ${className} !important`}
+          //className={`px-2 py-1 rounded ml-2 ${response === 'ACCEPTED' ? 'bg-green-500 text-green-800' : response === 'REJECTED' ? 'bg-red-500 text-red-800' : 'bg-yellow-500 text-yellow-800'}`}
+          size="sm"          
         >
           {label}
         </Button>

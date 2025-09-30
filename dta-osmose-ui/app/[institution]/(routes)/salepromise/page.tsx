@@ -18,6 +18,7 @@ export interface Product {
   designation: string;
   sellingPriceTTC: number;
   quantity: number;
+  sellingPriceCFA: number;
 }
 export interface salePromiseProduct{
   id: number;
@@ -62,13 +63,22 @@ const CreateSalePage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const { institution } = useParams() as { institution: string }
   const { data: products = [], isLoading } = useGetProductsQuery({ institution });
-  const { data: customers = [] } = useGetCustomersQuery();
+  const { data: customers = [] } = useGetCustomersQuery({ institution });
   const { data: users= [] } = useGetUsersQuery();
   const user = users[0];
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
-  const userRole = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    setUserRole(localStorage.getItem('role'));
+  }, []);
   const isParticulier = userRole === "Particulier";
-  const userId = typeof window !== 'undefined' ? localStorage.getItem('id') : null;
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setUserId(localStorage.getItem('id'));
+  }, []);
+  
 
   useEffect(() => {
     // Accéder à localStorage uniquement côté client
@@ -125,8 +135,8 @@ const CreateSalePage = () => {
           id: product.id,
           designation: product.designation,
           product_quantity: 1,
-          product_sale_price: product.sellingPriceTTC,
-          totalPrice: product.sellingPriceTTC
+          product_sale_price: product.sellingPriceCFA,
+          totalPrice: product.sellingPriceCFA
         }
       ];
     });
@@ -227,7 +237,7 @@ const CreateSalePage = () => {
                onClick={() => handleAddProduct(product)}
             >
             <h3 className="font-medium">{product.designation}</h3>
-            <p>Prix: {product.sellingPriceTTC} FCFA</p>
+            <p>Prix: {product.sellingPriceCFA} FCFA</p>
             <p>Stock: {product.quantity}</p>
             </div>
            ))}
