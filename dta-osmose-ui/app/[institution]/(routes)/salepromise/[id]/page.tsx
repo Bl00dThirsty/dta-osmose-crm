@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useParams } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowBigLeft, ArrowLeft, ChevronLeft, StepBack } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useGetSalePromiseByIdQuery, useDeleteSalePromiseMutation } from "@/state/api";
 import { Button } from "@/components/ui/button";
@@ -65,13 +65,12 @@ const SalepromisePage = () => {
     <div className="container mx-auto p-4 max-w-4xl border">
       {/* Bouton retour */}
       <div className="mb-4">
-        <Button
+        <Button 
           onClick={handleGoBack}
           variant="outline"
           className="flex items-center gap-2"
         >
-          <ArrowLeft className="w-5 h-5" />
-          Retour
+          <ChevronLeft className="w-5 h-5" />
         </Button>
       </div>
 

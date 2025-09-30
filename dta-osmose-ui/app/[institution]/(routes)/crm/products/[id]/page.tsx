@@ -6,7 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
+  ArrowBigLeft,
   ArrowLeft,
+  ChevronLeft,
+ 
 } from "lucide-react";
 
 export default function DetailUserPage() {
@@ -32,8 +35,13 @@ export default function DetailUserPage() {
   );
 
 
-  const { id } = useParams();
-  const { data: product, isLoading, error } = useGetProductByIdQuery(id as string);
+  const { institution,id } = useParams()as { institution: string; id: string };
+
+  const { data: product, isLoading, error } = useGetProductByIdQuery({
+    institution,
+    id: id as string,
+  });
+
 
   const handleGoBack = () => {
     router.back();
@@ -68,8 +76,8 @@ export default function DetailUserPage() {
             onClick={handleGoBack}
             className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
           >
-            <ArrowLeft className="w-5 h-5" />
-            <span>Retour</span>
+            <ChevronLeft className="w-5 h-5" />
+            
           </button>
         </div>
         

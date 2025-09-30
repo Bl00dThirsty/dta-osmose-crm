@@ -32,7 +32,7 @@ import { useIsMobile } from "@/hooks/use-mobile"
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
 import { fr } from "date-fns/locale";
-const chartConfig = {
+export const chartConfig = {
   "Nombre vente": {
     label: "Nombre vente",
     color: "var(--primary)",

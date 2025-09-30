@@ -14,7 +14,7 @@ import { Customer } from "@/state/api"
 import Link from "next/link";
 import * as XLSX from 'xlsx';
 import UserPrivateComponent from "../../../components/usePrivateComponent";
-
+import { ChevronLeft } from "lucide-react";
 
 
 export default function DetailCustomerPage() {
@@ -75,29 +75,19 @@ export default function DetailCustomerPage() {
 
 
   // Gestion de la mise à jour
-  const handleUpdate = async (updatedData: Partial<Customer>) => {
+  const handleUpdate = async (updatedData: Partial<Customer>): Promise<void> => {
     try {
-      if (!customer?.id) {
-        throw new Error("ID client manquant");
-      }
+      if (!customer?.id) throw new Error("ID client manquant");
 
-      const response = await updateCustomer({
-        id: customer.id,
-        data: updatedData  // Correction ici pour matcher votre API
-      }).unwrap();
+      await updateCustomer({ id: customer.id, data: updatedData }).unwrap();
 
       toast.success("Client mis à jour avec succès");
       await refetch();
       setIsUpdateDialogOpen(false);
-      
-      return response;
     } catch (error: any) {
       console.error("Échec de la mise à jour:", error);
-      const errorMessage = error.data?.message || 
-                         error.message || 
-                         "Erreur lors de la mise à jour";
+      const errorMessage = error.data?.message || error.message || "Erreur lors de la mise à jour";
       toast.error(`Échec: ${errorMessage}`);
-      throw error;
     }
   };
   const exportToExcel = () => {
@@ -149,7 +139,7 @@ export default function DetailCustomerPage() {
             variant="outline"
             className="bg-blue-600 text-white hover:bg-blue-700"
           >
-            ← Retour
+            <ChevronLeft className="w-5 h-5" />
           </Button>
           <UserPrivateComponent permission="update-user">
           <Button 

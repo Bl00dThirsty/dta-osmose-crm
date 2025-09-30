@@ -19,7 +19,9 @@ import {
 import { toast } from "react-toastify";
 import { useState } from "react"
 import {
-    ArrowLeft,
+  ArrowBigLeft,
+  ChevronLeft,
+   
     
   } from "lucide-react";
 import { useEffect } from "react";
@@ -124,11 +126,11 @@ const ClaimPage = () => {
           onClick={handleGoBack}
           className="flex items-center gap-2 text-white-600 hover:bg-blue-500 transition-colors bg-blue-800 px-2 py-1 rounded"
         >
-          <ArrowLeft className="w-5 h-5" />
-          <span>Retour</span>
+          <ChevronLeft className="w-5 h-5" />
+          
         </button>
       </div>
-
+  
       
      <div className="flex flex-col ">
       <section className="overflow-hidden rounded-[0.5rem] border bg-background shadow-zinc-50">

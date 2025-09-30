@@ -8,7 +8,8 @@ import { useGetSaleByIdQuery, useUpdateSalePaymentMutation } from '@/state/api';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
-  ArrowLeft,
+  ChevronLeft,
+ 
 } from "lucide-react";
 import { toast } from 'react-toastify';
 
@@ -170,7 +171,7 @@ const handleMontantDonneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
           onClick={handleGoBack}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-800 transition"
         >
-          ← Retour
+          <ChevronLeft className="w-5 h-5" />
         </button>
       </div>
     <div className="max-w-4xl mx-auto p-4 border-5">

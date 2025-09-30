@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation';
 import { columns } from "./columns"
 import { DataTable } from "./data-table"
 import { useGetReportQuery, useGetReportByStaffQuery } from '@/state/api';
+import { DatePicker } from "../../crm/dashboard/_components/date-picker";
 
 const ReportsPage = () => {
   const router = useRouter();
@@ -57,18 +58,8 @@ if (isError) return <p>Vous n'avez pas accès à ces informations. Erreur lors d
       <div>
   
         <div className="flex space-x-4">
-          <input
-            type="date"
-            value={startDate || ""}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="border-5 p-2 rounded"
-          />
-          <input
-            type="date"
-            value={endDate || ""}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="border-5 p-2 rounded"
-          />
+          <DatePicker label="" date={new Date(startDate)} onSelect={(d) => d && setStartDate(d.toISOString().split("T")[0])} />
+         <DatePicker label="" date={new Date(endDate)} onSelect={(d) => d && setEndDate(d.toISOString().split("T")[0])} />
         </div>
         
       </div>

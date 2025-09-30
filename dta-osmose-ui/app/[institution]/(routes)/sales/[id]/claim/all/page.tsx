@@ -10,7 +10,7 @@ import { columns } from "./columns"
 import { DataTable } from "./data-table"
 import { useGetSaleByIdQuery } from "@/state/api"
 import {
-  ArrowLeft,
+  ChevronLeft
   
 } from "lucide-react";
 
@@ -49,8 +49,7 @@ if (isLoading) return <p>Chargement...</p>
                 onClick={handleGoBack}
                 className="flex items-center gap-2 text-white-600 hover:bg-blue-500 transition-colors bg-blue-800 px-2 py-1 rounded"
               >
-                <ArrowLeft className="w-5 h-5" />
-                <span>Retour</span>
+                <ChevronLeft className="w-5 h-5" />
               </button>
             </div>
     <div className="h-full w-full overflow-x-auto">

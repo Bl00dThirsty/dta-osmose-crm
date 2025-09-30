@@ -8,6 +8,7 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import PrintInventorySheet from "./pdfImprim"
+import {  ChevronLeft } from "lucide-react";
 
 export default function DetailInventoryPage() {
   const [isMounted, setIsMounted] = useState(false);
@@ -103,7 +104,7 @@ export default function DetailInventoryPage() {
       <Card className="max-w-4xl mx-auto mt-6 shadow">
         <div className="flex justify-between items-center p-4">
           <Button onClick={() => router.back()} variant="outline" className="bg-blue-600 text-white">
-            ← Retour
+           <ChevronLeft className="w-5 h-5" />
           </Button>
           <Button 
             onClick={() => router.push(`/${institution}/inventory/update/${id}`)}

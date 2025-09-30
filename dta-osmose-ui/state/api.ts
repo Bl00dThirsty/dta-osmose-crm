@@ -1,4 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { ReactNode } from "react";
 import { toast } from "react-toastify";
 
 export interface Product {
@@ -488,6 +489,7 @@ export type MetricItem = {
   amount?: number;
 };
 export interface DashboardMetrics {
+  settings: any;
   salesByCity: { ville: string; montant: number; nombreVentes: number; }[];
   saleProfitCount: { type: string; amount?: number }[];
   formattedData3: { type: string; count?: number }[];
@@ -529,7 +531,14 @@ chartData?: {
     totalAvailableCredit?: number;
   };
 }
+
+export interface PipelineStage {
+  stage: string;
+  value: number;
+  trend: number;
+}
  export interface DashboardSales {
+  length: any;
   favoriteProductsByCustomer: any;
   topCustomers: any;
   topProducts: any;
@@ -563,6 +572,7 @@ chartData?: {
     id: string;
     name: string;
   }>;
+  pipeline?: PipelineStage[];
 }
 
 export const api = createApi({
@@ -964,6 +974,7 @@ export const api = createApi({
           }),
           invalidatesTags: ['DashboardSales','Sales', 'Products', 'SalePromise']
         }),
+
 
         /* Vérifie si un client a des dettes en cours (statut de solde) */
         getCustomerDebtStatus: build.query<{ hasDebt: boolean}, {customerId: number, institution: string}>({
