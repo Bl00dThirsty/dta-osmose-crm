@@ -4,7 +4,7 @@ import { useParams } from "next/navigation";
 import { useGetProductByIdQuery } from "@/state/api"; 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ArrowBigLeft,
   ArrowLeft,
@@ -14,7 +14,18 @@ import {
 
 export default function DetailUserPage() {
   const router = useRouter();
-  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+
+  const { institution } = useParams() as { institution: string }
+  const [token, setToken] = useState<string | null>(null);
+    useEffect(() => {
+      // Tout ce code ne s'exécute QUE côté client
+      const accessToken = localStorage.getItem('accessToken');
+      setToken(accessToken);
+  
+      if (!accessToken) {
+        router.push(`/${institution}/sign-in`);
+      }
+    }, [router, institution]); // token retiré des dépendances
 
   const InfoItem = ({ label, value, values }: { label: string; value?: string | null; values?: number }) => (
     <div className="flex">
@@ -23,11 +34,6 @@ export default function DetailUserPage() {
     </div>
   );
 
-  useEffect(() => {
-    if (!token) {
-      router.push('/');
-    }
-  }, [token, router]);
 
   const { institution,id } = useParams()as { institution: string; id: string };
 
@@ -50,8 +56,8 @@ export default function DetailUserPage() {
   const currentPromo = hasPromo ? activePromos[0] : null; // Prendre la première promo active
   const discountPercentage = currentPromo ? currentPromo.discount : 0;
   const reducedPrice = hasPromo 
-    ? product.sellingPriceTTC - (product.sellingPriceTTC * discountPercentage / 100)
-    : product.sellingPriceTTC;
+    ? product.sellingPriceCFA - (product.sellingPriceCFA * discountPercentage / 100)
+    : product.sellingPriceCFA;
 
   return (
     <div className="max-w-4xl mx-auto mt-6">
@@ -110,14 +116,14 @@ export default function DetailUserPage() {
                   {hasPromo ? (
                     <div className="flex items-center gap-3">
                       <span className="text-gray-600">Prix de Vente :</span>
-                      <span className="line-through text-red-500">{product.sellingPriceTTC} FCFA</span>
+                      <span className="line-through text-red-500">{product.sellingPriceCFA} FCFA</span>
                       <span className="font-bold text-green-600">{reducedPrice.toFixed(2)} FCFA</span>
                     </div>
                   ) : (
-                    <InfoItem label="Prix de vente" values={product.sellingPriceTTC} />
+                    <InfoItem label="Prix de vente" values={product.sellingPriceCFA} />
                   )}
 
-                  <InfoItem label="Prix d'achat" values={product.purchase_price} />
+                  <InfoItem label="Prix d'achat" values={product.purchasePriceCFA} />
                   <InfoItem label="Entrepôt" value={product.warehouse} />
                 </div>
               </div>

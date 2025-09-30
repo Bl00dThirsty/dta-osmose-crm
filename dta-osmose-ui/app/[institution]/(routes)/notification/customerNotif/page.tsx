@@ -14,13 +14,23 @@ import { useGetCustomerNotificationsQuery } from "@/state/api";
 const NotificationAdmin = () => {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+  const { institution } = useParams() as { institution: string }
+  const [token, setToken] = useState<string | null>(null);
+    useEffect(() => {
+      // Tout ce code ne s'exécute QUE côté client
+      const accessToken = localStorage.getItem('accessToken');
+      setToken(accessToken);
+  
+      if (!accessToken) {
+        router.push(`/${institution}/sign-in`);
+      }
+    }, [router, institution]); // token retiré des dépendances
 
-  useEffect(() => {
-    if (!token) {
-      router.push('/');
-    }
-  }, [token]);
+  // useEffect(() => {
+  //   if (!token) {
+  //     router.push('/');
+  //   }
+  // }, [token]);
 
   const { data: NotificationCustomer, isLoading, isError } = useGetCustomerNotificationsQuery();
 

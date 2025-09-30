@@ -15,13 +15,18 @@ import { DatePicker } from "../../crm/dashboard/_components/date-picker";
 
 const ClaimsPage = () => {
   const router = useRouter();
-  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
   const { institution } = useParams() as { institution: string }
+
+  //Redirection si pas d'authentification
+  const [token, setToken] = useState<string | null>(null);
   useEffect(() => {
-    if (!token) {
-      router.push('/');
+    const accessToken = localStorage.getItem('accessToken');
+    setToken(accessToken);
+    if (!accessToken) {
+      router.push(`/${institution}/sign-in`);
     }
-  }, [token]);
+  }, [router, institution]); 
+
   const now = new Date();
   const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);

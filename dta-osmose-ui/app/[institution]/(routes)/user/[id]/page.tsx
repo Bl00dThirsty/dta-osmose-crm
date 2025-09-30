@@ -28,19 +28,19 @@ import {
 
 export default function DetailUserPage() {
   const router = useRouter();
-  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-  // const InfoItem = ({ label, value }: { label: string; value?: string | null }) => (
-  //   <div className="flex">
-  //     <span className="font-medium text-gray-600 w-40 flex-shrink-0">{label} :</span>
-  //     <span className="text-gray-800">{value || 'Non renseigné'}</span>
-  //   </div>
-  // );
+  const { institution } = useParams() as { institution: string }
+    const [token, setToken] = useState<string | null>(null);
+      useEffect(() => {
+          // Tout ce code ne s'exécute QUE côté client
+        const accessToken = localStorage.getItem('accessToken');
+        setToken(accessToken);
+      
+        if (!accessToken) {
+            router.push(`/${institution}/sign-in`);
+        }
+    }, [router, institution]);
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
-  useEffect(() => {
-    if (!token) {
-      router.push('/');
-    }
-  }, [token]);
+  
   const { id } = useParams();
   const { data: user, isLoading, error, refetch } = useGetUserByIdQuery(id as string);
 

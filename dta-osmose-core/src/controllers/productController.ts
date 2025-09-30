@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
 import { PrismaClient, Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from 'uuid';
+import { toTwoDecimals } from "../utils/round";
 //import { z } from 'zod';
 
 const prisma = new PrismaClient();
-
+const EURO_TO_CFA = 655.957;
 
 
 export const getProducts = async (req: Request, res: Response): Promise<void> => {
@@ -26,6 +27,7 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
+    // Récupération initiale
     const products = await prisma.product.findMany({
       where: {
         institutionId: institution.id,
@@ -36,17 +38,35 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
           },
         }),
       },
-      include: {
-        Promotion: true, 
-      },
+      include: { Promotion: true },
     });
 
-    res.json(products);
+    //Mise à jour en parallèle
+    await Promise.all(
+      products.map((product) =>
+        prisma.product.update({
+          where: { id: product.id },
+          data: {
+            sellingPriceCFA: toTwoDecimals(product.sellingPriceTTC * EURO_TO_CFA),
+            purchasePriceCFA: toTwoDecimals(product.purchase_price * EURO_TO_CFA),
+          },
+        })
+      )
+    );
+
+    // Renvoyer les produits mis à jour
+    const updatedProducts = await prisma.product.findMany({
+      where: { institutionId: institution.id },
+      include: { Promotion: true },
+    });
+
+    res.json(updatedProducts);
   } catch (error: any) {
     console.error("Erreur lors de la recherche des produits :", error.stack || error.message);
     res.status(500).json({ message: "Erreur lors de la recherche des produits." });
   }
 };
+
 
 export const createProduct = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -91,6 +111,8 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
         institution: {
           connect: { id: institution.id },
         },
+        sellingPriceCFA: toTwoDecimals(sellingPriceTTC * EURO_TO_CFA), // conversion
+        purchasePriceCFA: toTwoDecimals(purchase_price * EURO_TO_CFA),
       },
     });
 
@@ -218,6 +240,8 @@ export const importProducts = async (req: Request, res: Response): Promise<void>
             restockingThreshold,
             warehouse,
             institutionId: institution.id,
+            sellingPriceCFA: toTwoDecimals(sellingPriceTTC * EURO_TO_CFA), // conversion
+            purchasePriceCFA: toTwoDecimals(purchase_price * EURO_TO_CFA), 
           },
           create: {
             id: uuidv4(),
@@ -230,6 +254,8 @@ export const importProducts = async (req: Request, res: Response): Promise<void>
             restockingThreshold,
             warehouse,
             institutionId: institution.id,
+            sellingPriceCFA: toTwoDecimals(sellingPriceTTC * EURO_TO_CFA), // conversion
+            purchasePriceCFA: toTwoDecimals(purchase_price * EURO_TO_CFA), // conversion
           },
         });
 
@@ -306,6 +332,14 @@ export const updateSingleProduct = async (req: Request, res: Response): Promise<
       restockingThreshold: req.body.restockingThreshold,
       warehouse: req.body.warehouse,
     };
+
+    // Recalcule uniquement si les prix sont fournis
+    if (req.body.sellingPriceTTC !== undefined) {
+       updateData.sellingPriceCFA = toTwoDecimals(req.body.sellingPriceTTC * EURO_TO_CFA);
+    }
+    if (req.body.purchase_price !== undefined) {
+      updateData.purchasePriceCFA = toTwoDecimals(req.body.purchase_price * EURO_TO_CFA);
+    }
 
     const updateProduct = await prisma.product.update({
       where: { id },

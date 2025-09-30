@@ -14,7 +14,12 @@ const socket = io(process.env.NEXT_PUBLIC_API_BASE_URL, {
 const NotificationContext = createContext<any>(null);
 
 export const NotificationProvider = ({ children }: { children: React.ReactNode }) => {
-  const userType = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
+  //Solution : Utiliser useEffect pour le code côté client uniquement
+const [userRole, setUserRole] = useState<string | null>(null);
+
+useEffect(() => {
+  setUserRole(localStorage.getItem('role'));
+}, []);
   
   const { user, loading, clearError } = useAuth(); // adapt to your auth structure
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -33,7 +38,7 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
     const role = localStorage.getItem('role');
     console.log("role", role)
     //user.userType ou userType
-    if ((userType === "admin") || (userType === "manager")) {
+    if ((userRole === "admin") || (userRole === "manager")) {
       socket.emit("identify", { userId: user.id });
       console.log(`user ${user.id} is identifying`);
       socket.on("user-notification", (notification) => {

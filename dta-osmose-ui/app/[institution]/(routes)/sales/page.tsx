@@ -18,6 +18,7 @@ export interface Product {
   id: string;
   designation: string;
   sellingPriceTTC: number;
+  sellingPriceCFA: number;
   quantity: number;
 }
 export interface SaleItemCreateInput {
@@ -47,6 +48,7 @@ const CreateSalePage = () => {
     unitPrice: number;
     totalPrice: number;
   }>>([]);
+  const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 8;
   const indexOfLastProduct = currentPage * productsPerPage;
@@ -57,13 +59,33 @@ const CreateSalePage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const { institution } = useParams() as { institution: string }
   const { data: products = [], isLoading } = useGetProductsQuery({ institution });
-  const { data: customers = [] } = useGetCustomersQuery();
+  const { data: customers = [] } = useGetCustomersQuery({ institution });
   const { data: users= [] } = useGetUsersQuery();
   const user = users[0];
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
-  const userRole = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
+  const [token, setToken] = useState<string | null>(null);
+    useEffect(() => {
+        // Tout ce code ne s'exécute QUE côté client
+      const accessToken = localStorage.getItem('accessToken');
+      setToken(accessToken);
+    
+      if (!accessToken) {
+        router.push(`/${institution}/sign-in`);
+       }
+    }, [router, institution]);
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    setUserRole(localStorage.getItem('role'));
+  }, []);
+
   const isParticulier = userRole === "Particulier";
-  const userId = typeof window !== 'undefined' ? localStorage.getItem('id') : null;
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setUserId(localStorage.getItem('id'));
+  }, []);
+
   const salePromiseId = params?.get("salePromiseId");
   const { data: salePromise } = useGetSalePromiseByIdQuery(Number(salePromiseId), {
     skip: !salePromiseId,
@@ -102,7 +124,7 @@ const getPromoForProduct = (productId: string) => {
   };
 
   const [createSale] = useCreateSaleMutation();
-  const router = useRouter();
+  // const router = useRouter();
 
   const filteredProducts = products.filter(product =>
     product.designation.toLowerCase().includes(searchTerm.toLowerCase())
@@ -121,8 +143,10 @@ const getPromoForProduct = (productId: string) => {
   const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
   const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
 
-  const totalAmount = selectedProducts.reduce((sum, item) => sum + item.totalPrice, 0);
-  const finalAmount = totalAmount - discount;
+  const totalamount = selectedProducts.reduce((sum, item) => sum + item.totalPrice, 0);
+  const totalAmount = Number((totalamount).toFixed(2))
+  const finalamount = totalAmount - discount;
+  const finalAmount = Number((finalamount).toFixed(2))
 
   const handleAddProduct = (product: Product) => {
     if (product.quantity <= 0) {
@@ -148,24 +172,42 @@ const getPromoForProduct = (productId: string) => {
           id: product.id,
           designation: product.designation,
           quantity: 1,
-          unitPrice: product.sellingPriceTTC,
-          totalPrice: product.sellingPriceTTC
+          unitPrice: product.sellingPriceCFA,
+          totalPrice: product.sellingPriceCFA
         }
       ];
     });
   };
   
-  const handleQuantityChange = (id: string, quantity: number) => {
-    if (quantity < 1) return;
+  // const handleQuantityChange = (id: string, quantity: number) => {
+  //   if (quantity < 1) return;
     
-    setSelectedProducts(prev =>
-      prev.map(p =>
-        p.id === id 
-          ? { ...p, quantity, totalPrice: quantity * p.unitPrice } 
-          : p
-      )
-    );
-  };
+  //   setSelectedProducts(prev =>
+  //     prev.map(p =>
+  //       p.id === id 
+  //         ? { ...p, quantity, totalPrice: quantity * p.unitPrice } 
+  //         : p
+  //     )
+  //   );
+  // };
+
+  const handleQuantityChange = (id: string, quantity: number) => {
+  if (quantity < 1) return;
+
+  setSelectedProducts(prev =>
+    prev.map(p =>
+      p.id === id
+        ? {
+            ...p,
+            quantity,
+            // on force deux décimales en mémoire
+            totalPrice: Number((quantity * p.unitPrice).toFixed(2)),
+          }
+        : p
+    )
+  );
+};
+
 
 
 const handleRemoveProduct = (id: string) => {
@@ -265,8 +307,8 @@ useEffect(() => {
             {currentProducts.map(product => {
               const promo = getPromoForProduct(product.id);
                 const finalPrice = promo 
-                  ? product.sellingPriceTTC * (1 - promo.discount / 100) 
-                  : product.sellingPriceTTC;
+                  ? product.sellingPriceCFA * (1 - promo.discount / 100) 
+                  : product.sellingPriceCFA;
 
               return (
                   <div
@@ -278,7 +320,7 @@ useEffect(() => {
                     }`}
                    onClick={() => product.quantity > 0 && handleAddProduct({
                    ...product,
-                    sellingPriceTTC: finalPrice // ⚡️ Utiliser le prix promo si actif
+                    sellingPriceCFA: finalPrice // ⚡️ Utiliser le prix promo si actif
                    })}
                    >
                 {promo ? ( 
@@ -291,13 +333,13 @@ useEffect(() => {
               {promo ? (
                 <p>
                   <span className="line-through text-gray-500 mr-2">
-                     {product.sellingPriceTTC} F
+                     {product.sellingPriceCFA} F
                   </span>
                   <span className="text-green-600 font-bold mr-2">{finalPrice.toFixed(2)} F</span>
           {/* <span className='text-red-600'>-{promo.discount}%</span>⚠️ 
                 </p>
               ) : (
-                <p>Prix: {product.sellingPriceTTC} F</p>
+                <p>Prix: {product.sellingPriceCFA} F</p>
               )}
 
                 <p className="font-normal text-gray-500">
@@ -424,6 +466,15 @@ useEffect(() => {
                         X
                       </button>
                     </td>
+                    {/* Pour l’affichage en FCFA (CFA franc BCEAO) <td className="py-2">
+  {new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'XOF',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(item.totalPrice)}
+</td> */}
+
                   </tr>
                 ))}
               </tbody>

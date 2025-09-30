@@ -23,14 +23,17 @@ interface PaginationInfo {
 
 export default function RolePermissionsPage() {
     const router = useRouter();
-    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-  //Fonction de retour a la page d'accueil si pas de accessToken
+    const { institution } = useParams() as { institution: string }
+  const [token, setToken] = useState<string | null>(null);
     useEffect(() => {
-     const token = localStorage.getItem('accessToken')
-     if (!token) {
-        router.push('/')
+      // Tout ce code ne s'exécute QUE côté client
+      const accessToken = localStorage.getItem('accessToken');
+      setToken(accessToken);
+  
+      if (!accessToken) {
+        router.push(`/${institution}/sign-in`);
       }
-    }, [])
+    }, [router, institution]); // token retiré des dépendances
       //Fonction de retour a la page suivante
   const handleGoBack = () => {
     router.back();
@@ -48,20 +51,23 @@ export default function RolePermissionsPage() {
   const limit = 10
   const skip = (page - 1) * limit
 
+  // Fonction pour récupérer les permissions d'un rôle spécifique
   const fetchPermissions = async () => {
   try {
+    // Effectue une requête GET pour obtenir les permissions paginées
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_BASE_URL}/role/${id}/permission?page=${page}&count=${limit}`,
       {
         headers: {
+          // Inclut le token d'accès pour l'authentification
           Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
           "Content-Type": "application/json",
         },
       }
     );
     const data = await res.json();
-    setPermissions(data.permissions); // Les permissions paginées
-    setTotal(data.total); // Le total des permissions
+    setPermissions(data.permissions); // Met à jour l'état avec les permissions récupérées
+    setTotal(data.total); // Met à jour l'état avec le total des permissions
   } catch (error) {
     console.error("Erreur lors du chargement des permissions", error);
   } finally {
@@ -69,24 +75,29 @@ export default function RolePermissionsPage() {
   }
 };
 
+// Fonction pour récupérer toutes les permissions disponibles
   const fetchAllPermissions = async () => {
     try {
+      // Effectue une requête GET pour obtenir toutes les permission
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/permission`, {
          headers: {
             'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
             'Content-Type': 'application/json'
           }
       })
+      // Convertit la réponse en JSON
       const data = await res.json()
-      console.log('Structure des permissions:', data)
-      setAllPermissions(data)
+      console.log('Structure des permissions:', data)// Affiche la structure des permissions dans la console
+      setAllPermissions(data)// Met à jour l'état avec toutes les permissions
     } catch (error) {
       console.error("Erreur lors du chargement des permissions globales", error)
     }
   }
   
+  // Fonction pour supprimer une permission spécifique
   const handleDelete = async (permissionId: number) => {
     try {
+      // Effectue une requête DELETE pour supprimer la permission
       await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/role/${id}/permission/${permissionId}`, {
         method: "DELETE",
         headers: {
@@ -94,23 +105,28 @@ export default function RolePermissionsPage() {
           'Content-Type': 'application/json'
         },
       })
-
+      // Met à jour l'état pour retirer la permission supprimée
       setPermissions(prev => prev.filter(p => p.permissionId !== permissionId))
     } catch (error) {
       console.error("Erreur lors de la suppression", error)
     }
   }
 
+  // Fonction pour basculer la sélection d'une permission
   const toggleSelect = (id: number) => {
+    // Met à jour l'état en ajoutant ou en retirant l'ID de la permission sélectionnée
     setSelectedPermissionIds(prev =>
       prev.includes(id) ? prev.filter(pid => pid !== id) : [...prev, id]
     )
   }
 
+// Fonction pour ajouter des permissions sélectionnées à un rôle
   const handleAddPermissions = async () => {
+    // Ne fait rien si aucune permission n'est sélectionnée
     if (selectedPermissionIds.length === 0) return
-    setAdding(true)
+    setAdding(true)// Indique que l'ajout est en cours
     try {
+      // Effectue une requête POST pour ajouter les permissions au rôle
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/role-permission`, {
         method: "POST",
         headers: {
@@ -118,14 +134,14 @@ export default function RolePermissionsPage() {
           Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
         },
         body: JSON.stringify({
-          role_id: Number(id),
-          permission_id: selectedPermissionIds,
+          role_id: Number(id),// ID du rôle
+          permission_id: selectedPermissionIds,// IDs des permissions sélectionnées
         }),
       })
   
       if (res.ok) {
-        setSelectedPermissionIds([])
-        fetchPermissions()
+        setSelectedPermissionIds([]) // Réinitialise les permissions sélectionnées
+        fetchPermissions() // Récupère à nouveau les permissions
       } else {
         console.error("Erreur lors de l'ajout des permissions")
       }

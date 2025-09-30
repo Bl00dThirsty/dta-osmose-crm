@@ -20,6 +20,7 @@ export interface Product {
   designation: string;
   sellingPriceTTC: number;
   quantity: number;
+  sellingPriceCFA: number;
 }
 
 export interface salePromiseProduct {
@@ -68,14 +69,28 @@ const CreateSalePromisePage = () => {
   
   // API Queries
   const { data: products = [], isLoading } = useGetProductsQuery({ institution });
-  const { data: customers = [] } = useGetCustomersQuery();
-  const { data: users = [] } = useGetUsersQuery();
+  const { data: customers = [] } = useGetCustomersQuery({ institution });
+  const { data: users= [] } = useGetUsersQuery();
+  const user = users[0];
   const [createSalePromise] = useCreateSalePromiseMutation();
   
   // États utilisateur
+
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
-  const userRole = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    setUserRole(localStorage.getItem('role'));
+  }, []);
   const isParticulier = userRole === "Particulier";
+
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setUserId(localStorage.getItem('id'));
+  }, []);
+  
+
   
   // États du formulaire
   const [note, setNote] = useState("");
@@ -90,6 +105,7 @@ const CreateSalePromisePage = () => {
   
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
+
 
   const router = useRouter();
 
@@ -141,8 +157,8 @@ const CreateSalePromisePage = () => {
             ? {
                 ...p,
                 product_quantity: p.product_quantity + quantity,
-                product_sale_price: product.sellingPriceTTC,
-                totalPrice: (p.product_quantity + quantity) * product.sellingPriceTTC
+                product_sale_price: product.sellingPriceCFA,
+                totalPrice: (p.product_quantity + quantity) * product.sellingPriceCFA
               }
             : p
         );
@@ -153,8 +169,8 @@ const CreateSalePromisePage = () => {
           id: product.id,
           designation: product.designation,
           product_quantity: quantity,
-          product_sale_price: product.sellingPriceTTC,
-          totalPrice: product.sellingPriceTTC * quantity
+          product_sale_price: product.sellingPriceCFA,
+          totalPrice: product.sellingPriceCFA * quantity
         }
       ];
     });
@@ -370,7 +386,7 @@ const CreateSalePromisePage = () => {
                           <span className="font-medium">{product.designation}</span>
                         </div>
                         <div className="text-right">
-                          <span>{product.sellingPriceTTC} F</span>
+                          <span>{product.sellingPriceCFA} F</span>
                           <div className="text-xs text-gray-500">
                             Stock: {product.quantity}
                             {product.quantity <= 0 && <span className="text-red-500 ml-1">(Épuisé)</span>}
@@ -487,6 +503,7 @@ const CreateSalePromisePage = () => {
               onClick={handleCreateSalePromise}
               disabled={selectedProducts.length === 0} // Même condition que votre code original
             >
+
               Créer la Promesse d'achat
             </Button>
           </CardContent>
@@ -504,6 +521,7 @@ const CreateSalePromisePage = () => {
               <div><strong>Date d'échéance:</strong> {dueDate ? dueDate.toLocaleDateString() : 'Non définie'}</div>
               <div><strong>Date de rappel:</strong> {reminderDate ? reminderDate.toLocaleDateString() : 'Non définie'}</div>
               <div><strong>Note:</strong> {note || 'Aucune note'}</div>
+
             </div>
 
             <table className="w-full text-left text-sm border">

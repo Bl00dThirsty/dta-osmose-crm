@@ -3,7 +3,7 @@
 import React, { useRef } from "react";
 import { useGetSaleByIdQuery, useGetSettingsQuery } from '@/state/api';
 import { useRouter, useParams } from 'next/navigation';
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import PrintUserSheet from "./Facture"
 import { Row } from "@tanstack/react-table"
 import { useDeleteSaleInvoiceMutation, useUpdateSaleStatusMutation, useGetActivePromotionsQuery } from '@/state/api';
@@ -35,7 +35,21 @@ const InvoicePage = () => {
   const id = params?.id as string;
   const { institution } = useParams<{ institution: string }>();
   const [open, setOpen] = useState(false);
-  const userRole = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
+  const [token, setToken] = useState<string | null>(null);
+  useEffect(() => {
+      // Tout ce code ne s'exécute QUE côté client
+    const accessToken = localStorage.getItem('accessToken');
+    setToken(accessToken);
+  
+    if (!accessToken) {
+      router.push(`/${institution}/sign-in`);
+     }
+  }, [router, institution]);
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    setUserRole(localStorage.getItem('role'));
+  }, []);
   const isParticulier = userRole === "Particulier";
   //console.log('Institution from params:', institution);
   //const { id } = (row.original as any);
@@ -109,23 +123,55 @@ const InvoicePage = () => {
   return (
     <>
     <div className="mb-3 ml-4 pt-4">
-        <button
+        <Button
           onClick={handleGoBack}
-          className="flex items-center gap-2 hover:bg-blue-500 transition-colors bg-blue-800 px-2 py-1 rounded"
+          className="flex items-center gap-2 hover:bg-blue-300 bg-blue-600 transition-colors px-2 py-1 rounded"
         >
-          <ChevronLeft  className="w-5 h-5" />
-        </button>
+          <ArrowLeft className="w-5 h-5" />
+          <span>Retour</span>
+        </Button>
+
       </div>
+      {/* Boutons en haut à gauche Annuler la commande, reclamation et liste des reclamations*/}
+<div className="flex gap-3 mb-4 ml-4">
+  {!sale.delivred && (
+    <button
+      onClick={() => setOpen(true)}
+      className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-500 disabled:bg-red-400"
+      disabled={sale?.delivred}
+    >
+      Annuler la commande
+    </button>
+  )}
+
+  {sale.delivred && (
+    <>
+      <button
+        onClick={() => router.push(`/${institution}/sales/${sale.id}/claim`)}
+        className="px-4 py-2 rounded text-white bg-blue-600 hover:bg-blue-500"
+      >
+        Réclamation
+      </button>
+      <button
+        onClick={() => router.push(`/${institution}/sales/${sale.id}/claim/all`)}
+        className="px-4 py-2 rounded text-white bg-blue-600 hover:bg-blue-500"
+      >
+        Liste des Réclamations
+      </button>
+    </>
+  )}
+</div>
+
     <div className="h-full w-full overflow-x-auto">
       <section className="overflow-hidden rounded-[0.5rem] border bg-background shadow-zinc-50">
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mt-2 mb-8">
           
             <h1 className="text-2xl">Commande N°: <b>{sale.invoiceNumber}</b></h1>
             {/* <p className="text-gray-500">Date: {new Date(sale.createdAt ).toLocaleDateString()}</p> */}
         </div>
         {totalAvailableCredit > 0 && (
   <div className="relative mb-8 mx-auto w-fit animate-fade-in">
-    {/* Bulle de dialogue */}
+    {/* Bulle de dialogue pour signifier les credit disponible pour le client de cette commande*/}
     <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 shadow-lg relative max-w-md">
       <div className="absolute -top-3 left-6 w-6 h-6 bg-blue-50 border-t-2 border-l-2 border-blue-200 transform rotate-45"></div>
       
@@ -154,82 +200,117 @@ const InvoicePage = () => {
   </div>
 )}
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8 place-items-center justify-between">
-        {!isParticulier && (
-          <div className="ml-2">
-            <button 
-               onClick={handleMarkReady}
-               className={`px-4 py-2 rounded text-white print:hidden ${
-                 sale.ready ? 'bg-green-500 hover:bg-gray-400' : 'bg-green-600 hover:bg-green-500'
-               }`}
-               disabled={sale?.ready}
-            >
-               {sale.ready ? "Déjà prête" : "Marquer comme prête"}
-            </button>
-          </div>
-        )}
-         <UserPrivateComponent permission="update-saleStatus">
-          <div>
-            <button 
-              onClick={handleMarkDelivered}
-              className={`px-4 py-2 rounded text-white print:hidden ${
-               sale.delivred ? 'bg-green-500 hover:bg-gray-400' : 'bg-green-600 hover:bg-green-500 print:hidden'
-              }`}
-              disabled={sale?.delivred}
-            >
-              {sale.delivred ? "Déjà livrée" : "Confirmer la livraison"}
-            </button>
-          </div>
-        </UserPrivateComponent>
-          <div>
-             <button  
-                onClick={() => router.push(`/${institution}/payment/${sale.id}`)}
-                className={`px-4 py-2 rounded ml-8 ${
-                  sale.paymentStatus === 'PAID' ? 'bg-green-600 hover:bg-green-500' : 'bg-red-600 hover:bg-red-500'
-                } text-white`}
-              >
-               Paiement
-             </button>
-          </div>
-          <div>
+        {/* Bouton status
+        <div className="mb-4 ml-4 flex gap-3">
+           {sale.delivred ? (
+            <>
             <button
-             onClick={() => setOpen(true)}
-             className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-500 disabled:bg-red-400"
-             disabled={sale?.delivred}
+              onClick={() => router.push(`/${institution}/sales/${sale.id}/claim`)}
+              className="px-4 py-2 rounded text-white bg-blue-500 hover:bg-blue-600"
             >
-               {sale?.delivred ? "Annuler la commande" : "Annuler la commande"}
-            </button>
-          </div>
-          
-          <div>
-              {/* <button
-                onClick={handlePrint}
-                // disabled={!sale || !settings}
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-500 "
-               >
-               Imprimer
-              </button> */}
-              <PrintUserSheet sale={sale} />
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-5 mb-8 place-items-center">
-          <div className="ml-2">
-              <button  
-                onClick={() => router.push(`/${institution}/sales/${sale.id}/claim`)}
-                className="px-4 py-2 rounded ml-8 text-white bg-blue-500 hover:bg-blue-200 disabled:bg-blue-400"
-                disabled={!sale?.delivred}
-              >
                Réclamation
-             </button>
-          </div>
-          <div>
-            <button 
-              onClick={() => router.push(`/${institution}/sales/${sale.id}/claim/all`)}
-              className="px-4 py-2 rounded ml-8 text-white bg-blue-500 hover:bg-blue-200 ">
-                Liste des Réclamations
             </button>
-          </div>
-        </div>
+            <button
+              onClick={() => router.push(`/${institution}/sales/${sale.id}/claim/all`)}
+              className="px-4 py-2 rounded text-white bg-blue-500 hover:bg-blue-600"
+            >
+             Liste des Réclamations
+            </button>
+           </>
+          ) : (
+          <button
+              onClick={() => setOpen(true)}
+            className="px-4 py-2 rounded text-white bg-red-600 hover:bg-red-500 disabled:bg-red-400"
+             disabled={isParticulier || sale?.delivred}
+          >
+          Annuler la commande
+          </button>
+        )}
+      </div> */}
+
+     {/* Bande horizontale Statuts */}
+<div className=" rounded-xl shadow-md p-4 mb-6">
+  <h2 className="font-bold text-lg mb-3">Statuts</h2>
+  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 text-center">
+    
+    {/* 1. Commande prête */}
+    <div className="p-4 rounded-md shadow border">
+      <p className="font-semibold mb-2">Commande</p>
+      <button
+        onClick={handleMarkReady}
+        className={`px-4 py-2 text-sm font-medium rounded-full transition-colors duration-500 ${
+          sale.ready ? 'bg-blue-300 text-blue-800' : 'bg-blue-300 text-blue-800 hover:bg-green-500'
+        }`}
+        disabled={isParticulier || sale.ready}
+      >
+        {sale.ready ? "Prête" : "Pas prête"}
+      </button>
+    </div>
+
+    {/* 2. Paiement */}
+    <div className="p-4 rounded-md shadow border">
+      <p className="font-semibold mb-2">Paiement</p>
+      <button
+        onClick={() => router.push(`/${institution}/payment/${sale.id}`)}
+        className={`px-4 py-2 text-sm rounded-full text-white ${
+          sale.paymentStatus === 'PAID'
+            ? 'bg-green-500 text-green-800 hover:bg-green-500'
+            : 'bg-red-500 text-red-800 hover:bg-red-500'
+        }`}
+        disabled={isParticulier}
+      >
+        {sale.paymentStatus === 'PAID' ? "Validé" : "Non validé"}
+      </button>
+    </div>
+
+    {/* 3. Livraison */}
+    <div className="p-3 rounded-md shadow border">
+      <p className="font-semibold mb-2">Livraison</p>
+      <button
+        onClick={handleMarkDelivered}
+        className={`px-4 py-2 text-sm rounded-full text-white ${
+          sale.delivred ? 'bg-green-500 text-green-800' : 'bg-orange-300 text-orange-800 hover:bg-orange-400'
+        }`}
+        disabled={isParticulier || sale.delivred}
+      >
+        {sale.delivred ? "Livrée" : "En attente"}
+      </button>
+    </div>
+
+    {/* 4. Option de livraison
+    <div className="p-3 rounded-md bg-white shadow">
+      <p className="font-semibold mb-2">Option</p>
+      <select
+        className="w-full border rounded px-2 py-1"
+        disabled={isParticulier}
+        defaultValue="magasin"
+        w-full px-3 py-1 rounded-full text-white
+      >
+        <option value="magasin">Retrait en magasin</option>
+        <option value="domicile">Livraison à domicile</option>
+      </select>
+    </div> */}
+
+    {/* 5. Impression */}
+    <div className="p-3 rounded-md border shadow">
+      <p className="font-semibold mb-2">Imprimer</p>
+      <PrintUserSheet sale={sale} />
+    </div>
+
+    {/* 6. Assignée à */}
+    <div className="p-3 rounded-md border shadow">
+      <p className="font-semibold mb-2">Assignée à</p>
+      <p className="mt-2 text-sm text-gray-400 font-bold">
+        {sale.user
+          ? `${sale.user.firstName} ${sale.user.lastName}`
+          : sale.customer?.name || "Inconnu"}
+      </p>
+    </div>
+  </div>
+</div>
+
+
+      {/* Bouton status */}
 
         <div className="container mx-auto p-4 max-w-4xl border">
            <div className="bg-gray p-6 rounded-lg shadow text-white-500 print:shadow-none">
@@ -240,33 +321,30 @@ const InvoicePage = () => {
               <p className="mb-2">Date de vente: <b>{new Date(sale.createdAt ).toLocaleDateString()}</b></p>
               <p className="mb-2">Client: <b>{sale.customer.name}</b></p>
               <p className="mb-2">Type de client: <b>{sale.customer.type_customer}</b></p>
-              <p className="mb-2">Montant Total: <b>{sale.totalAmount} Fcfa</b></p>
-              <p className="mb-2">Montant à payer: <b>{sale.dueAmount} Fcfa</b></p>
-              <p className="">Montant payé: <b>{sale.paidAmount} Fcfa</b></p>
+              <p className="mb-2">Remise: <b>{sale.discount} Fcfa</b> </p>
               
           </div>
           <div>
             {/* <h2 className="font-bold mb-2">Client</h2> */}
-            <p className="mb-2">Remise: <b>{sale.discount} Fcfa</b> </p>
             <p className="mb-2">Methode de paiement: <b>{sale.paymentMethod || 'CASH'}</b></p>
             {/* <p className="mb-2"> <b>{sale.paymentStatus === 'PAID' ? 'Terminé' : 'En cours'}</b></p> */}
-            <p>Statut de paiement: <button className={` px-1 py-1 rounded text-white ${sale.paymentStatus === 'PAID' ? 'bg-green-500' : 'bg-red-500'}`}>{sale.paymentStatus === 'PAID' ? "PAYÉ" : "IMPAYÉ"}</button></p>
-            <p className="mb-2">Prête: <button className={` px-2 py-1 rounded text-white ${sale.ready ? 'bg-green-500' : 'bg-red-500'}`}>{sale.ready ? "Oui" : "Non"}</button></p>
-            <p className="mb-2">Livrée: <button className={` px-2 py-1 rounded text-white ${sale.delivred ? 'bg-green-500' : 'bg-red-500'}`}>{sale.delivred ? "Oui" : "Non"}</button></p>
-            <p>
+            <p className="mb-2">Montant Total: <b>{sale.totalAmount} Fcfa</b></p>
+            <p className="mb-2">Montant à payer: <b>{sale.dueAmount} Fcfa</b></p>
+            <p className="">Montant payé: <b>{sale.paidAmount} Fcfa</b></p>
+            {/* <p>
                Initiateur: <b>
                {sale.user 
                  ? `${sale.user.firstName} ${sale.user.lastName}` 
                : sale.customer?.name || 'Inconnu'}
               </b>
-            </p>
+            </p> */}
             
           </div>
         </div>
            </div>
         </div>
 
-        <Card className="max-w-5xl mx-auto mt-5 shadow">
+        <Card className="max-w-5xl mx-auto mt-5 mb-3 shadow">
       <CardHeader>
         <CardTitle className="text">Liste des produits commandés</CardTitle>
       </CardHeader>

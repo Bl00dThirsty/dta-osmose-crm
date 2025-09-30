@@ -10,6 +10,8 @@ export interface Product {
   designation: string;
   sellingPriceTTC: number;
   purchase_price: number;
+  sellingPriceCFA: number;
+  purchasePriceCFA?: number;
   restockingThreshold: number;
   warehouse: string;
   Promotion?: Promotion[];
@@ -23,6 +25,8 @@ export interface NewProduct {
   designation: string;
   sellingPriceTTC: number;
   purchase_price: number;
+  sellingPriceCFA: number;
+  purchasePriceCFA?: number;
   restockingThreshold: number;
   warehouse: string;
 }
@@ -103,6 +107,8 @@ export interface salePromiseProduct{
     quantity: number;
     EANCode?: string;
     sellingPriceTTC: number;
+    sellingPriceCFA?: number;
+    purchasePriceCFA?: number;
   }
 }
 
@@ -154,6 +160,8 @@ export interface SaleItemInput {
     quantity: number;
     EANCode?: string;
     sellingPriceTTC: number;
+    sellingPriceCFA?: number;
+    purchasePriceCFA?: number;
   }
 }
 
@@ -262,6 +270,7 @@ export interface Customer {
   website?: string;
   status?: boolean;
   type_customer?: string;
+  institutionId?: string
   role: string;
   quarter?: string;
   region?: string; 
@@ -287,6 +296,7 @@ export interface NewCustomer {
   website?: string;
   status?: boolean;
   type_customer?: string;
+  institutionId?: string
   role?: string;
   quarter?: string;
   region?: string; 
@@ -380,6 +390,7 @@ export interface InventoryItem {
     designation: string;
     quantity: number;
     EANCode?: string;
+    brand: string;
     sellingPriceTTC: number;
   }
 };
@@ -420,6 +431,8 @@ export interface Promotion {
     quantity: number;
     EANCode?: string;
     sellingPriceTTC: number;
+    sellingPriceCFA: number;
+    purchasePriceCFA: number;
   }  
 }
 
@@ -441,6 +454,8 @@ export interface NewPromotion {
     quantity: number;
     EANCode?: string;
     sellingPriceTTC: number;
+    sellingPriceCFA: number;
+    purchasePriceCFA?: number;
   }
 }
 
@@ -575,6 +590,12 @@ export const api = createApi({
       "Inventorys", "Promotions", "Reports"],
 
     endpoints: (build) => ({
+
+      // ============================================================================
+// DASHBOARD ENDPOINTS
+// Auteur : Malonguem Laura
+// Description : Gestion du contenu et de l'affichage des dashboards
+// ============================================================================
       // dashboard principal
         getDashboardMetrics: build.query<DashboardMetrics, { institution: string, startDate?: string; endDate?: string  }>({
             query: ({ institution, startDate, endDate }) => {
@@ -606,7 +627,11 @@ export const api = createApi({
         providesTags: ["DashboardSales"],
       }),
         
-        //Reporting
+// ============================================================================
+// RAPPORTS ENDPOINTS
+// Auteur : Azambou Yvana
+// Description : Gestion des rapport de chaque employés (création, consultation, consultation par staff, suppression)
+// ============================================================================
         createReport: build.mutation<Report, { institution: string; prospectName: string;
   date: Date; userId?: number; responsable?: string; email?: string; degree: string; rdvObject: string; nextRdv: Date; time: string; contact: string;
   address: string; pharmacoVigilance: string}>({
@@ -650,7 +675,11 @@ export const api = createApi({
           invalidatesTags: (result, error, id ) => [{ type: "Reports", id }],
         }),
 
-        //Promotion
+// ============================================================================
+// PROMOTIONS ENDPOINTS
+// Auteur : Azambou Yvana
+// Description : Gestion des promotions (création, consultation, mise à jour, suppression)
+// ============================================================================
         createPromotions: build.mutation<Promotion, { institution: string; title?: string;
   discount: number; startDate: Date; endDate: Date; status: boolean; creatorId?: number; productId: string;}>({
             query: ({ institution, ...data }) => ({
@@ -660,6 +689,8 @@ export const api = createApi({
             }),
             invalidatesTags: ["Promotions"],
         }), 
+
+        /* Récupère la liste des promotions actives (statut=true) avec possibilité de recherche */
         getActivePromotions: build.query<Promotion[], { institution: string; search?: string }>({
             query: ({ institution, search }) => ({
                 url: `/promotions/${institution}/active`,
@@ -667,6 +698,8 @@ export const api = createApi({
             }),
             providesTags: ["Promotions"]
         }),
+
+        /* Met à jour uniquement le statut (activation/désactivation) d'une promotion */
         updatePromotionStatus: build.mutation<Promotion, { id: string; status: boolean; }>({
           query: ({ id, status }) => ({
             url: `/promotions/${id}/status`,
@@ -682,10 +715,14 @@ export const api = createApi({
             }),
             providesTags: ["Promotions"]
         }),
+
+        /* Récupère les détails d'une promotion spécifique par son ID */
         getPromotionsById: build.query<Promotion, string>({
           query: (id) => `/promotions/${id}`, // Construire l'URL avec l'ID de l'utilisateur
           providesTags: (result, error, id) => [{ type: "Promotions", id }], // Associer un tag pour l'invalidation
         }),
+
+        /* Met à jour complètement les informations d'une promotion */
         updatePromotions: build.mutation<Promotion, { id: string; title: string; discount: number; startDate: Date; endDate: Date; creatorId?: number; productId: string}>({
             query: ({ id, ...data }) => ({
               url: `/promotions/${id}/update`,
@@ -702,7 +739,14 @@ export const api = createApi({
             invalidatesTags: (result, error, id ) => [{ type: "Promotions", id }]
         }),
 
-        //product
+
+// ============================================================================
+// PRODUCTS ENDPOINTS  
+// Auteur : Azambou Yvana 
+// Description : Gestion du catalogue produits (CRUD complet + import massif)
+// ============================================================================
+
+/* Récupère la liste des produits avec recherche par designation ou categorie */
 
         getProducts: build.query<Product[], { institution: string; search?: string }>({
             query: ({ institution, search }) => ({
@@ -732,6 +776,7 @@ export const api = createApi({
             invalidatesTags: (result, error, id ) => [{ type: "Products", id }]
         }),
 
+        /* Met à jour les informations d'un produit existant */
         updateProduct: build.mutation<Product, { id: string; EANCode: string; quantity: number; brand: string; designation: string;
   sellingPriceTTC: number; purchase_price: number; restockingThreshold: number; warehouse: string;}>({
             query: ({ id, ...data }) => ({
@@ -742,7 +787,7 @@ export const api = createApi({
             invalidatesTags: (result, error, { id }) => [{ type: 'Products' }],
         }),
          
-
+/* Import massif de produits via fichier Excel */
         importProducts: build.mutation<void, { data: NewProduct[]; institution: string }>({
           query: ({ data, institution }) => ({
             url: `/institutions/${institution}/products/import`,
@@ -752,7 +797,11 @@ export const api = createApi({
           invalidatesTags: ["Products"],
         }),
 
-        //inventory
+// ============================================================================
+// INVENTORY ENDPOINTS
+// Auteur : Azambou Yvana 
+// Description : Gestion des inventaires (comptages de stock)
+// ============================================================================
         createInventory: build.mutation<Inventory, { 
           titre: string;
           location: string;
@@ -818,8 +867,14 @@ export const api = createApi({
           invalidatesTags: (result, error, id ) => [{ type: "Inventorys", id }],
         }),
 
-        //SalesPromise
-        createSalePromise: build.mutation<salePromise, { 
+// ============================================================================
+// SALES PROMISE ENDPOINTS
+// Auteur : Azambou yvana
+// Description : Gestion des promesses de vente (pré-commandes)
+// ============================================================================
+        
+/* Crée une nouvelle promesse de vente (pré-commande) */
+       createSalePromise: build.mutation<salePromise, { 
           customerId?: number;
           userId?: number;
           customerCreatorId?: number;
@@ -845,6 +900,7 @@ export const api = createApi({
           invalidatesTags: ['SalePromise', 'Products']
         }),
 
+/* Récupère les promesses de vente par institution avec filtrage par période */
         getSalePromise: build.query<salePromise[], { institution: string, startDate?: string; endDate?: string }>({
           query: ({institution, startDate, endDate}) => {
             const params = new URLSearchParams();
@@ -856,6 +912,7 @@ export const api = createApi({
           providesTags: ['SalePromise']
         }),
 
+        /* Récupère les promesses de vente d'un client connecté avec filtrage par période */
         getSalePromiseByCustomer: build.query<salePromise[], { startDate?: string; endDate?: string }>({
           query: ({startDate, endDate}) => {
             const params = new URLSearchParams();
@@ -888,8 +945,14 @@ export const api = createApi({
         invalidatesTags: (result, error, id ) => [{ type: "SalePromise", id }, "Products"],
       }),
 
-        // Sales
+        // ============================================================================
+// SALES ENDPOINTS
+// Auteur : Azambou Yvana
+// Description : Gestion complète des ventes et factures
+// ============================================================================
+
         
+      /* Crée une nouvelle vente/facture avec gestion des lignes de produits */
         createSale: build.mutation<SaleInvoice, { 
           customerId: number;
           userId?: number;
@@ -912,12 +975,13 @@ export const api = createApi({
           invalidatesTags: ['DashboardSales','Sales', 'Products', 'SalePromise']
         }),
 
-        getCustomerDebtStatus: build.query<{
-          [x: string]: ReactNode; hasDebt: boolean
-}, {customerId: number, institution: string}>({
+
+        /* Vérifie si un client a des dettes en cours (statut de solde) */
+        getCustomerDebtStatus: build.query<{ hasDebt: boolean}, {customerId: number, institution: string}>({
           query: ({customerId, institution}) => `/sale/${institution}/${customerId}/debt-status`,
         }),        
 
+        /* Récupère l'historique des ventes avec filtrage par période */
         getSales: build.query<SaleInvoice[], { institution: string, startDate?: string; endDate?: string }>({
           query: ({institution, startDate, endDate}) => {
             const params = new URLSearchParams();
@@ -929,11 +993,13 @@ export const api = createApi({
           providesTags: ['Sales']
         }),
 
+        /* Récupère les détails complets d'une vente spécifique par son ID */
         getSaleById: build.query<SaleInvoice, string>({
           query: (id) => `/sale/${id}`,
           providesTags: (result, error, id) => [{ type: 'Sales', id },{ type: 'DashboardSales' }]
         }),
 
+        /* Met à jour le statut de préparation/livraison d'une vente */
        updateSaleStatus: build.mutation<SaleInvoice, {
          id: string;
          ready?: boolean;
@@ -948,6 +1014,7 @@ export const api = createApi({
         invalidatesTags: (result, error, { id }) => [{ type: 'Sales', id},{ type: 'DashboardSales' }] ,
        }),
 
+       /* Gère le paiement d'une vente (méthode, montant, solde) */
        updateSalePayment: build.mutation<SaleInvoice, { id: string; paymentMethod: string; paidAmount: number; dueAmount:number; discount?:number }>({
         query: ({ id, paymentMethod, paidAmount, dueAmount, discount }) => ({
           url: `/sale/${id}/payment`,
@@ -957,6 +1024,7 @@ export const api = createApi({
         invalidatesTags: (result, error, { id }) => [{ type: 'Sales', id }]
       }),
       
+      /* Supprime une facture et restaure les stocks associés */
        deleteSaleInvoice: build.mutation<void, string>({
         query: (id) => ({
           url: `/sale/${id}`, 
@@ -965,7 +1033,13 @@ export const api = createApi({
         invalidatesTags: (result, error, id ) => [{ type: "Sales", id }, "Products"],
       }),
       
-       //claims
+       // ============================================================================
+// CLAIMS ENDPOINTS (RÉCLAMATIONS)
+// Auteur : Azambou Yvana
+// Description : Gestion des réclamations clients sur les ventes
+// ============================================================================
+
+       /* Crée une nouvelle réclamation pour un produit vendu */
        createClaim: build.mutation<Claim, { institution: string; invoiceId: string; productId: string; quantity: number; unitPrice: number; reason: string; description?: string }>({
         query: ({ institution, ...data }) => ({
           url: `/claim/${institution}/claims`,
@@ -975,6 +1049,7 @@ export const api = createApi({
         invalidatesTags: ["Sales", "Claims"],
       }),
 
+      /* Répond à une réclamation (acceptation/rejet) */
       respondToClaim: build.mutation<ClaimResponse, {
         institution: string;
         claimId: string;
@@ -989,6 +1064,7 @@ export const api = createApi({
         invalidatesTags: (result, error, { claimId }) => [{ type: 'Claims', id: claimId }],
       }),
 
+       /* Modifie une réponse existante à une réclamation */
       updateClaimResponse: build.mutation<ClaimResponse, {
         responseId: string;
         status: 'ACCEPTED' | 'REJECTED';
@@ -1002,6 +1078,7 @@ export const api = createApi({
         invalidatesTags: (result, error, { responseId }) => [{ type: 'Claims' }], // tu peux affiner ici selon le contexte
       }),
       
+      /* Récupère toutes les réclamations avec filtrage par période */
       getClaim: build.query<Claim[], { institution: string, startDate?: string; endDate?: string }>({
         query: ({institution, startDate, endDate}) => {
           const params = new URLSearchParams();
@@ -1017,6 +1094,7 @@ export const api = createApi({
               : [{ type: 'Claims', id: 'LIST' }],
       }),
 
+      /* Récupère uniquement les réclamations en attente de traitement */
       getClaimPending: build.query<Claim[], { institution: string }>({  
             query: ({ institution }) => ({
                 url: `/claim/${institution}/pendingClaim`,
@@ -1025,12 +1103,13 @@ export const api = createApi({
             providesTags: ["Claims"]
       }), 
           
-
+      /* Récupère les détails d'une réclamation spécifique */
       getClaimById: build.query<Claim, string>({
         query: (id) => `/claim/${id}`,
         providesTags: (result, error, id) => [{ type: 'Claims', id }]
       }),
 
+      /* Supprime une réclamation et ses réponses associées */
       deleteClaim: build.mutation<void, string>({
         query: (id) => ({
           url: `/claim/${id}`, 
@@ -1038,6 +1117,13 @@ export const api = createApi({
         }),
         invalidatesTags: (result, error, id ) => [{ type: "Claims", id }],
       }),
+
+// ============================================================================
+// DEPARTMENTS ENDPOINTS (DÉPARTEMENTS)
+// Auteur : Azambou Yvana
+// Description : Gestion des départements/organisation interne
+// ============================================================================
+
           getDepartments: build.query<{ id: number; name: string }[], void>({
             query: () => "/department",
             providesTags: (result) =>
@@ -1062,7 +1148,11 @@ export const api = createApi({
           }),
 
 
-          //Designation
+// ============================================================================
+// DESIGNATIONS ENDPOINTS (POSTES/FONCTIONS)
+// Auteur : Azambou Yvana
+// Description : Gestion des postes et fonctions des employés
+// ============================================================================
           getDesignations: build.query<{ id: number; name: string }[], void>({
             query: () => "/designation",
             providesTags: ["Designations"],
@@ -1083,11 +1173,20 @@ export const api = createApi({
             invalidatesTags: (result, error, id) => [{ type: 'Designations', id }],
           }),
 
-          //role
+// ============================================================================
+// ROLES ENDPOINTS (RÔLES UTILISATEURS)
+// Auteur : Azambou Yvana
+// Description : Gestion des rôles et permissions système
+// ============================================================================
+
+/* Récupère tous les rôles disponibles dans le système */
           getRoles: build.query<{ id: number; name: string }[], void>({
             query: () => "/role?query=all",
             providesTags: ["Roles"],
           }),
+
+/* Crée un nouveau rôle et ses permissions sont attribués plus tard dans le fichier role/[id]/page.tsx 
+les endpoint d'affectation des permissions aux roles sont defini */
           createRoles: build.mutation<Role, NewRole>({
             query: (NewRole) => ({
               url: "/role",
@@ -1104,20 +1203,28 @@ export const api = createApi({
             invalidatesTags: ["Roles"],
           }),
 
-          //Users
-          getUsers: build.query<User[], string | void>({
-            
+// ============================================================================
+// USERS ENDPOINTS (UTILISATEURS)
+// Auteur : Azambou Yvana
+// Description : Gestion complète des utilisateurs de l'application
+// ============================================================================
+
+/* Récupère la liste des utilisateurs */
+          getUsers: build.query<User[], string | void>({            
             query: (search) => ({
                 url: "/user",
                 params: search ? { search } : {}
-            }),
-            
+            }),            
             providesTags: ["Users"]
           }),
+
+           /* Récupère le profil détaillé d'un utilisateur spécifique */
           getUserById: build.query<User, string>({
             query: (id) => `/user/${id}`, 
             providesTags: (result, error, id) => [{ type: "Users", id }], // Associer un tag pour l'invalidation
           }),
+
+          /* Désactive/supprime un compte utilisateur */
           deleteUser: build.mutation<void, string>({
             query: (id) => ({
               url: `/user/${id}`,
@@ -1125,6 +1232,8 @@ export const api = createApi({
             }),
             invalidatesTags: (result, error, id) => [{ type: 'Users', id }],
           }),
+
+          /* Met à jour les informations d'un utilisateur (profil,etc.) */
           updateUser: build.mutation<User, { id: number; data: Partial<User> }>({
             query: ({ id, data }) => ({
               url: `/user/${id}`,
@@ -1134,11 +1243,15 @@ export const api = createApi({
             invalidatesTags: ["Users"],
           }),
 
-          //customer
-          getCustomers: build.query<Customer[], string | void>({            
-            query: (search) => ({
-                url: "/customer",
-                params: search ? { search } : {}
+// ============================================================================
+// CUSTOMERS ENDPOINTS (CLIENTS)
+// Auteur : Azambou Yvana
+// Description : Gestion de la base clients et opérations associées
+// ============================================================================
+          getCustomers: build.query<Customer[], { institution?: string }>({            
+            query: ({ institution }) => ({
+                url: `/customer/${institution}`,
+               
             }),
             providesTags: (result) =>
             result
@@ -1146,15 +1259,16 @@ export const api = createApi({
     : [{ type: 'Customers', id: 'LIST' }],
             
           }),
-          createCustomers: build.mutation<Customer, NewCustomer>({
-            query: (NewCustomer) => ({
-              url: "/customer",
-              method: "POST",
-              body: NewCustomer,
-            }),
-            invalidatesTags: ["Customers"],
-           }),
+          createCustomers: build.mutation<Customer, { newCustomer: NewCustomer; institution: string }>({
+              query: ({ newCustomer, institution }) => ({
+                url: `/customer/${institution}`,
+                method: "POST",
+                body: newCustomer,
+              }),
+              invalidatesTags: ["Customers"],
+          }),
            
+           /* Récupère le profil client avec historique des commandess sur période */
            getCustomerById: build.query<Customer, { id: string; startDate?: string; endDate?: string }>({
             query: ({ id, startDate, endDate }) => {
               const params = new URLSearchParams();
@@ -1175,6 +1289,7 @@ export const api = createApi({
              invalidatesTags: (result, error, id) => [{ type: 'Customers', id }],
           }),
 
+          /* Envoie un email de réinitialisation de mot de passe au client */
           sendTokenResetPassword: build.mutation<Customer, { email: string, institution: string }>({
             query: ({ email, institution }) => ({
               url: `/customer/${institution}/sendTokenResetPassword`,
@@ -1183,7 +1298,7 @@ export const api = createApi({
             }),
           }),
           
-          //customer ou any
+          /* Réinitialise le mot de passe client avec token de validation */
           resetPassword: build.mutation<Customer, { token: string; newPassword: string; institution: string }>({
             query: ({ token, newPassword, institution }) => ({
               url: `/customer/${institution}/resetPassword`,
@@ -1194,6 +1309,8 @@ export const api = createApi({
               },
             }),
           }),
+
+          /* Met à jour les informations d'un client existant */
           updateCustomer: build.mutation<Customer, { id: number; data: Partial<Customer> }>({
             query: ({ id, data }) => ({
               url: `/Customer/${id}`,
@@ -1204,7 +1321,12 @@ export const api = createApi({
           }),
           
 
-          //setting
+// ============================================================================
+// SETTINGS ENDPOINTS (PARAMÈTRES DE L'ENTRPRISE<ASERMPHARMA/IBA>: nom, e-mail, slogan, adresse 
+// à inserer lors de l'impression des factures ou autre documents)
+// Auteur : Azambou Yvana
+// Description : Gestion des paramètres de configuration par institution
+// ============================================================================
           getSettings: build.query<AppSetting[], { institution: string }>({
             query: ({ institution }) => ({
                 url: `/setting/${institution}`,
@@ -1220,7 +1342,12 @@ export const api = createApi({
             invalidatesTags: ["AppSettings"],
           }),
 
-          //NOTIFICATIONS
+// ============================================================================
+// NOTIFICATIONS ENDPOINTS
+// Auteur : Azambou Yvana
+// Description : Gestion des notifications et alertes système
+// ============================================================================
+
           
           getAllNotifications: build.query<Notification[], { institution: string }>({  
             query: ({ institution }) => ({
@@ -1230,6 +1357,7 @@ export const api = createApi({
             providesTags: ["Notifications"]
           }), 
           
+          /* Récupère les notifications spécifiques au client connecté */
           getCustomerNotifications: build.query<Notification[], string | void>({  
             query: (search) => ({
                 url: `/notification/customer`,
@@ -1238,6 +1366,7 @@ export const api = createApi({
             providesTags: ["Notifications"]
           }), 
           
+          /* Supprime une notification (marquer comme lue)  pas utiliser*/
           deleteNotifications: build.mutation<void, string>({
             query: (id) => ({
               url: `/notification/${id}`, 

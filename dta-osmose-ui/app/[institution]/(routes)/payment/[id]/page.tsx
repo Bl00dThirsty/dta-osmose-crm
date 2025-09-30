@@ -20,7 +20,11 @@ const PaymentPage = () => {
   const router = useRouter();
   const { data: sale, isLoading } = useGetSaleByIdQuery(id);
   const [updatePayment] = useUpdateSalePaymentMutation();
-  const userRole = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    setUserRole(localStorage.getItem('role'));
+  }, []);
   const isParticulier = userRole === "Particulier";
   const [paymentMethod, setPaymentMethod] = useState('');
   const [paidAmount, setpaidAmount] = useState(0);

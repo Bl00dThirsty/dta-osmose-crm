@@ -116,7 +116,7 @@ function ReadyCommandeNotification() {
       {/* Icône de cloche */}
       <button onClick={() => setShowNotifications(!showNotifications)}>
         <BellOutlined className="w-6 h-6" style={{ color: "#fadb14" }} />
-        {unreadNotifications.length >= 0 && (
+        {unreadNotifications.length > 0 && (
           <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-1">
             {unreadNotifications.length}
           </span>

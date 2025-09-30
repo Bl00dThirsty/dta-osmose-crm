@@ -14,12 +14,17 @@ import SupportComponent from "@/components/support";
 import { useGetActivePromotionsQuery } from "@/state/api";
 import { useParams } from "next/navigation";
 import { Tag } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const Header = () => {
   const { institution } = useParams() as { institution: string }
   const { data: activePromotions = [] } = useGetActivePromotionsQuery({institution});
-  const userType = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
-  const isParticulier = userType === "Particulier";
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    setUserRole(localStorage.getItem('role'));
+  }, []);
+  const isParticulier = userRole === "Particulier";
 
   return (
     <>

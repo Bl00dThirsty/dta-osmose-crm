@@ -24,6 +24,7 @@ import {
    
     
   } from "lucide-react";
+import { useEffect } from "react";
 
 
 const ClaimPage = () => {
@@ -32,7 +33,20 @@ const ClaimPage = () => {
   const [openDelete, setOpenDelete] = useState(false);
   const [openResponse, setOpenResponse] = useState(false);
   const [openResponseUpdate, setOpenResponseUpdate] = useState(false);
-  const userRole = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
+
+  const [token, setToken] = useState<string | null>(null);
+    useEffect(() => {
+      const accessToken = localStorage.getItem('accessToken');
+      setToken(accessToken);
+      if (!accessToken) {
+        router.push(`/${institution}/sign-in`);
+      }
+    }, [router, institution]); 
+    
+  const [userRole, setUserRole] = useState<string | null>(null);
+  useEffect(() => {
+    setUserRole(localStorage.getItem('role'));
+  }, []);
   const isParticulier = userRole === "Particulier";
   const [responseDesc, setResponseDesc] = useState("");
   const [respondToClaim] = useRespondToClaimMutation();
@@ -175,7 +189,7 @@ const ClaimPage = () => {
               <p className="mb-5">Date de création: <b>{new Date(claim.createdAt ).toLocaleDateString()}</b></p>
               <p className="mb-5">
                 Réponse : 
-                <span className={`px-2 py-1 rounded text-white ml-2 ${claim.response?.status === 'ACCEPTED' ? 'bg-green-500' : claim.response?.status === 'REJECTED' ? 'bg-red-500' : 'bg-yellow-500'}`}>
+                <span className={`px-2 py-1 rounded text-white ml-2 ${claim.response?.status === 'ACCEPTED' ? 'bg-green-500' : claim.response?.status === 'REJECTED' ? 'bg-red-500' : 'bg-orange-500'}`}>
                     {claim.response?.status || "PENDING"}
                 </span>
               </p>

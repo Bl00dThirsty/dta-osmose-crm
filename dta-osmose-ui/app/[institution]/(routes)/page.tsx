@@ -35,7 +35,7 @@ const DashboardPage = () => {
   const [startDate, setStartDate] = useState<Date | undefined>(firstDayOfMonth);
   const [endDate, setEndDate] = useState<Date | undefined>(lastDayOfMonth);
   
-//Calcul des p riodes compar es
+//Calcul des périodes comparées
   const [previousStartDate, setPreviousStartDate] = useState(() => {
   const start = new Date(firstDayOfMonth);
   start.setMonth(start.getMonth() - 1);
@@ -51,15 +51,23 @@ const [previousEndDate, setPreviousEndDate] = useState(() => {
 // R f rencement du conteneur   imprimer
   const printRef = useRef<HTMLDivElement>(null);
 
-  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-  const userType = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
+  const [token, setToken] = useState<string | null>(null);
   useEffect(() => {
-    if (!token) {
+    // Tout ce code ne s'exécute QUE côté client
+    const accessToken = localStorage.getItem('accessToken');
+    setToken(accessToken);
+
+    if (!accessToken) {
       router.push(`/${institution}/sign-in`);
     }
-  }, [token, institution]);
+  }, [router, institution]); // token retiré des dépendances
+  const [userType, setUserType] = useState<string | null>(null);
 
-  
+  useEffect(() => {
+    setUserType(localStorage.getItem('role'));
+  }, []);
+
+   
 // Récupération des métriques depuis l'API
   const { data: dashboardMetrics } = useGetDashboardMetricsQuery({
     institution,

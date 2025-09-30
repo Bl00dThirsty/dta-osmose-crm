@@ -35,7 +35,10 @@ const CreatePromotion = () => {
   const router = useRouter();
   const [createCustomer] = useCreateCustomersMutation()
   const handleCreateProduct = async (customerData: CustomerFormData) => {
-    await createCustomer(customerData);
+    await createCustomer({
+    newCustomer: customerData,
+    institution: institution 
+  });
   }
   const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
   const { institution } = useParams() as { institution: string };
@@ -100,7 +103,7 @@ const CreatePromotion = () => {
    <div className="flex justify-end mb-4">
        <div className="text-right">
            <p className=" text-red-600 font-medium">
-             Si vous voulez ajouter le prospect comme nouveau client
+             Si vous souhaitez ajouter le prospect comme nouveau client
            </p>
            <AddCustomerDialog onCreate={handleCreateProduct} />
         </div>

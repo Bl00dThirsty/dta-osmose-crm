@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import Container from "../../../components/ui/Container";
 import { toast } from "react-toastify";
 import { Textarea } from "@/components/ui/textarea";
+import {  Button } from "@/components/ui/button";
 
 export default function CreateClaimForm() {
   console.log('ClaimPage rendered');
@@ -137,9 +138,9 @@ export default function CreateClaimForm() {
         className="w-full mb-4 border rounded"
       />
       
-      <button onClick={handleClaimSubmit} className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-500" disabled={isQuantityInvalid || !form.productId || !form.reason}>
+      <Button onClick={handleClaimSubmit} className="text-white px-3 py-1 rounded " disabled={isQuantityInvalid || !form.productId || !form.reason}>
         Envoyer
-      </button>
+      </Button>
     </div>
     </Container>
   );

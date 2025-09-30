@@ -8,6 +8,7 @@ const {
   notifyAllUsers
 } = require("../websocketNotification");
 import { expireSalePromiseIfNeeded } from "./promiseSaleConroller"
+import { toTwoDecimals } from "../utils/round";
 
 const prisma = new PrismaClient();
 
@@ -152,8 +153,8 @@ const validatedItems = await Promise.all(
     });
 
     const unitPrice = activePromo
-      ? product.sellingPriceTTC * (1 - activePromo.discount / 100)
-      : product.sellingPriceTTC;
+  ? toTwoDecimals(product.sellingPriceCFA * (1 - activePromo.discount / 100))
+  : product.sellingPriceCFA;
 
     return {
       productId: item.productId,
@@ -196,8 +197,8 @@ console.log("Produits validés :", validatedItems);
     // Calcul du total purchase price
     let totalPurchasePrice = 0;
     items.forEach((item, index:any) => {
-      totalPurchasePrice +=
-        allProduct[index].purchase_price * item.quantity;
+      totalPurchasePrice += toTwoDecimals(allProduct[index].purchasePriceCFA * item.quantity);
+
     });
 
     // Création de la facture
@@ -416,7 +417,7 @@ console.log("Produits validés :", validatedItems);
 };
 
 /** @titre Récupération des factures impayées depuis plus d'un mois
- * DPAV: Delais de paiement apres vente par defaut nous avons chois 1 mois 
+ * DPAV: Delais de paiement après vente par defaut nous avons choisi 1 mois 
  * */ 
 export const checkCustomerDebtStatus = async (req: Request, res: Response) => {
   const { customerId } = req.params;
@@ -493,8 +494,6 @@ export const checkCustomerDebtStatus = async (req: Request, res: Response) => {
   unpaidOldInvoices,
   });
   
-
-
   res.json({ hasDebt });
 };
 
@@ -717,8 +716,10 @@ export const updatePayment = async (req: Request, res: Response): Promise<void> 
 
     let totalPurchasePrice = 0;
     items.forEach((item: any, index: number) => {
-      totalPurchasePrice += allProduct[index].purchase_price * item.quantity;
+      totalPurchasePrice += toTwoDecimals(allProduct[index].purchasePriceCFA * item.quantity);
     });
+
+    //totalPurchasePrice += toTwoDecimals(allProduct[index].purchasePriceCFA * item.quantity);
 
     const totalDiscount = (invoice.discount ?? 0) + discount;
     const totalPaid = (invoice.paidAmount ?? 0) + paidAmount;
