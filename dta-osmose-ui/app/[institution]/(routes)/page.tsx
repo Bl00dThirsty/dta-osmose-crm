@@ -18,6 +18,7 @@ import { useRouter } from 'next/navigation';
 import { useParams } from "next/navigation"
 import { DashboardCard } from "./components/dasboard/dashboard-card";
 import { ChartAreaInteractive } from "./components/dasboard/chart-area-interactive";
+import PrintDashboardSheet from "./components/dasboard/PrintDashboardSheet";
 //import { getDynamicTrend } from "@/lib/utils";
 import { getDynamicTrend } from "@/lib/trendUtils";
 import { DatePicker } from "./crm/dashboard/_components/date-picker";
@@ -86,7 +87,7 @@ const totalInvoices = Array.isArray(dashboardMetrics?.formattedData3)
   : 0;
 
 
-// ? R cup ration des donn es pr c dentes
+// ? Récupération des données précédentes
 const previousSales = Array.isArray(dashboardMetrics?.previousMetrics?.saleProfitCount)
   ? dashboardMetrics.previousMetrics.saleProfitCount
       .filter(item => item.type === "Ventes")
@@ -122,13 +123,12 @@ const { trend: totalAvailableCreditTrend, trendDirection: totalAvailableCreditTr
 
 console.log("Institution:", institution);
 
-// Fonction d impression
-  const handlePrint = () => {
-    if (printRef.current) {
-      window.print();
-    }
+const metrics = {
+    totalSales,
+    totalProfits,
+    totalInvoices,
+    totalAvailableCredit,
   };
-
 
   const renderDashboardByRole = () => {
     switch (userType) {
@@ -183,15 +183,24 @@ console.log("Institution:", institution);
       title="Dashboard"
       description="Bienvenue sur le tableau de bord"
     >
-      <div className="flex space-x-4 print:hidden mb-4">
-          <DatePicker label="" date={startDate} onSelect={(d) => d && setStartDate(d)} />
+      <div className="flex space-x-4 items-center mb-4">
+        <DatePicker label="" date={startDate} onSelect={(d) => d && setStartDate(d)} />
         <DatePicker label="" date={endDate} onSelect={(d) => d && setEndDate(d)} />
-        <button
-          onClick={handlePrint}
-          className="ml-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
-        >
-          Imprimer le dashboard
-        </button>
+
+        {/* 🔹 Impression avec toutes les données nécessaires */}
+        <PrintDashboardSheet
+          userType={userType || "admin"}
+          dashboardMetrics={dashboardMetrics}
+          startDate={startDate || new Date()}
+          endDate={endDate || new Date()}
+          // Passez toutes les données calculées selon le rôle
+          totalSales={totalSales}
+          totalProfits={totalProfits}
+          totalInvoices={totalInvoices}
+          totalAvailableCredit={dashboardMetrics?.totalAvailableCredit}
+          totalUsers={dashboardMetrics?.totalUsers}
+          customerStats={dashboardMetrics?.customerStats}
+        />
       </div>
       
        <div className="hidden print:block p-4" ref={printRef}>
@@ -200,7 +209,7 @@ console.log("Institution:", institution);
   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
     {/* B n fices */}
     <div>
-      <strong>B n fices :</strong><br />
+      <strong>Bénéfices :</strong><br />
       {(totalProfits ?? 0).toLocaleString("fr-FR", {
         style: "currency",
         currency: "EUR",
@@ -236,7 +245,7 @@ console.log("Institution:", institution);
 
     {/* Utilisateurs enregistr s */}
     <div>
-      <strong>Utilisateurs enregistr s :</strong><br />
+      <strong>Utilisateurs enregistrés :</strong><br />
       {dashboardMetrics?.totalUsers?.toLocaleString() ?? "0"}
     </div>
   </div>
@@ -430,7 +439,7 @@ const AdminDashboard = ({institution, dashboardMetrics,
                     </span>
                     <br />
                     <span className="text-sm">
-        {(Math.round((dashboardMetrics?.totalAvailableCredit ?? 0) * 655.957)).toLocaleString("fr-FR")} F CFA
+        {(Math.round((dashboardMetrics?.customerStats?.avoirDisponible ?? 0) * 655.957)).toLocaleString("fr-FR")} F CFA
       </span>
     </>
   }
@@ -482,32 +491,3 @@ const AdminDashboard = ({institution, dashboardMetrics,
   </div>
   </div>
 );
-/*const DashboardCard = ({
-  href,
-  title,
-  children,
-}: {
-  href?: string;
-  title: string;
-  children: React.ReactNode;
-}) => (
-  <Link href={href || "#"}>
-    <Suspense fallback={<LoadingBox />}>
-      <Card className="w-75 justify-between space-x-2">
-        <CardHeader className="flex flex-row items-center justify-between space-y-1">
-          <CardTitle className="text-lg font-semibold">{title}</CardTitle>
-        </CardHeader>
-        <hr />
-        <CardContent>
-          {children}
-        </CardContent>
-        <hr />
-        <CardFooter>
-          <h1>r sum  des infos</h1>
-        </CardFooter>
-      </Card>
-    </Suspense>
-  </Link>
-);*/
-
-

@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label"
+import { ArrowBigLeft, ChevronLeft } from "lucide-react";
 
 export default function PromotionsPage() {
   const { institution } = useParams() as { institution: string }
@@ -101,7 +102,7 @@ export default function PromotionsPage() {
             variant="outline"
             className="bg-blue-600 text-white hover:bg-blue-700"
           >
-            ← Retour
+            <ChevronLeft className="w-5 h-5" />
           </Button>
           <Button 
             onClick={handleOpenUpdate}
