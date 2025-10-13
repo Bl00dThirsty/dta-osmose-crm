@@ -6,8 +6,8 @@ import Container from "../../components/ui/Container";
 import { redirect } from 'next/navigation';
 import { useEffect, useState  } from 'react';
 import { useRouter } from 'next/navigation';
-import { columns } from "../../crm/customers/table/components/columns"
-import { DataTable } from "../../crm/customers/table/components/data-table"
+import { columns } from "../../crm/customers/table/columns"
+import { DataTable } from "../../crm/customers/table/data-table"
 import { useGetCustomersQuery } from "@/state/api"
 import { useParams } from "next/navigation"
 

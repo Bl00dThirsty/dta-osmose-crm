@@ -153,8 +153,8 @@ const validatedItems = await Promise.all(
     });
 
     const unitPrice = activePromo
-  ? toTwoDecimals(product.sellingPriceCFA * (1 - activePromo.discount / 100))
-  : product.sellingPriceCFA;
+  ? toTwoDecimals(product.sellingPriceTTC * (1 - activePromo.discount / 100))
+  : product.sellingPriceTTC;
 
     return {
       productId: item.productId,
@@ -197,7 +197,7 @@ console.log("Produits validés :", validatedItems);
     // Calcul du total purchase price
     let totalPurchasePrice = 0;
     items.forEach((item, index:any) => {
-      totalPurchasePrice += toTwoDecimals(allProduct[index].purchasePriceCFA * item.quantity);
+      totalPurchasePrice += toTwoDecimals(allProduct[index].purchase_price * item.quantity);
 
     });
 
@@ -423,28 +423,40 @@ export const checkCustomerDebtStatus = async (req: Request, res: Response) => {
   const { customerId } = req.params;
   const institutionSlug = req.params.institution;
   const institution = await prisma.institution.findUnique({
-        where: { slug: institutionSlug },
-    });
+    where: { slug: institutionSlug },
+  });
   
       if (!institution) {
         res.status(404).json({ message: "Institution introuvable." });
         return;
       }
-  const now = new Date();
-  const oneMonthAgo = new Date();
-  oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-  //oneMonthAgo.setMonth(now.getMonth() - 25);
-  //const oneMonthAgo = new Date(now.setDate(now.getDate() - 20));
+  // const now = new Date();
+  // const oneMonthAgo = new Date();
+  // oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 6);
+  // //oneMonthAgo.setMonth(now.getMonth() - 25);
+  // //const oneMonthAgo = new Date(now.setDate(now.getDate() - 20));
 
-  const unpaidOldInvoices = await prisma.saleInvoice.findMany({
-    where: {
-      customerId: parseInt(customerId),
-      paymentStatus: { not: "PAID" },
-      delivred: true,
-      createdAt: { lt: oneMonthAgo },
-    },
+  // const unpaidOldInvoices = await prisma.saleInvoice.findMany({
+  //   where: {
+  //     customerId: parseInt(customerId),
+  //     paymentStatus: { not: "PAID" },
+  //     delivred: true,
+  //     createdAt: { lt: oneMonthAgo },
+  //   },
     
-  });
+  // });
+  const now = new Date();
+const sixDaysAgo = new Date();
+sixDaysAgo.setDate(sixDaysAgo.getDate() - 6);
+
+const unpaidOldInvoices = await prisma.saleInvoice.findMany({
+  where: {
+    customerId: parseInt(customerId),
+    paymentStatus: { not: "PAID" },
+    delivred: true,
+    createdAt: { lt: sixDaysAgo }, // Avant la date d'il y a 6 jours
+  },
+});
 
   const hasDebt = unpaidOldInvoices.length > 0;
 
@@ -489,7 +501,7 @@ export const checkCustomerDebtStatus = async (req: Request, res: Response) => {
   }
   console.log({
   customerId: parseInt(customerId),
-  oneMonthAgo,
+  sixDaysAgo,
   unpaidOldInvoicesCount: unpaidOldInvoices.length,
   unpaidOldInvoices,
   });
@@ -716,7 +728,7 @@ export const updatePayment = async (req: Request, res: Response): Promise<void> 
 
     let totalPurchasePrice = 0;
     items.forEach((item: any, index: number) => {
-      totalPurchasePrice += toTwoDecimals(allProduct[index].purchasePriceCFA * item.quantity);
+      totalPurchasePrice += toTwoDecimals(allProduct[index].purchase_price * item.quantity);
     });
 
     //totalPurchasePrice += toTwoDecimals(allProduct[index].purchasePriceCFA * item.quantity);
@@ -855,37 +867,6 @@ export const deleteSaleInvoice = async (req: Request, res: Response): Promise<vo
     res.status(500).json({ error: "Erreur lors de l'annulation de la commande." });
   }
 };
-
-
-
-
-// let totalPurchasePrice = 0;
-//     items.forEach((item: any, index: number) => {
-//       totalPurchasePrice += allProduct[index].purchase_price * item.quantity;
-//     });
-
-//     const totalDiscount = (invoice.discount ?? 0) + discount;
-//     const totalPaid = (invoice.paidAmount ?? 0) + paidAmount;
-//     const newFinalAmount = (invoice.totalAmount ?? 0) - totalDiscount;
-//     const remainingAmount = Math.max(newFinalAmount - totalPaid, 0); // toujours >= 0
-
-//     let newStatus = invoice.paymentStatus;
-//     if (remainingAmount === 0) newStatus = 'PAID';
-//     else if (totalPaid > 0) newStatus = 'PARTIAL';
-//     const profit = totalPaid - totalPurchasePrice;
-
-//     const updatedInvoice = await prisma.saleInvoice.update({
-//       where: { id },
-//       data: {
-//         paymentMethod,
-//         paymentStatus: newStatus,
-//         discount: totalDiscount,
-//         finalAmount: newFinalAmount,
-//         paidAmount: totalPaid,
-//         dueAmount: remainingAmount,
-//         profit: profit, // bien mis à jour ici
-//       },
-//     });
 
 
 

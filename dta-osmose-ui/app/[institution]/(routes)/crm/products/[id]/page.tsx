@@ -15,7 +15,7 @@ import {
 export default function DetailUserPage() {
   const router = useRouter();
 
-  const { institution } = useParams() as { institution: string }
+  const { institution,id } = useParams()as { institution: string; id: string };
   const [token, setToken] = useState<string | null>(null);
     useEffect(() => {
       // Tout ce code ne s'exécute QUE côté client
@@ -35,12 +35,9 @@ export default function DetailUserPage() {
   );
 
 
-  const { institution,id } = useParams()as { institution: string; id: string };
+  
 
-  const { data: product, isLoading, error } = useGetProductByIdQuery({
-    institution,
-    id: id as string,
-  });
+  const { data: product, isLoading, error } = useGetProductByIdQuery(id);
 
 
   const handleGoBack = () => {
@@ -56,8 +53,8 @@ export default function DetailUserPage() {
   const currentPromo = hasPromo ? activePromos[0] : null; // Prendre la première promo active
   const discountPercentage = currentPromo ? currentPromo.discount : 0;
   const reducedPrice = hasPromo 
-    ? product.sellingPriceCFA - (product.sellingPriceCFA * discountPercentage / 100)
-    : product.sellingPriceCFA;
+    ? product.sellingPriceTTC - (product.sellingPriceTTC * discountPercentage / 100)
+    : product.sellingPriceTTC;
 
   return (
     <div className="max-w-4xl mx-auto mt-6">
@@ -116,14 +113,14 @@ export default function DetailUserPage() {
                   {hasPromo ? (
                     <div className="flex items-center gap-3">
                       <span className="text-gray-600">Prix de Vente :</span>
-                      <span className="line-through text-red-500">{product.sellingPriceCFA} FCFA</span>
+                      <span className="line-through text-red-500">{product.sellingPriceTTC} FCFA</span>
                       <span className="font-bold text-green-600">{reducedPrice.toFixed(2)} FCFA</span>
                     </div>
                   ) : (
-                    <InfoItem label="Prix de vente" values={product.sellingPriceCFA} />
+                    <InfoItem label="Prix de vente" values={product.sellingPriceTTC} />
                   )}
 
-                  <InfoItem label="Prix d'achat" values={product.purchasePriceCFA} />
+                  <InfoItem label="Prix d'achat" values={product.purchase_price} />
                   <InfoItem label="Entrepôt" value={product.warehouse} />
                 </div>
               </div>

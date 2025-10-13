@@ -1,6 +1,6 @@
 import cron from "node-cron";
 import { PrismaClient } from "@prisma/client";
-import { notifyUserOrCustomer } from "./websocketNotification";
+import { notifyUserOrCustomer } from "../websocketNotification";
 
 export const prisma = new PrismaClient();
 

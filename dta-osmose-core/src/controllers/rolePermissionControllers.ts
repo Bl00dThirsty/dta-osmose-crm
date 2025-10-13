@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 const { PrismaClient } = require("@prisma/client");
-const { getPagination } = require("../query");
+const { getPagination } = require("../utils/query");
 import { v4 as uuidv4 } from 'uuid'
 
 const prisma = new PrismaClient();

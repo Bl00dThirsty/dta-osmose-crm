@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { createProduct, getProducts, getSingleProduct, importProducts, updateSingleProduct, deleteProduct } from "../controllers/productController";
 //const authorize = require("../authorize");
-import authorize from "../authorize";
+import authorize from "../utils/authorize";
 
 const router = Router();
 

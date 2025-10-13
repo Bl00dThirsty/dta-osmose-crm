@@ -14,20 +14,26 @@ import { Customer } from "@/state/api"
 import Link from "next/link";
 import * as XLSX from 'xlsx';
 import UserPrivateComponent from "../../../components/usePrivateComponent";
-import { ChevronLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import { DatePicker } from "@/components/ui/date-picker";
 
 
 export default function DetailCustomerPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
   const [token, setToken] = useState<string | null>(null);
-  const [dates, setDates] = useState({
-    startDate: '',
-    endDate: ''
-  });
+  // const [dates, setDates] = useState({
+  //   startDate: '',
+  //   endDate: ''
+  // });
   const { institution } = useParams() as { institution: string }
   const router = useRouter();
   const { id } = useParams();
+
+  // const customerId = Number(id);
+  // const tokens = localStorage.getItem('accessToken')
+  // console.log("le token est:", tokens)
+  // console.log("id du customer", id)
 
   // Initialisation côté client uniquement
   useEffect(() => {
@@ -35,12 +41,12 @@ export default function DetailCustomerPage() {
     setToken(localStorage.getItem('accessToken'));
     
     const now = new Date();
-    setDates({
-      startDate: new Date(now.getFullYear(), now.getMonth(), 1)
-                .toISOString().split("T")[0],
-      endDate: new Date(now.getFullYear(), now.getMonth() + 1, 0)
-              .toISOString().split("T")[0]
-    });
+    // setDates({
+    //   startDate: new Date(now.getFullYear(), now.getMonth(), 1)
+    //             .toISOString().split("T")[0],
+    //   endDate: new Date(now.getFullYear(), now.getMonth() + 1, 0)
+    //           .toISOString().split("T")[0]
+    // });
   }, []);
 
   // Redirection si non authentifié
@@ -50,6 +56,13 @@ export default function DetailCustomerPage() {
     }
   }, [token, isMounted, router]);
 
+  const now = new Date();
+  const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  
+  const [startDate, setStartDate] = useState<Date | undefined>(firstDayOfMonth);
+  const [endDate, setEndDate] = useState<Date | undefined>(lastDayOfMonth);
+
   // Requêtes API
   const { 
     data: customer, 
@@ -58,9 +71,12 @@ export default function DetailCustomerPage() {
     refetch 
   } = useGetCustomerByIdQuery({ 
     id: id as string, 
-    startDate: dates.startDate, 
-    endDate: dates.endDate 
-  });
+    institution,
+     startDate: startDate ? startDate.toISOString() : undefined,
+    endDate: endDate ? endDate.toISOString(): undefined 
+  },
+   { skip: !id } // Ne pas exécuter si l'ID n'est pas défini
+ );
 
   const [updateCustomer, { isLoading: isUpdating }] = useUpdateCustomerMutation();
 
@@ -121,7 +137,7 @@ export default function DetailCustomerPage() {
   // Export
   XLSX.writeFile(
     workbook, 
-    `Produits_${customer.name}_${dates.startDate}_au_${dates.endDate}.xlsx`
+    `Produits_${customer.name}_${startDate}_au_${endDate}.xlsx`
   );
 };
 
@@ -137,9 +153,9 @@ export default function DetailCustomerPage() {
           <Button 
             onClick={() => router.back()}
             variant="outline"
-            className="bg-blue-600 text-white hover:bg-blue-700"
+            className="text-white hover:bg-blue-700"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ArrowLeft className="w-5 h-5" />
           </Button>
           <UserPrivateComponent permission="update-user">
           <Button 
@@ -189,18 +205,10 @@ export default function DetailCustomerPage() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <CardTitle>Historique des commandes</CardTitle>
             <div className="flex gap-2">
-              <input
-                type="date"
-                value={dates.startDate}
-                onChange={(e) => setDates(prev => ({...prev, startDate: e.target.value}))}
-                className="border p-2 rounded text-sm"
-              />
-              <input
-                type="date"
-                value={dates.endDate}
-                onChange={(e) => setDates(prev => ({...prev, endDate: e.target.value}))}
-                className="border p-2 rounded text-sm"
-              />
+              <div className="flex space-x-4">
+                  <DatePicker label="" date={startDate} onSelect={(d) => d && setStartDate(d)} />
+                  <DatePicker label="" date={endDate} onSelect={(d) => d && setEndDate(d)} />
+              </div>
               <Button 
                 onClick={exportToExcel} 
                 className="bg-green-600 text-white hover:bg-green-700"
@@ -232,74 +240,3 @@ export default function DetailCustomerPage() {
     </div>
   );
 }
-{/* <CardContent className="flex space-x-9 space-y-7 mt-5">
-        
-        <div className="flex-1">
-        <p><strong>ID client :</strong> {customer.customId}</p>
-          <p><strong>Email :</strong> {customer.email}</p>
-          <p><strong>Téléphone :</strong> {customer.phone}</p>
-          <p><strong>Nom du responsable :</strong> {customer.nameresponsable}</p>
-          
-          <p><strong>Adresse :</strong> {customer.quarter}</p>
-        </div>
-       
-        <div className="flex-1">
-          <p><strong>Role :</strong> {customer.role}</p>
-          <p><strong>Region :</strong> {customer.region}</p>
-          <p><strong>Ville :</strong> {customer.ville}</p>
-          <p><strong>Type de client :</strong> {customer.type_customer}</p>
-          <p><strong>Site web :</strong> {customer.website}</p>
-        </div>
-      </CardContent> 
-      
-      <CardContent className="space-y-5 mt-5">
-      <p><strong>ID client :</strong> {customer.customId}</p>
-          <p><strong>Email :</strong> {customer.email}</p>
-          <p><strong>Téléphone :</strong> {customer.phone}</p>
-          <p><strong>Nom du responsable :</strong> {customer.nameresponsable}</p>
-          
-          <p><strong>Adresse :</strong> {customer.quarter}</p>
-        <p><strong>Role :</strong> {customer.role}</p>
-          <p><strong>Region :</strong> {customer.region}</p>
-          <p><strong>Ville :</strong> {customer.ville}</p>
-          <p><strong>Type de client :</strong> {customer.type_customer}</p>
-          <p><strong>Site web :</strong> {customer.website}</p>
-      </CardContent>
-      <CardContent>
-          
-            <DataTable
-              
-              data={customer.SaleInvoice || []}
-              columns={columns}
-            />
-          
-        </CardContent>
-        <div className="mt-6">
-        
-        {customer.saleInvoice?.length ? (
-          <table className="min-w-full bg-gray border">
-            <thead>
-              <tr>
-                <th className="border px-4 py-2">N° Facture</th>
-                <th className="border px-4 py-2">Date</th>
-                <th className="border px-4 py-2">Montant</th>
-                <th className="border px-4 py-2">Statut</th>
-              </tr>
-            </thead>
-            <tbody>
-              {customer.saleInvoice.map((invoice) => (
-                <tr key={invoice.id}>
-                  <td className="border px-4 py-2">{invoice.invoiceNumber}</td>
-                  <td className="border px-4 py-2">
-                    {format(new Date(invoice.createdAt), "dd/MM/yyyy HH:mm")}
-                  </td>
-                  <td className="border px-4 py-2">{invoice.finalAmount} FCFA</td>
-                  <td className="border px-4 py-2">{invoice.paymentStatus}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <p>Aucune vente pour cette période.</p>
-        )}
-      </div>*/}

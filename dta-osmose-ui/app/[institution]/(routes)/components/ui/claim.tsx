@@ -19,7 +19,7 @@ export function PendingClaimsNotification() {
       <PopoverTrigger asChild>
         <div className="relative cursor-pointer">
           <AlertTriangleIcon className="w-6 h-6 text-gray-700 dark:text-gray-200" />
-          {count >= 0 && (
+          {count > 0 && (
             <Badge
               variant="destructive"
               className="absolute -top-2 -right-2 rounded-full px-1.5 py-0 text-xs"

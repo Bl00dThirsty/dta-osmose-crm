@@ -6,11 +6,11 @@ import { X, Upload } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { DataTableViewOptions } from "@/app/[institution]/(routes)/crm/products/table/components/data-table-view-options"
+import { DataTableViewOptions } from "@/app/[institution]/(routes)/components/table/data-table-view-options"
 import { PlusIcon } from "lucide-react";
-import { quantityLevel, statuses, labels } from "@/app/[institution]/(routes)/crm/products/table/data/data"
-import { DataTableFacetedFilter } from "./data-table-faceted-filter"
-import RegisterComponent from "../../../add/components/adduser";
+import { quantityLevel, statuses, labels } from "@/app/[institution]/(routes)/components/data/data"
+import { DataTableFacetedFilter } from "@/app/[institution]/(routes)/components/table/data-table-faceted-filter"
+import RegisterComponent from "../../add/components/adduser";
 import Modal from "@/components/ui/modal";
 import { useAuth } from "@/app/[institution]/(auth)/sign-in/context/authContext";
 import Papa from "papaparse"

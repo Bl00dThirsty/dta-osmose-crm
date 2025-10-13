@@ -23,10 +23,7 @@ import {
   DialogCancel,
   DialogAction,
 } from "@/components/ui/dialog"
-import {
-  ChevronLeft,
-  
-} from "lucide-react";
+import { ArrowBigLeft, ArrowLeft, ChevronDown, StepBack } from "lucide-react";
 
 
 const InvoicePage = () => {
@@ -128,7 +125,7 @@ const InvoicePage = () => {
           className="flex items-center gap-2 hover:bg-blue-300 bg-blue-600 transition-colors px-2 py-1 rounded"
         >
           <ArrowLeft className="w-5 h-5" />
-          <span>Retour</span>
+          
         </Button>
 
       </div>
@@ -229,17 +226,18 @@ const InvoicePage = () => {
       </div> */}
 
      {/* Bande horizontale Statuts */}
-<div className=" rounded-xl shadow-md p-4 mb-6">
+<div className=" rounded-xl p-4 mb-6">
   <h2 className="font-bold text-lg mb-3">Statuts</h2>
   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 text-center">
     
     {/* 1. Commande prête */}
-    <div className="p-4 rounded-md shadow border">
+    <div className="p-4 rounded-md shadow ">
       <p className="font-semibold mb-2">Commande</p>
+      
       <button
         onClick={handleMarkReady}
         className={`px-4 py-2 text-sm font-medium rounded-full transition-colors duration-500 ${
-          sale.ready ? 'bg-blue-300 text-blue-800' : 'bg-blue-300 text-blue-800 hover:bg-green-500'
+          sale.ready ? 'bg-blue-300 text-blue-800' : 'bg-blue-300 text-blue-800 hover:bg-blue-500'
         }`}
         disabled={isParticulier || sale.ready}
       >
@@ -248,7 +246,7 @@ const InvoicePage = () => {
     </div>
 
     {/* 2. Paiement */}
-    <div className="p-4 rounded-md shadow border">
+    <div className="p-4 rounded-md shadow ">
       <p className="font-semibold mb-2">Paiement</p>
       <button
         onClick={() => router.push(`/${institution}/payment/${sale.id}`)}
@@ -264,7 +262,7 @@ const InvoicePage = () => {
     </div>
 
     {/* 3. Livraison */}
-    <div className="p-3 rounded-md shadow border">
+    <div className="p-3 rounded-md shadow ">
       <p className="font-semibold mb-2">Livraison</p>
       <button
         onClick={handleMarkDelivered}
@@ -292,13 +290,13 @@ const InvoicePage = () => {
     </div> */}
 
     {/* 5. Impression */}
-    <div className="p-3 rounded-md border shadow">
+    <div className="p-3 rounded-md shadow">
       <p className="font-semibold mb-2">Imprimer</p>
       <PrintUserSheet sale={sale} />
     </div>
 
     {/* 6. Assignée à */}
-    <div className="p-3 rounded-md border shadow">
+    <div className="p-3 rounded-md shadow">
       <p className="font-semibold mb-2">Assignée à</p>
       <p className="mt-2 text-sm text-gray-400 font-bold">
         {sale.user

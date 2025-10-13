@@ -34,6 +34,7 @@ const ClaimPage = () => {
   const [openResponse, setOpenResponse] = useState(false);
   const [openResponseUpdate, setOpenResponseUpdate] = useState(false);
 
+// Vérification d'authentification
   const [token, setToken] = useState<string | null>(null);
     useEffect(() => {
       const accessToken = localStorage.getItem('accessToken');
@@ -41,21 +42,23 @@ const ClaimPage = () => {
       if (!accessToken) {
         router.push(`/${institution}/sign-in`);
       }
-    }, [router, institution]); 
-    
+  }, [router, institution]);     
   const [userRole, setUserRole] = useState<string | null>(null);
   useEffect(() => {
     setUserRole(localStorage.getItem('role'));
   }, []);
+
+// Requêtes API
   const isParticulier = userRole === "Particulier";
   const [responseDesc, setResponseDesc] = useState("");
   const [respondToClaim] = useRespondToClaimMutation();
   const [updateClaimResponse] = useUpdateClaimResponseMutation();
   const [deleteClaim] = useDeleteClaimMutation()
   const { data: claim, isLoading, refetch } = useGetClaimByIdQuery(id, {
-  refetchOnMountOrArgChange: true, // Force le rafraîchissement des données à chaque montage
-});
- 
+    refetchOnMountOrArgChange: true, // Force le rafraîchissement des données à chaque montage
+  });
+
+// Actions
   const handleDelete = async () => {
     if (!id) {
       toast.error("ID de la réclamation introuvable.")
@@ -162,7 +165,7 @@ const ClaimPage = () => {
             <button
              onClick={() => {
                 if (claim.response?.status === 'ACCEPTED' || claim.response?.status === 'REJECTED') {
-                  alert("Cette réclamation a déjà eu une réponse (statut: " + claim.response?.status + "), il n'est plus possible de la supprimer.");
+                  toast.error("Cette réclamation a déjà eu une réponse (statut: " + claim.response?.status + "), il n'est plus possible de la supprimer.");
                 } else {
                   setOpenDelete(true);
                 }

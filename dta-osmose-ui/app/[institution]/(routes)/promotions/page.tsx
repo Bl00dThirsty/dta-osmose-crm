@@ -11,7 +11,7 @@ import { useGetProductsQuery, useCreatePromotionsMutation, useGetUsersQuery } fr
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import Container from "../components/ui/Container";
-import { DatePicker } from "../crm/dashboard/_components/date-picker";
+import { DatePicker } from "@/components/ui/date-picker";
 
 const CreatePromotion = () => {
   const router = useRouter();
@@ -36,7 +36,7 @@ const CreatePromotion = () => {
 
    //  Récupérer le produit sélectionné
   const selectedProduct = products.find((p: any) => String(p.id) === productId);
-  const productPrice = selectedProduct?.sellingPriceCFA ?? 0;
+  const productPrice = selectedProduct?.sellingPriceTTC ?? 0;
 
   // Calcul du prix final avec remise
   const finalPrice = productPrice - (productPrice * discount) / 100;
@@ -48,8 +48,13 @@ const CreatePromotion = () => {
   }
   const now = new Date();
 
-  if (startDate < now || endDate < now) {
-    toast.error("La date de début et de fin doivent être dans le futur.");
+  if (startDate < now) {
+    toast.error("La date de début de la promotion doit être dans le futur.");
+    return;
+  }
+
+  if (endDate < now) {
+    toast.error("La date de fin de la promotion doit être dans le futur.");
     return;
   }
 
@@ -100,7 +105,7 @@ const CreatePromotion = () => {
               <option value="">-- Sélectionner --</option>
               {products.map((p: any) => (
                 <option key={p.id} value={p.id}>
-                  {p.designation} ({p.sellingPriceCFA} FCFA)
+                  {p.designation} ({p.sellingPriceTTC} FCFA)
                 </option>
               ))}
             </select>
@@ -131,11 +136,11 @@ const CreatePromotion = () => {
                       
           </div>
           <div>
-            <Label className="mb-2">Date fin de promotion</Label>
+            <Label className="mb-2 mt-5">Date fin de promotion</Label>
            <DatePicker label="" date={endDate} onSelect={(d) => d && setEndDate(d)} />
           </div>
-        <div>
-            <Label className="mb-2">Créateur</Label>
+         {/* <div>
+            <Label className="mb-2 mt-5">Créateur</Label>
             <select
               className="w-full border border-gray-300 rounded px-3 py-2"
               value={creatorId ?? ""}
@@ -148,7 +153,7 @@ const CreatePromotion = () => {
                 </option>
               ))}
             </select>
-          </div> 
+          </div>  */}
         </div>
       </CardContent>
 

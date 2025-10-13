@@ -2,7 +2,7 @@ import { Router } from "express";
 import { login, register, logout, refreshToken, getCurrentUser} from "../controllers/AuthController";
 import { expressjwt as jwt } from "express-jwt";
 import dotenv from "dotenv";
-import authorize from "../authorize"; 
+import authorize from "../utils/authorize"; 
 
 dotenv.config();
 

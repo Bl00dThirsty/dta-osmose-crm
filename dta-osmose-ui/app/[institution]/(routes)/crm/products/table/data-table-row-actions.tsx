@@ -32,9 +32,9 @@ import {
   DialogCancel,
   DialogAction,
 } from "@/components/ui/dialog"
-import { labels } from "../data/data"
+//import { labels } from "../data/data"
 import { Label } from "@/components/ui/label"
-import UserPrivateComponent from "../../../../components/usePrivateComponent";
+import UserPrivateComponent from "../../../components/usePrivateComponent";
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>
 }
@@ -77,9 +77,7 @@ const handleOpenUpdate = () => {
 const handleUpdate = async () => {
   try {
     await updateProduct({
-      id: productId, ...formData,
-      institution: ""
-    }).unwrap();
+      id: productId, ...formData }).unwrap();
     toast.success("Produit mis à jour avec succès");
     setOpenUpdate(false);
     setTimeout(() => {
