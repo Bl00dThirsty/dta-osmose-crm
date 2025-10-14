@@ -161,6 +161,77 @@ export const createClaims = async (
     }
   };
 
+/**
+ * @desc    Récupère uniquement les réclamations sans réponse 
+ * @route   GET /:institution/pendingClaim
+ * @access  Privé (Authentifié)
+ * 
+ * @param   {string} institution - Slug de l'institution
+ * 
+ * @returns {Object} Liste des réclamations sans reponses
+ * @throws  {400} Stock insuffisant ou données invalides
+ * @throws  {400} Institution manquante.
+ * @throws  {404} Institution introuvable
+ * @throws  {500} Erreur serveur
+ */
+
+  export const getPendingClaims = async (req: Request, res: Response): Promise<void> => {
+  try {
+    
+    const institutionSlug = req.params.institution;
+
+    if (!institutionSlug) {
+      res.status(400).json({ message: "Institution manquante." });
+      return;
+    }
+
+    const institution = await prisma.institution.findUnique({
+      where: { slug: institutionSlug },
+    });
+
+    if (!institution) {
+      res.status(404).json({ message: "Institution introuvable." });
+      return;
+    }
+
+    const pendingClaims = await prisma.claim.findMany({
+      where: { 
+        AND: [
+          {
+            institutionId: institution.id,
+          },
+          {
+            // Récupère seulement les réclamations SANS réponse
+            response: {
+              is: null
+            }
+          }
+        ]
+      },
+      include: {
+        invoice: {
+          include: {
+            items: {
+              include: {
+                product: true,
+              }
+            },
+            customer: true,
+          }
+        },
+        product: true,
+        response: true // Inclut toujours la relation response (sera null pour les pending)
+      },
+      //orderBy: { createdAt: 'desc' }
+    });
+
+    res.json(pendingClaims);
+  } catch (error) {
+    console.error("Erreur dans getPendingClaims:", error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
   export const getClaimsById = async (req: Request, res: Response): Promise<void> => {
     try {
       const invoice = await prisma.claim.findUnique({

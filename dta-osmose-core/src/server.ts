@@ -28,6 +28,9 @@ import claimRoutes from './routes/claimRoute';
 import NotificationRoutes from './routes/notificationRoutes'
 import InventoryRoutes from './routes/inventoryRoutes'
 import promotionRoutes from "./routes/promotionRoute";
+import PromiseSaleRoutes from "./routes/promiseSaleRoute";
+import ReportRoutes from "./routes/reportRoutes"
+import { startReminderScheduler } from "./reminderScheduler";
 
 export const prisma = new PrismaClient();
 
@@ -69,6 +72,8 @@ app.use("/claim", claimRoutes);
 app.use("/notification", NotificationRoutes);
 app.use("/inventory", InventoryRoutes);
 app.use("/promotions", promotionRoutes);
+app.use("/salepromise", PromiseSaleRoutes);
+app.use("/report",  ReportRoutes)
 
 // Error handling middleware
 app.use(errorHandler);
@@ -76,6 +81,7 @@ app.use(errorHandler);
 const server = http.createServer(app);
 initWebSocketServer(server);
 
+startReminderScheduler();
 const PORT = process.env.PORT || 4000;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

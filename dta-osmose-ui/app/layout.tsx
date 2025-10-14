@@ -26,7 +26,7 @@ export default function RootLayout({ children }: Props) {
         </Providers>
         </ThemeProvider>
         {/* <SonnerToaster /> */}
-        <ToastProvider />
+        {/* <ToastProvider /> */}
       </body>
     </html>
   );

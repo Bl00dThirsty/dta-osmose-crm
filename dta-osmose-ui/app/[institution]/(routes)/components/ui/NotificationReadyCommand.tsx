@@ -48,23 +48,23 @@ function ReadyCommandeNotification() {
             notification
           ]);
 
-        let toastType;
-        switch (notification.type) {
-          case "update_order":
-            toastType = "info";
-            break;
-          case "order":
-          case "new_by_commande":
-            toastType = "success";
-            break;
-          default:
-            toastType = "default";
-        }
+        // let toastType;
+        // switch (notification.type) {
+        //   case "update_order":
+        //     toastType = "info";
+        //     break;
+        //   case "order":
+        //   case "new_by_commande":
+        //     toastType = "success";
+        //     break;
+        //   default:
+        //     toastType = "default";
+        // }
 
-        toast(notification.message, {
-          type: notification.type === "general" ? "info" : "warning",
-          autoClose: 5000,
-        });
+        // toast(notification.message, {
+        //   type: notification.type === "general" ? "info" : "warning",
+        //   autoClose: 5000,
+        // });
       } else {
         console.error(
           "Notification data is missing or incomplete:",
@@ -116,7 +116,7 @@ function ReadyCommandeNotification() {
       {/* Icône de cloche */}
       <button onClick={() => setShowNotifications(!showNotifications)}>
         <BellOutlined className="w-6 h-6" style={{ color: "#fadb14" }} />
-        {unreadNotifications.length >= 0 && (
+        {unreadNotifications.length > 0 && (
           <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-1">
             {unreadNotifications.length}
           </span>
@@ -124,7 +124,7 @@ function ReadyCommandeNotification() {
       </button>
       {/* Liste des notifications lorsqu'on clique sur la cloche */}
       {showNotifications && (
-        <div className="notification-list-container1">
+        <div className="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto bg-white shadow-lg rounded-lg p-4 z-50">
           {notifications.map((item) => (
             <Alert
               key={item.id}

@@ -32,6 +32,7 @@ import {
 import { useState } from "react"
 import { useParams } from "next/navigation"
 import { toast } from "react-toastify";
+import UserPrivateComponent from "../../components/usePrivateComponent";
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>
@@ -43,6 +44,7 @@ export function DataTableRowActions<TData>({
   const router = useRouter();
   const saleId = (row.original as any).id;
   const delivred = (row.original as any).delivred === true
+  const paymentStatus = (row.original as any).paymentStatus
   console.log("saleId :", saleId)
   const [deleteSaleInvoice] = useDeleteSaleInvoiceMutation()
   const [open, setOpen] = useState(false);
@@ -54,6 +56,10 @@ export function DataTableRowActions<TData>({
     }
     if (delivred) {
       toast.warning("Impossible d'annuler une commande déjà livrée.")
+      return
+    }
+    if(paymentStatus === "PARTIAL" || paymentStatus === "PAID"){
+      toast.error("Impossible de supprimé la commande, paiement déja entamé")
       return
     }
     console.log("saleId :", saleId)
@@ -91,7 +97,8 @@ export function DataTableRowActions<TData>({
         <DropdownMenuItem onClick={() => router.push(`/${institution}/sales/${saleId}`)}>
           Voir👀
         </DropdownMenuItem>
-        <DropdownMenuItem
+        <UserPrivateComponent permission="delete-sale">
+         <DropdownMenuItem
             onSelect={(e) => {
               e.preventDefault()
               if (delivred) {
@@ -105,8 +112,9 @@ export function DataTableRowActions<TData>({
           >
             {delivred ? "Commande Livrée" : "Annuler Commande"}
           </DropdownMenuItem>
-        {/* <DropdownMenuSeparator /> */}
+        </UserPrivateComponent>
       </DropdownMenuContent>
+    
     </DropdownMenu>
 
     <Dialog open={open} onOpenChange={setOpen}>

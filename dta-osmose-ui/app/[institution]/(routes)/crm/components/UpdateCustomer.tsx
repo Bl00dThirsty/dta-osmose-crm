@@ -17,6 +17,7 @@ export function UpdateCustomerForm({
   open: boolean
   onOpenChange: (open: boolean) => void
   onUpdate: (data: Partial<Customer>) => Promise<void>
+  isLoading?: boolean;
 }) {
   const { register, handleSubmit, reset } = useForm<Customer>({
     defaultValues: customer

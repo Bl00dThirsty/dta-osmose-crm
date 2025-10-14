@@ -12,6 +12,9 @@ import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import { Customer } from "@/state/api"
 import Link from "next/link";
+import * as XLSX from 'xlsx';
+import UserPrivateComponent from "../../../components/usePrivateComponent";
+import { ChevronLeft } from "lucide-react";
 
 
 export default function DetailCustomerPage() {
@@ -72,31 +75,56 @@ export default function DetailCustomerPage() {
 
 
   // Gestion de la mise à jour
-  const handleUpdate = async (updatedData: Partial<Customer>) => {
+  const handleUpdate = async (updatedData: Partial<Customer>): Promise<void> => {
     try {
-      if (!customer?.id) {
-        throw new Error("ID client manquant");
-      }
+      if (!customer?.id) throw new Error("ID client manquant");
 
-      const response = await updateCustomer({
-        id: customer.id,
-        data: updatedData  // Correction ici pour matcher votre API
-      }).unwrap();
+      await updateCustomer({ id: customer.id, data: updatedData }).unwrap();
 
       toast.success("Client mis à jour avec succès");
       await refetch();
       setIsUpdateDialogOpen(false);
-      
-      return response;
     } catch (error: any) {
       console.error("Échec de la mise à jour:", error);
-      const errorMessage = error.data?.message || 
-                         error.message || 
-                         "Erreur lors de la mise à jour";
+      const errorMessage = error.data?.message || error.message || "Erreur lors de la mise à jour";
       toast.error(`Échec: ${errorMessage}`);
-      throw error;
     }
   };
+  const exportToExcel = () => {
+  if (!customer?.saleInvoice || customer.saleInvoice.length === 0) {
+    toast.warning("Aucune commande trouvée sur cette période");
+    return;
+  }
+
+  // Préparer les données
+  const rows = customer.saleInvoice.flatMap(invoice =>
+  (invoice.items ?? []).map(item => ({
+    "Désignation produit": item.product?.designation || "N/A",
+    "Quantité": item.quantity,
+    "Prix unitaire": item.unitPrice,
+    "Total": item.totalPrice,
+    "Numéro Facture": invoice.invoiceNumber,
+    "Date": new Date(invoice.createdAt).toLocaleDateString(),
+  }))
+);
+
+  if (rows.length === 0) {
+    toast.warning("Aucun produit trouvé sur cette période");
+    return;
+  }
+
+  // Création du fichier Excel
+  const worksheet = XLSX.utils.json_to_sheet(rows);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Produits achetés");
+
+  // Export
+  XLSX.writeFile(
+    workbook, 
+    `Produits_${customer.name}_${dates.startDate}_au_${dates.endDate}.xlsx`
+  );
+};
+
 
   if (!isMounted || isLoading) return <p className="text-center py-8">Chargement en cours...</p>;
   if (error || !customer) return <p className="text-center py-8 text-red-500">Client introuvable</p>;
@@ -111,8 +139,9 @@ export default function DetailCustomerPage() {
             variant="outline"
             className="bg-blue-600 text-white hover:bg-blue-700"
           >
-            ← Retour
+            <ChevronLeft className="w-5 h-5" />
           </Button>
+          <UserPrivateComponent permission="update-user">
           <Button 
             onClick={() => setIsUpdateDialogOpen(true)}
             className="ml-auto bg-blue-600 text-white hover:bg-blue-700"
@@ -120,6 +149,7 @@ export default function DetailCustomerPage() {
           >
             {isUpdating ? "Enregistrement..." : "Modifier"}
           </Button>
+          </UserPrivateComponent>
         </div>
 
         <CardHeader>
@@ -171,9 +201,16 @@ export default function DetailCustomerPage() {
                 onChange={(e) => setDates(prev => ({...prev, endDate: e.target.value}))}
                 className="border p-2 rounded text-sm"
               />
+              <Button 
+                onClick={exportToExcel} 
+                className="bg-green-600 text-white hover:bg-green-700"
+              >
+                Exporter Excel
+              </Button>
             </div>
           </div>
-        </CardHeader>
+       </CardHeader>
+
         <CardContent>
           <DataTable
             data={customer.saleInvoice || []}

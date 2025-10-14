@@ -4,25 +4,35 @@ import React from "react";
 import Container from "../../components/ui/Container";
 //import UserPage from "./table/page";
 import { redirect } from 'next/navigation';
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import { columns } from "./table/columns"
 import { DataTable } from "./table/data-table"
 import { useGetDepartmentsQuery } from "@/state/api"
 
 const DepartmentsPage = () => {
   const router = useRouter();
-  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+  const { institution } = useParams() as { institution: string }
+  const [token, setToken] = useState<string | null>(null);
+    useEffect(() => {
+      // Tout ce code ne s'exécute QUE côté client
+      const accessToken = localStorage.getItem('accessToken');
+      setToken(accessToken);
+  
+      if (!accessToken) {
+        router.push(`/${institution}/sign-in`);
+      }
+    }, [router, institution]); // token retiré des dépendances
 
-  useEffect(() => {
-    if (!token) {
-      router.push('/');
-    }
-  }, [token]);
+  // useEffect(() => {
+  //   if (!token) {
+  //     router.push('/');
+  //   }
+  // }, [token]);
 const { data: department, isLoading, isError } = useGetDepartmentsQuery()
 
 if (isLoading) return <p>Chargement...</p>
-if (isError) return <p>Erreur lors du chargement.</p>
+if (isError) return <p>Vous n'avez pas accès à ces informations. Erreur lors du chargement.</p>
 
 
   return (

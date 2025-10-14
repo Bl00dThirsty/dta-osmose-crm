@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 const { PrismaClient } = require("@prisma/client");
+const { getPagination } = require("../query");
 import { v4 as uuidv4 } from 'uuid'
 
 const prisma = new PrismaClient();
@@ -55,7 +56,7 @@ export const createRolePermission = async (
         });
         res.json(allRolePermission);
       } else {
-        //const { skip, limit } = getPagination(req.query);
+        const { skip, limit } = getPagination(req.query);
         try {
           const allRolePermission = await prisma.rolePermission.findMany({
             orderBy: [
@@ -63,8 +64,7 @@ export const createRolePermission = async (
                 id: "asc",
               },
             ],
-            //skip: Number(skip),
-            //take: Number(limit),
+            
             include: {
               role: true,
               permission: true,

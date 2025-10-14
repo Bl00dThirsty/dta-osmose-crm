@@ -22,7 +22,7 @@ export default function NotificationBellStock() {
     <div className="relative">
       <button onClick={() => setOpen(!open)}>
         <BellDotIcon className="w-6 h-6" />
-        {unreadCount >= 0 && (
+        {unreadCount > 0 && (
           <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-1">
             {unreadCount}
           </span>

@@ -20,17 +20,29 @@ export const getCustomers = async (
     res: Response
   ): Promise<void> => {
     try {
+    const institutionSlug = req.params.institution;
+    const institution = await prisma.institution.findUnique({
+      where: { slug: institutionSlug },
+    });
+
+     if (!institution) {
+      res.status(404).json({ message: "Institution introuvable." });
+      return;
+    }
+      
       const search = req.query.search?.toString();
       const customers = await prisma.customer.findMany({
         where: {
-          name: {
-            contains: search,
-          },
+          // name: {
+          //   contains: search,
+          // },
+          institutionId: institution.id,
         },
         include: {
           credits: true,        
           user: true,          
         },
+        orderBy: { created_at: 'desc' }
       });
       res.json(customers);
     } catch (error) {
@@ -39,21 +51,27 @@ export const getCustomers = async (
   };
 
   export const createCustomer = async (req: Request, res: Response): Promise<void> => {
+    const institutionSlug = req.params.institution;
+    const institution = await prisma.institution.findUnique({
+      where: { slug: institutionSlug },
+    });
+      
+    if (!institution) {
+      res.status(404).json({ message: "Institution introuvable." });
+      return;
+    }
     // 1. Log du payload reçu
+
     console.log("Received payload:", req.body);
     try {
     // 2. Nettoyage des données
-    const userAuth = req.auth as { sub?: number };
-    if (!userAuth?.sub) {
-      res.status(401).json({ error: "Utilisateur non authentifié" });
-      return;
-    }
+    
     
     const hash = await bcrypt.hash(req.body.password, saltRounds);
     const payload = {
       ...req.body,
-      userId: userAuth.sub,
       password: hash, // Force l'utilisation de l'UUID auto-généré
+      institutionId: institution.id,
       created_at: undefined,
       updated_at: undefined
     };
@@ -175,6 +193,11 @@ export const getSingleCustomer = async (
             createdAt: {
               gte: startDate ? new Date(startDate as string) : undefined,
               lte: endDate ? new Date(endDate as string) : undefined,
+            },
+          },
+          include: {
+            items: {
+              include: { product: true }
             },
           },
           orderBy: {

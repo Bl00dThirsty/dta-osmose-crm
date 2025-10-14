@@ -104,7 +104,7 @@ const handleUpdate = async () => {
     try {
         await deletePromotions(promotionId).unwrap()
         //console.log("Designation supprimé avec succès")
-        toast.success("Promotions supprimé avec succès")
+        toast.success("Promotions supprimé avec succès, Réactualisez la page")
         setOpen(false); // <-- Fermer la modale AVANT de rediriger
         setTimeout(() => {
           
@@ -140,6 +140,8 @@ const handleUpdate = async () => {
         <DropdownMenuItem onSelect={() => setOpen(true)} className="text-red-600">Supprimer🗑</DropdownMenuItem>
         {/* <DropdownMenuSeparator /> */}
       </DropdownMenuContent>
+      
+      {/* boite de dialogue pour la confirmation de suppression */}
     </DropdownMenu>
       <Dialog open={open} onOpenChange={setOpen}>
          <DialogContent>
@@ -155,6 +157,7 @@ const handleUpdate = async () => {
            </DialogFooter>
          </DialogContent>
        </Dialog>
+       {/* boite de dialogue pour l'update d'une promotion */}
       <Dialog open={openUpdate} onOpenChange={setOpenUpdate}>
         <DialogContent>
           <DialogHeader>

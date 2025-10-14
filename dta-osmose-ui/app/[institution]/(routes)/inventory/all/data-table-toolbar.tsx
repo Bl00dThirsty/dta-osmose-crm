@@ -14,6 +14,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import Papa from "papaparse"
 import { useState } from "react"
+import UserPrivateComponent from "../../components/usePrivateComponent";
 
 type SaleInvoiceFormData = {
   customerId: number;
@@ -75,7 +76,9 @@ export function DataTableToolbar<TData>({
           </Button>
         )}
       </div>
-      <Button variant="outline" className=" mr-2 bg-blue-500 hover:bg-blue-200" onClick={() => router.push(`/${institution}/inventory`)}>Ajouter <PlusIcon className="ml-2" /></Button>
+      <UserPrivateComponent permission="create-inventory">
+        <Button variant="outline" className=" mr-2 bg-blue-500 hover:bg-blue-200" onClick={() => router.push(`/${institution}/inventory`)}>Ajouter <PlusIcon className="ml-2" /></Button>
+      </UserPrivateComponent>
       <DataTableViewOptions table={table} />
     </div>
   )

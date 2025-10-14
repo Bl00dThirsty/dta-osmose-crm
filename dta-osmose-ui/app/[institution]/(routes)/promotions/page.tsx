@@ -11,6 +11,7 @@ import { useGetProductsQuery, useCreatePromotionsMutation, useGetUsersQuery } fr
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import Container from "../components/ui/Container";
+import { DatePicker } from "../crm/dashboard/_components/date-picker";
 
 const CreatePromotion = () => {
   const router = useRouter();
@@ -29,39 +30,45 @@ const CreatePromotion = () => {
   const [discount, setDiscount] = useState<number>(0);
   const [creatorId, setCreatorId] = useState<number | undefined>();
   const [productId, setProductId] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [createPromotion] = useCreatePromotionsMutation();
 
    //  Récupérer le produit sélectionné
   const selectedProduct = products.find((p: any) => String(p.id) === productId);
-  const productPrice = selectedProduct?.sellingPriceTTC ?? 0;
+  const productPrice = selectedProduct?.sellingPriceCFA ?? 0;
 
   // Calcul du prix final avec remise
   const finalPrice = productPrice - (productPrice * discount) / 100;
 
   const handleSubmit = async () => {
-    if (!title || !discount || !productId || !startDate || !endDate) {
-      toast.error("Veuillez remplir tous les champs obligatoires.");
-      return;
-    }
+  if (!title || !discount || !productId || !startDate || !endDate) {
+    toast.error("Veuillez remplir tous les champs obligatoires.");
+    return;
+  }
+  const now = new Date();
 
-    try {
-      await createPromotion({
-        institution,
-        title,
-        discount,
-        productId,
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
-        status: true, // promotion active par défaut
-      }).unwrap();
+  if (startDate < now || endDate < now) {
+    toast.error("La date de début et de fin doivent être dans le futur.");
+    return;
+  }
+
+  try {
+    await createPromotion({
+      institution,
+      title,
+      discount,
+      productId,
+      startDate,
+      endDate,
+      status: true, // promotion active par défaut
+    }).unwrap();
 
       toast.success("Promotion enregistrée avec succès !");
       router.push(`/${institution}/promotions/all`);
     } catch (error) {
       toast.error("Erreur lors de l'enregistrement.");
-      toast.info("Verifier si cette promo🎉 n'existe déjà pas ou réessayer autrement")
+      toast.info("Verifier si une promo🎉 sur ce produit n'existe déjà pas ou réessayer autrement")
       console.error(error);
     }
   };
@@ -93,7 +100,7 @@ const CreatePromotion = () => {
               <option value="">-- Sélectionner --</option>
               {products.map((p: any) => (
                 <option key={p.id} value={p.id}>
-                  {p.designation} ({p.sellingPriceTTC} FCFA)
+                  {p.designation} ({p.sellingPriceCFA} FCFA)
                 </option>
               ))}
             </select>
@@ -120,13 +127,14 @@ const CreatePromotion = () => {
             {/* )} */}
           <div>
             <Label className="mb-2">Date début de promotion</Label>
-            <Input className="mb-5" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+            <DatePicker label="" date={startDate} onSelect={(d) => d && setStartDate(d)} />
+                      
           </div>
           <div>
             <Label className="mb-2">Date fin de promotion</Label>
-            <Input className="mb-5" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+           <DatePicker label="" date={endDate} onSelect={(d) => d && setEndDate(d)} />
           </div>
-          {/* <div>
+        <div>
             <Label className="mb-2">Créateur</Label>
             <select
               className="w-full border border-gray-300 rounded px-3 py-2"
@@ -140,7 +148,7 @@ const CreatePromotion = () => {
                 </option>
               ))}
             </select>
-          </div> */}
+          </div> 
         </div>
       </CardContent>
 

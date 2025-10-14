@@ -76,16 +76,35 @@ export const columns: ColumnDef<Product>[] = [
   {
     accessorKey: "purchase_price",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Prix d'achat" />
+      <DataTableColumnHeader column={column} title="Prix d'achat €" />
     ),
     cell: ({ row }) => <div className="w-[80px]">{row.getValue("purchase_price")} €</div>,
   },
+ {
+  accessorKey: "purchasePriceCFA",
+  header: ({ column }) => (
+    <DataTableColumnHeader column={column} title="Prix d'achat Cfa" />
+  ),
+  cell: ({ row }) => {
+    const pacfa = row.getValue("purchasePriceCFA");
+    
+    // Conversion en number avec vérification
+    const numericValue = Number(pacfa);
+    if (!isNaN(numericValue)) {
+      const PA = Number(numericValue.toFixed(2));
+      return <div className="w-[80px] break-words whitespace-normal">{PA} Cfa</div>;
+    }
+    
+    return <div className="w-[80px] break-words whitespace-normal">-</div>;
+  },
+},
+ 
   {
     accessorKey: "sellingPriceTTC",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Prix vente TTC" />
     ),
-    cell: ({ row }) => <div className="w-[100px]">{row.getValue("sellingPriceTTC")} €</div>,
+    cell: ({ row }) => <div className="w-[100px] break-words whitespace-normal">{row.getValue("sellingPriceTTC")} €</div>,
   },
   {
     accessorKey: "restockingThreshold",
@@ -101,26 +120,7 @@ export const columns: ColumnDef<Product>[] = [
     ),
     cell: ({ row }) => <div className="w-[100px]">{row.getValue("warehouse")}</div>,
   },
-//   {
-//   accessorKey: "Promotion",
-//   header: ({ column }) => (
-//     <DataTableColumnHeader column={column} title="Promotion" />
-//   ),
-//   cell: ({ row }) => {
-//     const promotions = row.original.Promotion;
-//     const activePromo = promotions?.find(p => p.status === true);
 
-//     return (
-//       <button
-//         className={`px-2 py-1 rounded text-white ${
-//           activePromo ? "bg-green-500" : "bg-red-500"
-//         }`}
-//       >
-//         {activePromo ? "En cours" : "Aucune"}
-//       </button>
-//     );
-//   },
-// },
 {
   accessorKey: "Promotion",
   header: ({ column }) => (

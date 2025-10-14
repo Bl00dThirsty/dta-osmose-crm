@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, SalePromiseStatus } from "@prisma/client";
 import { getDynamicTrend } from "../utils/trendUtils";
 import { startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { count } from "console";
@@ -23,7 +23,7 @@ interface MonthlyTrend {
   invoiceTrend: string;
 }
 
-
+//compare mois par mois
 export const getMonthlyTrends = async (institutionId: string, monthsBack = 6): Promise<MonthlyTrend[]> => {
   const monthlyData: MonthlyMetrics[] = [];
 
@@ -66,12 +66,13 @@ export const getMonthlyTrends = async (institutionId: string, monthsBack = 6): P
   return trends;
 };
 
+//prépare les ventes quotidiennes pour le graphique.
 const generateChartData = async (startDate: Date, endDate: Date, institutionId: string) => {
   const rawSales = await prisma.saleInvoice.findMany({
     where: {
       institutionId,
       delivred: true,
-      paymentStatus: "PAID",
+      paymentStatus: 'PAID',
       createdAt: { gte: startDate, lte: endDate },
     },
     select: { createdAt: true, finalAmount: true },
@@ -99,13 +100,16 @@ const generateChartData = async (startDate: Date, endDate: Date, institutionId: 
   return data;
 };
 
-const getData = async (startDate: Date, endDate: Date) => {
+//regroupe ventes, profits et factures par jour
+const getData = async (startDate: Date, endDate: Date, institutionId: string, paymentStatuses: ('PAID' | 'PARTIAL')[] = ['PAID', 'PARTIAL']) => {
+  
   const allSaleInvoice = await prisma.saleInvoice.groupBy({
     orderBy: { createdAt: "asc" },
     by: ["createdAt"],
     where: {
       delivred: true,
-      paymentStatus: "PAID",
+      paymentStatus: { in: paymentStatuses },
+      institutionId, 
       createdAt: { gte: startDate, lte: endDate },
     },
     _sum: { paidAmount: true, finalAmount: true, profit: true },
@@ -161,22 +165,24 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
       res.status(404).json({ error: "Institution not found" });
       return;
     }
-
+//ventes par jour
     const chartData = await generateChartData(start, end, institution.id);
+    //top 10 produits par stock
     const popularProducts = await prisma.product.findMany({ take: 10, orderBy: { quantity: "desc" } });
+    //tendances mensuelles
     const monthlyTrends = await getMonthlyTrends(institution.id);
 
-    const { formattedData1, formattedData2, formattedData3 } = await getData(start, end);
+    const { formattedData1, formattedData2, formattedData3 } = await getData(start, end, institution.id);
 
     const duration = end.getTime() - start.getTime();
     const previousEnd = new Date(start.getTime());
     const previousStart = new Date(start.getTime() - duration);
 
     const {
-      formattedData1: previousFormatted1,
-      formattedData2: previousFormatted2,
-      formattedData3: previousFormatted3,
-    } = await getData(previousStart, previousEnd);
+  formattedData1: previousFormatted1,
+  formattedData2: previousFormatted2,
+  formattedData3: previousFormatted3,
+} = await getData(previousStart, previousEnd, institution.id);
 
     const sum = (arr: any[], key: "amount" | "count" = "amount") => arr.reduce((acc, item) => acc + (item[key] || 0), 0);
 
@@ -185,10 +191,12 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
     const profitTrend = getDynamicTrend(sum(formattedData2), sum(previousFormatted2));
     const invoiceTrend = getDynamicTrend(sum(formattedData3, "count"), sum(previousFormatted3, "count"));
 
-
+  //(ventes + profits combinés)
     const saleProfitCount = [...formattedData1, ...formattedData2];
 
+  // utilisateurs enregistrés
     const totalUsers = await prisma.user.count();
+    //Calcule le crédit disponible (total – utilisé).
     const totalCredits = await prisma.credit.aggregate({
       where: {
         customer: { saleInvoice: { some: { institutionId: institution.id } } },
@@ -264,6 +272,7 @@ export const getSalesDashboard = async (req: Request, res: Response): Promise<vo
       res.status(400).json({ error: "Invalid or missing startDate or endDate" });
       return;
     }
+    
 
     const start = new Date(startDate);
     const end = new Date(endDate);
@@ -289,10 +298,10 @@ export const getSalesDashboard = async (req: Request, res: Response): Promise<vo
     }
 
     // Récupérer tous les clients de type "Pharmacie"
-const customers = await prisma.customer.findMany({
-  where: { institutionId: institution.id, type_customer: "Pharmacie" },
-  select: { id: true, name: true },
-});
+    const customers = await prisma.customer.findMany({
+      where: { institutionId: institution.id, type_customer: "Pharmacie" },
+      select: { id: true, name: true },
+    });
 
 
     // --- Ventes par produit ---
@@ -344,41 +353,110 @@ const customers = await prisma.customer.findMany({
     const salesByPharmacy = Object.values(salesByPharmacyMap);
 
    // ---------------------- Ventes par ville ----------------------
-    const salesByCityMap: Record<string, { invoiceCount: number; totalSales: number; totalQuantity: number }> = {};
-    salesByPharmacy.forEach(ph => {
-      if (!salesByCityMap[ph.city]) salesByCityMap[ph.city] = { invoiceCount: 0, totalSales: 0, totalQuantity: 0 };
-      salesByCityMap[ph.city].invoiceCount += ph.invoiceCount;
-      salesByCityMap[ph.city].totalSales += ph.totalSales;
-      salesByCityMap[ph.city].totalQuantity += ph.totalQuantity;
-    });
-    const salesByCity = Object.entries(salesByCityMap).map(([city, data]) => ({ cityName: city, ...data }));
+    // 1. Regrouper les ventes actuelles par ville
+      const salesByCityMap: Record<string, { invoiceCount: number; totalSales: number; totalQuantity: number }> = {}; 
 
+      salesByPharmacy.forEach(ph => {
+        if (!salesByCityMap[ph.city]) {
+          salesByCityMap[ph.city] = { invoiceCount: 0, totalSales: 0, totalQuantity: 0 };
+        }
+        salesByCityMap[ph.city].invoiceCount += ph.invoiceCount;
+        salesByCityMap[ph.city].totalSales += ph.totalSales;
+        salesByCityMap[ph.city].totalQuantity += ph.totalQuantity;
+      });
 
-// ------------------ TOP PRODUITS ------------------
-    const productSales = await prisma.saleItem.groupBy({
-    by: ["productId"],
-    _sum: { quantity: true },
-    orderBy: { _sum: { quantity: "desc" } },
-    take: 10, // top 10 produits
+    // 2. Total global des ventes (pour le calcul des pourcentages)
+    const totalSalesAllCities = Object.values(salesByCityMap).reduce((sum, city) => sum + city.totalSales, 0);
+
+  // 3. Regrouper aussi les ventes de la période précédente pour calculer la croissance
+  const prevSalesByCityMap: Record<string, { totalSales: number }> = {};
+      salesByPharmacy.forEach(ph => {
+    if (!prevSalesByCityMap[ph.city]) {
+      prevSalesByCityMap[ph.city] = { totalSales: 0 };
+    }
+    prevSalesByCityMap[ph.city].totalSales += ph.totalSales;
   });
 
-    const topProducts = await Promise.all(
-      productSales.map(async (sale) => {
-        const product = await prisma.product.findUnique({
-          where: { id: sale.productId! },
-          select: { designation: true },
-        });
-        return {
-          name: product?.designation ?? "Inconnu",
-          value: sale._sum.quantity ?? 0,
-        };
-      })
-    );
+    // 4. Formatter le résultat final
+    const salesByCity = Object.entries(salesByCityMap).map(([city, data]) => {
+      const percentage = totalSalesAllCities > 0 ? (data.totalSales / totalSalesAllCities) * 100 : 0;
 
-    const sortedTopProducts = topProducts.sort((a, b) => b.value - a.value);
+      // Comparaison avec la période précédente
+      const prevTotal = prevSalesByCityMap[city]?.totalSales || 0;
+      const growthValue = prevTotal > 0 ? ((data.totalSales - prevTotal) / prevTotal) * 100 : 0;
 
-    // ------------------ TOP CLIENTS ------------------
-    const groupedCustomers = await prisma.saleInvoice.groupBy({
+      return {
+        cityName: city,
+        invoiceCount: data.invoiceCount,
+        totalSales: data.totalSales,
+        totalQuantity: data.totalQuantity,
+        percentage: Math.round(percentage),
+        growth: `${growthValue >= 0 ? "+" : ""}${growthValue.toFixed(1)}%`,
+        isPositive: growthValue >= 0,
+      };
+    });
+
+
+
+      // ------------------ TOP PRODUITS ------------------
+          // Top 5 produits les plus vendus
+      const productSales = await prisma.saleItem.groupBy({
+        by: ["productId"],
+        where: {
+          invoice: {
+            institutionId: institution.id,
+            paymentStatus: "PAID",
+            delivred: true,
+            createdAt: { gte: start, lte: end },
+          },
+        },
+        _sum: { quantity: true },
+        orderBy: { _sum: { quantity: "desc" } },
+        take: 5,
+      });
+
+    // Top 5 produits les moins vendus
+    const lowSales = await prisma.saleItem.groupBy({
+      by: ["productId"],
+      where: {
+        invoice: {
+          institutionId: institution.id,
+          paymentStatus: "PAID",
+          delivred: true,
+          createdAt: { gte: start, lte: end },
+        },
+      },
+      _sum: { quantity: true },
+      orderBy: { _sum: { quantity: "asc" } },
+      take: 5,
+    });
+
+        // Fonction pour récupérer les désignations
+    const formatProducts = async (sales: typeof productSales) => {
+      return Promise.all(
+        sales.map(async (sale) => {
+          const product = await prisma.product.findUnique({
+            where: { id: sale.productId! },
+            select: { designation: true },
+          });
+          return {
+            name: product?.designation ?? "Inconnu",
+            value: sale._sum.quantity ?? 0,
+          };
+        })
+      );
+    };
+
+    // Récupérer top et low produits
+    const topProducts = await formatProducts(productSales);
+    const lowProducts = await formatProducts(lowSales);
+    console.log(topProducts);
+    console.log(lowProducts);
+
+
+        // ------------------ TOP CLIENTS ------------------
+        const groupedCustomers = await prisma.saleInvoice.groupBy({
+      where: { institutionId: institution.id },
       by: ["customerId"],
       _sum: { totalAmount: true },
       _count: { id: true },
@@ -402,18 +480,49 @@ const customers = await prisma.customer.findMany({
       })
     );
 
+    // --- HISTORIQUE 6 MOIS ---
     const sixMonthsAgo = subMonths(new Date(), 6);
-    const salesHistory = await prisma.saleInvoice.groupBy({
-      by: ["customerId", "createdAt"],
-      where: { createdAt: { gte: sixMonthsAgo } },
-      _sum: { totalAmount: true },
+
+    const sales = await prisma.saleInvoice.findMany({
+      where: {
+        institutionId: institution.id,
+        createdAt: { gte: sixMonthsAgo },
+        paymentStatus: "PAID",  
+        delivred: true,        
+      },
+      select: {
+        customerId: true,
+        createdAt: true,
+        totalAmount: true,
+      },
     });
 
-    const historyByCustomer: Record<string, { month: string; total: number }[]> = {};
-    salesHistory.forEach((sale) => {
-      const monthKey = new Date(sale.createdAt).toLocaleString("default", { month: "short", year: "numeric" });
-      if (!historyByCustomer[sale.customerId]) historyByCustomer[sale.customerId] = [];
-      historyByCustomer[sale.customerId].push({ month: monthKey, total: sale._sum?.totalAmount ?? 0 });
+    const historyByCustomer: Record<string, { month: string; total: number; count: number }[]> = {};
+
+    sales.forEach((sale) => {
+      const monthKey = new Date(sale.createdAt).toLocaleString("default", {
+        month: "short",
+        year: "numeric",
+      });
+
+      if (!historyByCustomer[sale.customerId]) {
+        historyByCustomer[sale.customerId] = [];
+      }
+
+      const existingMonth = historyByCustomer[sale.customerId].find(
+        (h) => h.month === monthKey
+      );
+
+      if (existingMonth) {
+        existingMonth.total += sale.totalAmount;
+        existingMonth.count += 1;
+      } else {
+        historyByCustomer[sale.customerId].push({
+          month: monthKey,
+          total: sale.totalAmount,
+          count: 1,
+        });
+      }
     });
 
     const topCustomers = customersWithData.map((c) => ({
@@ -421,71 +530,189 @@ const customers = await prisma.customer.findMany({
       history: historyByCustomer[c.customerId] ?? [],
     }));
 
-   // ---------------------- Produits préférés par client ----------------------
-   const withCustomer = await prisma.saleItem.findMany({
-  where: {
-    invoice: {
-      institutionId: institution.id,
-      createdAt: { gte: start, lte: end },
-      paymentStatus: "PAID",
-      delivred: true, ...customerFilter,
-    },
-  },
-  select: {
-    productId: true,
-    quantity: true,
-    invoice: { select: { customerId: true } },
-  },
-});
+      // ---------------------- Produits préférés par client ----------------------
+      const withCustomer = await prisma.saleItem.findMany({
+      where: {
+        invoice: {
+          institutionId: institution.id,
+          createdAt: { gte: start, lte: end },
+          paymentStatus: "PAID",
+          delivred: true, ...customerFilter,
+        },
+      },
+      select: {
+        productId: true,
+        quantity: true,
+        invoice: { select: { customerId: true } },
+      },
+    });
 
-// 1️⃣ Regrouper les produits préférés par client
-const preferredByCustomer: Record<string, { productId: string; total: number }> = {};
-withCustomer.forEach((row) => {
-  const customerId = row.invoice?.customerId;
-  if (!customerId) return;
+    //  Regrouper les produits préférés par client
+    const preferredByCustomer: Record<string, { productId: string; total: number }> = {};
+    withCustomer.forEach((row) => {
+      const customerId = row.invoice?.customerId;
+      if (!customerId) return;
 
-  const current = preferredByCustomer[customerId];
-  if (!current || row.quantity > current.total) {
-    preferredByCustomer[customerId] = { productId: row.productId, total: row.quantity };
+      const current = preferredByCustomer[customerId];
+      if (!current || row.quantity > current.total) {
+        preferredByCustomer[customerId] = { productId: row.productId, total: row.quantity };
+      }
+    });
+
+    //  Récupérer les IDs
+    const preferredCustomerIds = Object.keys(preferredByCustomer).map(id => Number(id)); // convertir en number
+    const favoriteProductIds = Object.values(preferredByCustomer).map((d) => d.productId);
+
+    //  Récupérer les données clients et produits
+    const [favCustomers, favProducts] = await Promise.all([
+      prisma.customer.findMany({
+        where: { id: { in: preferredCustomerIds } },
+        select: { id: true, name: true },
+      }),
+      prisma.product.findMany({
+        where: { id: { in: favoriteProductIds } },
+        select: { id: true, designation: true },
+      }),
+    ]);
+
+    //  Créer des maps pour un accès rapide
+    const favCustomersMap = favCustomers.reduce<Record<string, string>>((acc, c) => {
+      acc[c.id] = c.name;
+      return acc;
+    }, {});
+
+    const favProductsMap = favProducts.reduce<Record<string, string>>((acc, p) => {
+      acc[p.id] = p.designation;
+      return acc;
+    }, {});
+
+    //  Construire le tableau final
+    const favoriteProductsByCustomer = Object.entries(preferredByCustomer).map(([customerId, data]) => ({
+      customerId,
+      customerName: favCustomersMap[customerId] ?? "Inconnu",
+      favoriteProduct: favProductsMap[data.productId] ?? "Inconnu",
+      totalBought: data.total,
+    }));
+
+    console.log(favoriteProductsByCustomer);
+
+// --------------------- PIPELINE COMMERCIAL ---------------------
+
+// Étapes du pipeline
+const stages: SalePromiseStatus[] = [
+  SalePromiseStatus.LEAD_CAPTURED,
+  SalePromiseStatus.CAPTURED,
+  SalePromiseStatus.CONTACTED,
+  SalePromiseStatus.QUALIFIED,
+  SalePromiseStatus.PROPOSAL_SENT,
+  SalePromiseStatus.NEGOTIATION,
+  SalePromiseStatus.CLOSED_WON,
+  SalePromiseStatus.CLOSED_LOST,
+];
+
+// Mapping action → étape
+const actionToStageMap: Record<string, SalePromiseStatus> = {
+  "lead capté": SalePromiseStatus.LEAD_CAPTURED,
+  "capté": SalePromiseStatus.CAPTURED,
+  "contact effectué": SalePromiseStatus.CONTACTED,
+  "qualification réussie": SalePromiseStatus.QUALIFIED,
+  "devis envoyé": SalePromiseStatus.PROPOSAL_SENT,
+  "négociation en cours": SalePromiseStatus.NEGOTIATION,
+  "vente gagnée": SalePromiseStatus.CLOSED_WON,
+  "vente perdue": SalePromiseStatus.CLOSED_LOST,
+};
+
+// Fonctions utilitaires
+const getNextStage = (current: SalePromiseStatus): SalePromiseStatus | null => {
+  const idx = stages.indexOf(current);
+  if (idx === -1 || current === SalePromiseStatus.CLOSED_WON || current === SalePromiseStatus.CLOSED_LOST) return null;
+  return stages[idx + 1] || null;
+};
+
+const canTransition = (current: SalePromiseStatus, next: SalePromiseStatus) =>
+  next === SalePromiseStatus.CLOSED_LOST || stages.indexOf(next) === stages.indexOf(current) + 1;
+
+// ---------------- AUTOMATISME : mise à jour après action commerciale ----------------
+if (req.body?.actionPerformed && req.body?.promiseId) {
+  const promise = await prisma.salePromise.findUnique({
+    where: { id: Number(req.body.promiseId) },
+  });
+
+  if (promise) {
+    const currentStatus = promise.statusPipeline as SalePromiseStatus;
+    const nextStatus = actionToStageMap[req.body.actionPerformed];
+
+    if (nextStatus && canTransition(currentStatus, nextStatus)) {
+      // Mise à jour de l'étape
+      await prisma.salePromise.update({
+        where: { id: promise.id },
+        data: { statusPipeline: nextStatus },
+      });
+
+      // Historisation
+      await prisma.pipelineHistory.create({
+        data: {
+          salePromiseId: promise.id,
+          previousStatus: currentStatus,
+          newStatus: nextStatus,
+          action: req.body.actionPerformed,
+          performedById: req.body.userId || null,
+        },
+      });
+    }
   }
-});
+}
 
-// 2️⃣ Récupérer les IDs
-const preferredCustomerIds = Object.keys(preferredByCustomer).map(id => Number(id)); // convertir en number
-const favoriteProductIds = Object.values(preferredByCustomer).map((d) => d.productId);
+// ---------------- CALCUL DU PIPELINE GLOBAL + TENDANCES ----------------
+const now = new Date();
+const currentMonthStart = startOfMonth(now);
+const currentMonthEnd = endOfMonth(now);
+const prevMonthStart = startOfMonth(subMonths(now, 1));
+const prevMonthEnd = endOfMonth(subMonths(now, 1));
 
-// 3️⃣ Récupérer les données clients et produits
-const [favCustomers, favProducts] = await Promise.all([
-  prisma.customer.findMany({
-    where: { id: { in: preferredCustomerIds } },
-    select: { id: true, name: true },
-  }),
-  prisma.product.findMany({
-    where: { id: { in: favoriteProductIds } },
-    select: { id: true, designation: true },
-  }),
-]);
+const pipeline: { stage: SalePromiseStatus; value: number; trend: number }[] = await Promise.all(
+  stages.map(async (stage) => {
+    let currentCount = 0;
+    let prevCount = 0;
 
-// 4️⃣ Créer des maps pour un accès rapide
-const favCustomersMap = favCustomers.reduce<Record<string, string>>((acc, c) => {
-  acc[c.id] = c.name;
-  return acc;
-}, {});
+    if (stage === SalePromiseStatus.LEAD_CAPTURED) {
+  // 🔹 LEAD_CAPTURED = tous les nouveaux clients/prospects
+  currentCount = await prisma.customer.count({
+    where: {
+      created_at: { gte: currentMonthStart, lte: currentMonthEnd },
+    },
+  });
+  prevCount = await prisma.customer.count({
+    where: {
+      created_at: { gte: prevMonthStart, lte: prevMonthEnd },
+    },
+  });
+} else if (stage === SalePromiseStatus.CAPTURED) {
+  // 🔹 CAPTURED = toutes les promesses d'achat créées (indépendamment du mois)
+  currentCount = await prisma.salePromise.count({});
+  prevCount = 0; // Pas de comparaison mois précédent si on veut juste le total global
+} else {
+  // Cas général pour les autres étapes du pipeline
+  currentCount = await prisma.salePromise.count({
+    where: { statusPipeline: stage, createdAt: { gte: currentMonthStart, lte: currentMonthEnd } },
+  });
+  prevCount = await prisma.salePromise.count({
+    where: { statusPipeline: stage, createdAt: { gte: prevMonthStart, lte: prevMonthEnd } },
+  });
+}
 
-const favProductsMap = favProducts.reduce<Record<string, string>>((acc, p) => {
-  acc[p.id] = p.designation;
-  return acc;
-}, {});
+    // Calcul de la tendance (% d'évolution)
+    let trend = 0;
+    if (prevCount > 0) trend = ((currentCount - prevCount) / prevCount) * 100;
+    else if (currentCount > 0) trend = 100;
 
-// 5️⃣ Construire le tableau final
-const favoriteProductsByCustomer = Object.entries(preferredByCustomer).map(([customerId, data]) => ({
-  customerId,
-  customerName: favCustomersMap[customerId] ?? "Inconnu",
-  favoriteProduct: favProductsMap[data.productId] ?? "Inconnu",
-  totalBought: data.total,
-}));
-
-console.log(favoriteProductsByCustomer);
+    return {
+      stage,
+      value: currentCount,
+      trend: parseFloat(trend.toFixed(1)),
+    };
+  })
+);
 
 
 
@@ -494,14 +721,15 @@ console.log(favoriteProductsByCustomer);
       salesByProduct,
       salesByPharmacy,
       salesByCity,
-      topProducts: sortedTopProducts,
+      topProducts,
+      lowProducts, 
       topCustomers,
       favoriteProductsByCustomer,
       customers,
+      pipeline,
     });
   } catch (error) {
     console.error("Dashboard ventes error:", error);
     res.status(500).json({ error: "Erreur lors du chargement des données de ventes" });
   }
 };
-

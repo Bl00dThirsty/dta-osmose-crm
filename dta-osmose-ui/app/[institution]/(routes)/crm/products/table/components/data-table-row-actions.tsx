@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/dialog"
 import { labels } from "../data/data"
 import { Label } from "@/components/ui/label"
+import UserPrivateComponent from "../../../../components/usePrivateComponent";
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>
 }
@@ -75,7 +76,10 @@ const handleOpenUpdate = () => {
 };
 const handleUpdate = async () => {
   try {
-    await updateProduct({ id: productId, ...formData }).unwrap();
+    await updateProduct({
+      id: productId, ...formData,
+      institution: ""
+    }).unwrap();
     toast.success("Produit mis à jour avec succès");
     setOpenUpdate(false);
     setTimeout(() => {
@@ -121,14 +125,18 @@ const handleUpdate = async () => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[160px]">
+      
       <DropdownMenuItem onClick={() => router.push(`/${institution}/crm/products/${productId}`)}>
           Voir👀
       </DropdownMenuItem>
-      <DropdownMenuItem onClick={handleOpenUpdate}>
+      <UserPrivateComponent permission="update-singleProduct">
+        <DropdownMenuItem onClick={handleOpenUpdate}>
           Modifier✒          
         </DropdownMenuItem>
-      <DropdownMenuItem onSelect={() => setOpen(true)} className="text-red-600">Supprimer🗑</DropdownMenuItem>
-         
+      </UserPrivateComponent>
+      <UserPrivateComponent permission="delete-product">
+          <DropdownMenuItem onSelect={() => setOpen(true)} className="text-red-600">Supprimer🗑</DropdownMenuItem>
+      </UserPrivateComponent>
       </DropdownMenuContent>
     </DropdownMenu>
        <Dialog open={open} onOpenChange={setOpen}>
