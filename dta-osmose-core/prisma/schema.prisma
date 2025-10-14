@@ -267,9 +267,25 @@ model ProductCounter {
   @@unique([institution, month, year])
 }
 
+model PipelineHistory {
+  id              Int           @id @default(autoincrement())
+  salePromise     salePromise  @relation(fields: [salePromiseId], references: [id])
+  salePromiseId   Int
+  previousStatus  String
+  newStatus       String
+  action          String
+  performedBy     user?         @relation(fields: [performedById], references: [id])
+  performedById   Int?
+  createdAt       DateTime      @default(now())
+
+  @@index([salePromiseId])
+}
+
 model saleInvoice {
   id              String      @id @default(uuid())
   invoiceNumber   String      @unique
+  reference         String?      // Référence de la facture (facultative)
+  objet             String?      // Objet ou description de la facture
   customerId      Int
   userId          Int?
   institutionId   String
@@ -327,6 +343,7 @@ model salePromise {
   discount           Float   @default(0)
   note               String?
   createdAt       DateTime    @default(now())
+  statusPipeline      SalePromiseStatus @default(CAPTURED)
   updatedAt       DateTime    @updatedAt
   customer        customer?    @relation(name: "CustomerSalePromise", fields: [customerId], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "CustomerSalePromiseRelation")
   customerCreator    customer?      @relation(name: "CustomerCreatorSalePromise", fields: [customerCreatorId], references: [id], map: "CustomerCreatorSalePromiseRelation")
@@ -334,6 +351,7 @@ model salePromise {
   institution     institution @relation(fields: [institutionId], references: [id])
   items  salePromiseProduct[]
   saleInvoice  saleInvoice[]
+  pipelineHistories PipelineHistory[]
 }
 
 model salePromiseProduct {
@@ -662,10 +680,22 @@ model user {
   Promotion          Promotion[]
   salePromise        salePromise[]
   Reporting          Reporting[]
+
+  PipelineHistory PipelineHistory[]
 }
 
 
 enum typCat {
   Pharmacie
   Distributeur
+}
+enum SalePromiseStatus {
+ LEAD_CAPTURED     // Nouveau lead capté
+  CAPTURED         // Opportunité identifiée
+  CONTACTED        // Contact pris
+  QUALIFIED        // Client qualifié
+  PROPOSAL_SENT    // Proposition envoyée
+  NEGOTIATION      // En négociation
+  CLOSED_WON       // Vente conclue
+  CLOSED_LOST      // Opportunité perdue
 }

@@ -91,7 +91,7 @@ const CrmDashboardPage = () => {
         isLoading={isLoading}
       />
 
-      <OperationalCards salesByCity={salesByCityFormatted} isLoading={isLoading} />
+      <OperationalCards salesByCity={salesByCityFormatted}  pipeline={dashboardData?.pipeline || []} isLoading={isLoading} />
       <TopCustomersChart data={dashboardData?.topCustomers || []} isLoading={isLoading} />
       <ProductsChart
         salesByProduct={dashboardData?.salesByProduct || []}

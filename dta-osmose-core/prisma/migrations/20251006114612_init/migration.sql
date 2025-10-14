@@ -141,6 +141,8 @@ CREATE TABLE "public"."product" (
     "restockingThreshold" INTEGER NOT NULL,
     "sellingPriceTTC" DOUBLE PRECISION NOT NULL,
     "purchase_price" DOUBLE PRECISION NOT NULL,
+    "sellingPriceCFA" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "purchasePriceCFA" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "warehouse" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -206,11 +208,7 @@ CREATE TABLE "public"."saleItem" (
 );
 
 -- CreateTable
-<<<<<<<< HEAD:dta-osmose-core/prisma/migrations/20250916122905_init/migration.sql
-CREATE TABLE "salePromise" (
-========
 CREATE TABLE "public"."salePromise" (
->>>>>>>> origin/CRM-IBA-ASP-420:dta-osmose-core/prisma/migrations/20250917142513_dev/migration.sql
     "id" SERIAL NOT NULL,
     "dueDate" TIMESTAMP(3),
     "reminderDate" TIMESTAMP(3),
@@ -245,11 +243,7 @@ CREATE TABLE "public"."salePromiseProduct" (
 );
 
 -- CreateTable
-<<<<<<<< HEAD:dta-osmose-core/prisma/migrations/20250916122905_init/migration.sql
-CREATE TABLE "Notification" (
-========
 CREATE TABLE "public"."Notification" (
->>>>>>>> origin/CRM-IBA-ASP-420:dta-osmose-core/prisma/migrations/20250917142513_dev/migration.sql
     "id" TEXT NOT NULL,
     "title" TEXT,
     "message" TEXT NOT NULL,
@@ -518,11 +512,7 @@ ALTER TABLE "public"."saleItem" ADD CONSTRAINT "saleItem_invoiceId_fkey" FOREIGN
 ALTER TABLE "public"."saleItem" ADD CONSTRAINT "saleItem_productId_fkey" FOREIGN KEY ("productId") REFERENCES "public"."product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-<<<<<<<< HEAD:dta-osmose-core/prisma/migrations/20250916122905_init/migration.sql
-ALTER TABLE "salePromise" ADD CONSTRAINT "CustomerSalePromiseRelation" FOREIGN KEY ("customerId") REFERENCES "customer"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-========
 ALTER TABLE "public"."salePromise" ADD CONSTRAINT "CustomerSalePromiseRelation" FOREIGN KEY ("customerId") REFERENCES "public"."customer"("id") ON DELETE CASCADE ON UPDATE CASCADE;
->>>>>>>> origin/CRM-IBA-ASP-420:dta-osmose-core/prisma/migrations/20250917142513_dev/migration.sql
 
 -- AddForeignKey
 ALTER TABLE "public"."salePromise" ADD CONSTRAINT "CustomerCreatorSalePromiseRelation" FOREIGN KEY ("customerCreatorId") REFERENCES "public"."customer"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -540,11 +530,7 @@ ALTER TABLE "public"."salePromiseProduct" ADD CONSTRAINT "salePromiseProduct_pro
 ALTER TABLE "public"."salePromiseProduct" ADD CONSTRAINT "salePromiseProduct_promise_id_fkey" FOREIGN KEY ("promise_id") REFERENCES "public"."salePromise"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-<<<<<<<< HEAD:dta-osmose-core/prisma/migrations/20250916122905_init/migration.sql
-ALTER TABLE "Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-========
 ALTER TABLE "public"."Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
->>>>>>>> origin/CRM-IBA-ASP-420:dta-osmose-core/prisma/migrations/20250917142513_dev/migration.sql
 
 -- AddForeignKey
 ALTER TABLE "public"."Notification" ADD CONSTRAINT "Notification_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "public"."customer"("id") ON DELETE SET NULL ON UPDATE CASCADE;

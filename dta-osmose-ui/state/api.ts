@@ -125,6 +125,7 @@ export interface salePromise {
   customer_address?: string;
   customer_name?: string;
   customer_phone?: string;
+ statusPipeline?: string
   total_amount: number;
   discount: number;
   note: string;
@@ -890,6 +891,7 @@ export const api = createApi({
           customer_address?: string;
           customer_name?: string;
           customer_phone?: string;
+          statusPipeline?: string;
           institution: string;
          }>({
           query: ({ institution, ...data }) => ({
@@ -945,6 +947,14 @@ export const api = createApi({
         invalidatesTags: (result, error, id ) => [{ type: "SalePromise", id }, "Products"],
       }),
 
+        updateSalePromiseStatus: build.mutation({
+        query: ({ id, newStatus, performedById, action }) => ({
+          url: `/salepromise/${id}/status`,  // l'ID doit être dans l'URL
+          method: "PUT",
+          body: { newStatus, performedById, action },
+        }),
+      }),
+
         // ============================================================================
 // SALES ENDPOINTS
 // Auteur : Azambou Yvana
@@ -977,7 +987,9 @@ export const api = createApi({
 
 
         /* Vérifie si un client a des dettes en cours (statut de solde) */
-        getCustomerDebtStatus: build.query<{ hasDebt: boolean}, {customerId: number, institution: string}>({
+        getCustomerDebtStatus: build.query<{
+          amountDue: ReactNode; hasDebt: boolean
+}, {customerId: number, institution: string}>({
           query: ({customerId, institution}) => `/sale/${institution}/${customerId}/debt-status`,
         }),        
 
@@ -1383,7 +1395,7 @@ export const { useGetDashboardMetricsQuery,useGetDashboardSalesQuery, useCreateR
   useCreatePromotionsMutation, useGetActivePromotionsQuery, useUpdatePromotionStatusMutation, useGetAllPromotionsQuery, useGetPromotionsByIdQuery, useUpdatePromotionsMutation, useDeletePromotionsMutation, 
   useGetProductsQuery, useCreateProductMutation, useGetProductByIdQuery, useDeleteProductMutation,useUpdateProductMutation, useImportProductsMutation,
   useCreateInventoryMutation, useGetInventoryQuery, useGetInventoryIdQuery, useUpdateInventoryMutation, useDeleteInventoryMutation, useCreateSaleMutation, useGetCustomerDebtStatusQuery, 
-  useCreateSalePromiseMutation, useGetSalePromiseQuery, useGetSalesQuery, useGetSalePromiseByIdQuery, useDeleteSalePromiseMutation, useGetSalePromiseByCustomerQuery,
+  useCreateSalePromiseMutation, useGetSalePromiseQuery, useGetSalesQuery, useGetSalePromiseByIdQuery, useDeleteSalePromiseMutation, useGetSalePromiseByCustomerQuery,useUpdateSalePromiseStatusMutation,
     useGetSaleByIdQuery,useUpdateSaleStatusMutation, useUpdateSalePaymentMutation, useDeleteSaleInvoiceMutation, useCreateClaimMutation, 
     useRespondToClaimMutation, useUpdateClaimResponseMutation, useGetClaimQuery, useGetClaimPendingQuery, useGetClaimByIdQuery, useDeleteClaimMutation, useGetDepartmentsQuery, 
     useCreateDepartmentsMutation, useDeleteDepartmentsMutation,

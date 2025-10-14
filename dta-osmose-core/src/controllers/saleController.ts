@@ -44,14 +44,17 @@ export const createSaleInvoice = async (req: Request, res: Response): Promise<vo
         unitPrice: number;
         
       }
-      
-    const { customerId, items, discount, paidAmount, paymentMethod, salePromiseId, }: {
+
+    const { customerId, items, discount, paidAmount, paymentMethod, salePromiseId, reference,objet }: {
       customerId: number;
       items: SaleItemInput[];
       discount?: number;
       paidAmount: number;
       paymentMethod: string;
-      salePromiseId?: number;} = req.body;
+      salePromiseId?: number;
+      reference?: string;
+      objet?: string;
+    } = req.body;
    
     const institutionSlug = req.params.institution;
     const randomSuffix = randomInt(1000, 9999);
@@ -65,6 +68,17 @@ export const createSaleInvoice = async (req: Request, res: Response): Promise<vo
     const userId = payload.sub;
     const creatorType = req.auth.userType; // Type de créateur ("user" ou "customer")
     const creatorId = req.auth.sub;
+
+    // Validation obligatoire des champs pour les clients
+    if (creatorType === "customer") {
+      if (!reference || !objet) {
+        res.status(400).json({
+          error: "Les champs 'reference' et 'objet' sont obligatoires pour un client."
+        });
+        return;
+      }
+    }
+
     let user = null;
     if (creatorType === "user") {
       user = await prisma.user.findUnique({
@@ -92,7 +106,7 @@ export const createSaleInvoice = async (req: Request, res: Response): Promise<vo
         return;
       }
 
-
+//  Gestion du crédit client
       const credit = await prisma.credit.findFirst({
         where: {
           customerId,
@@ -102,7 +116,7 @@ export const createSaleInvoice = async (req: Request, res: Response): Promise<vo
         orderBy: { createdAt: 'asc' }, // on utilise le crédit le plus ancien
       });
 
-  // 🔒 Si on vient d'une promesse : vérifier non expirée / non validée
+  //  Gestion de la promesse de vente
     let promiseItems: { product_id: string; product_quantity: number }[] = [];
     if (salePromiseId) {
       const sp = await expireSalePromiseIfNeeded(salePromiseId);
@@ -206,6 +220,8 @@ console.log("Produits validés :", validatedItems);
       data: {
         //invoiceNumber: generateInvoiceNumber(),
         invoiceNumber,
+        reference,
+        objet,
         customerId,
         userId: creatorType === "user" ? Number(creatorId) : undefined,
         customerCreatorId: creatorType === "customer" ? Number(creatorId) : undefined,

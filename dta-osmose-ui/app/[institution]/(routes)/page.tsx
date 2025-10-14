@@ -222,7 +222,7 @@ const metrics = {
         style: "currency",
         currency: "EUR",
       })} <br />
-      {(Math.round((totalProfits ?? 0) * 655.957)).toLocaleString("fr-FR")} F CFA
+      {(Math.round((totalProfits ?? 0) * 656)).toLocaleString("fr-FR")} F CFA
     </div>
 
     {/* Nombre de ventes (factures) */}
@@ -238,7 +238,7 @@ const metrics = {
         style: "currency",
         currency: "EUR",
       })} <br />
-      {(Math.round((totalSales ?? 0) * 655.957)).toLocaleString("fr-FR")} F CFA
+      {(Math.round((totalSales ?? 0) * 656)).toLocaleString("fr-FR")} F CFA
     </div>
 
     {/* Total des avoirs */}
@@ -248,7 +248,7 @@ const metrics = {
         style: "currency",
         currency: "EUR",
       })} <br />
-      {(Math.round((totalAvailableCredit ?? 0) * 655.957)).toLocaleString("fr-FR")} F CFA
+      {(Math.round((totalAvailableCredit ?? 0) * 656)).toLocaleString("fr-FR")} F CFA
     </div>
 
     {/* Utilisateurs enregistr s */}
@@ -299,7 +299,7 @@ const AdminDashboard = ({institution, dashboardMetrics,
       </span>
       <br />
       <span className="text-sm">
-        {(Math.round((totalProfits ?? 0) * 655.957)).toLocaleString("fr-FR")} F CFA
+        {(Math.round((totalProfits ?? 0) * 656)).toLocaleString("fr-FR")} F CFA
       </span>
     </>
   }
@@ -332,7 +332,7 @@ const AdminDashboard = ({institution, dashboardMetrics,
       </span>
       <br />
       <span className="text-sm">
-        {(Math.round((totalSales ?? 0) * 655.957)).toLocaleString("fr-FR")} F CFA
+        {(Math.round((totalSales ?? 0) * 656)).toLocaleString("fr-FR")} F CFA
       </span>
     </>
   }
@@ -357,7 +357,7 @@ const AdminDashboard = ({institution, dashboardMetrics,
       </span>
       <br />
       <span className="text-sm">
-        {(Math.round((dashboardMetrics?.totalAvailableCredit ?? 0) * 655.957)).toLocaleString("fr-FR")} F CFA
+        {(Math.round((dashboardMetrics?.totalAvailableCredit ?? 0) * 656)).toLocaleString("fr-FR")} F CFA
       </span>
     </>
   }
@@ -406,7 +406,7 @@ const AdminDashboard = ({institution, dashboardMetrics,
                     </span>
                     <br />
                     <span className="text-sm">
-                      {(Math.round((totalSales ?? 0) * 655.957)).toLocaleString("fr-FR")} F CFA
+                      {(Math.round((totalSales ?? 0) * 656)).toLocaleString("fr-FR")} F CFA
               </span>
             </>
           }
@@ -447,7 +447,7 @@ const AdminDashboard = ({institution, dashboardMetrics,
                     </span>
                     <br />
                     <span className="text-sm">
-        {(Math.round((dashboardMetrics?.customerStats?.avoirDisponible ?? 0) * 655.957)).toLocaleString("fr-FR")} F CFA
+        {(Math.round((dashboardMetrics?.customerStats?.avoirDisponible ?? 0) * 656)).toLocaleString("fr-FR")} F CFA
       </span>
     </>
   }
@@ -472,7 +472,7 @@ const AdminDashboard = ({institution, dashboardMetrics,
                     </span>
                     <br />
                     <span className="text-sm">
-                      {(Math.round((dashboardMetrics?.customerStats?.totalAchats ?? 0) * 655.957)).toLocaleString("fr-FR")} F CFA
+                      {(Math.round((dashboardMetrics?.customerStats?.totalAchats ?? 0) * 656)).toLocaleString("fr-FR")} F CFA
                     </span>
                   </>
                 }
