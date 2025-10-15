@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { createPromotion, getActivePromotions, updateStatusPromotions, getSinglePromotions, getAllPromotion, updatePromotion, deletePromotion } from "../controllers/promotionController";
 //const authorize = require("../authorize");
-import authorize from "../authorize";
+import authorize from "../utils/authorize";
 
 const router = Router();
 

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useRouter, useParams } from 'next/navigation';
 import { Notification, useDeleteNotificationsMutation } from "@/state/api"
-import { DataTableColumnHeader } from "../user/all/table/components/data-table-column-header"
+import { DataTableColumnHeader } from "@/app/[institution]/(routes)/components/table/data-table-column-header"
 import { useNotification } from "../.././(auth)/sign-in/context/NotificationContext";
  import { DataTableRowActions } from "./data-table-row-actions"
 

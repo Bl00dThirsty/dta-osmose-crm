@@ -32,7 +32,8 @@ import {
 import { useState } from "react"
 import { useParams } from "next/navigation"
 import { toast } from "react-toastify";
-import { Label } from "@/components/ui/label"
+import { Label } from "@/components/ui/label";
+import { DatePicker } from "@/components/ui/date-picker";
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>

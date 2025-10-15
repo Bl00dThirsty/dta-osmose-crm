@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import UserPrivateComponent from "../../../components/usePrivateComponent";
 import { Department } from "@/state/api"
-import { DataTableColumnHeader } from "../../../user/all/table/components/data-table-column-header"
+import { DataTableColumnHeader } from "@/app/[institution]/(routes)/components/table/data-table-column-header"
 import { DataTableRowActions } from "./data-table-row-actions"
 
 const statusMap: Record<string, { label: string, color: string }> = {

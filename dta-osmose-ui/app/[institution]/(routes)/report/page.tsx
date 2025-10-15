@@ -12,7 +12,8 @@ import { useCreateCustomersMutation, useCreateReportMutation } from "@/state/api
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import Container from "../components/ui/Container";
-import { AddCustomerDialog } from "../crm/components/AddCustomer"
+import { AddCustomerDialog } from "../crm/components/AddCustomer";
+import { DatePicker } from "@/components/ui/date-picker";
 
 type CustomerFormData = {
   customId: string;
@@ -150,6 +151,7 @@ const CreatePromotion = () => {
           <div>
             <Label className="mb-2">Date du prochain RDV</Label>
             <Input className="mb-5" type="date" value={nextRdv} onChange={(e) => setnextRdv(e.target.value)} />
+           
           </div>
 
           <div>

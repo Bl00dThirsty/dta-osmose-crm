@@ -473,78 +473,78 @@ useEffect(() => {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(item.totalPrice)}
-</td> */}
+</td> */
 
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+//                   </tr>
+//                 ))}
+//               </tbody>
+//             </table>
+//           </div>
           
-          <div className="space-y-3">
-            <div className="flex justify-between">
-              <span className="font-medium">Total:</span>
-              <span>{totalAmount} FCFA</span>
-            </div>
-            {!isParticulier && (
-            <div className="flex justify-between">
-              <label className="font-medium">Remise:</label>
-              <Input
-                type="number"
-                min="0"
-                value={discount}
-                onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
-                className="w-24 p-1 border rounded text-right"
-              />
-            </div>
-            )}
-            <div className="flex justify-between font-bold text-lg">
-              <span>Montant final:</span>
-              <span>{finalAmount} FCFA</span>
-            </div>
+//           <div className="space-y-3">
+//             <div className="flex justify-between">
+//               <span className="font-medium">Total:</span>
+//               <span>{totalAmount} FCFA</span>
+//             </div>
+//             {!isParticulier && (
+//             <div className="flex justify-between">
+//               <label className="font-medium">Remise:</label>
+//               <Input
+//                 type="number"
+//                 min="0"
+//                 value={discount}
+//                 onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
+//                 className="w-24 p-1 border rounded text-right"
+//               />
+//             </div>
+//             )}
+//             <div className="flex justify-between font-bold text-lg">
+//               <span>Montant final:</span>
+//               <span>{finalAmount} FCFA</span>
+//             </div>
 
-            {debtStatus?.hasDebt && (
-  <div className="relative mb-8 mx-auto w-fit animate-fade-in">
-    <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 shadow-lg relative max-w-md">
-      <div className="absolute -top-3 left-6 w-6 h-6 bg-red-50 border-t-2 border-l-2 border-red-200 transform rotate-45"></div>
+//             {debtStatus?.hasDebt && (
+//   <div className="relative mb-8 mx-auto w-fit animate-fade-in">
+//     <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 shadow-lg relative max-w-md">
+//       <div className="absolute -top-3 left-6 w-6 h-6 bg-red-50 border-t-2 border-l-2 border-red-200 transform rotate-45"></div>
       
-      <div className="flex items-start">
-        <div className="flex-shrink-0 mr-3">
-          <div className="bg-red-100 p-2 rounded-full">
-            <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-          </div>
-        </div>
-        <div>
-          <h3 className="font-bold text-red-800">Commande bloquée</h3>
-          <p className="text-gray-700">
-            Ce client a une ou plusieurs factures impayées datant de plus d’un mois.
-            <br />
-            Il ne peut pas passer de nouvelle commande tant que ces factures ne sont pas réglées.
-          </p>
-        </div>
-      </div>
-    </div>
-    <div className="absolute -bottom-1 left-1/4 w-1/2 h-2 bg-red-100 blur-sm opacity-70"></div>
-  </div>
-)}
+//       <div className="flex items-start">
+//         <div className="flex-shrink-0 mr-3">
+//           <div className="bg-red-100 p-2 rounded-full">
+//             <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+//             </svg>
+//           </div>
+//         </div>
+//         <div>
+//           <h3 className="font-bold text-red-800">Commande bloquée</h3>
+//           <p className="text-gray-700">
+//             Ce client a une ou plusieurs factures impayées datant de plus d’un mois.
+//             <br />
+//             Il ne peut pas passer de nouvelle commande tant que ces factures ne sont pas réglées.
+//           </p>
+//         </div>
+//       </div>
+//     </div>
+//     <div className="absolute -bottom-1 left-1/4 w-1/2 h-2 bg-red-100 blur-sm opacity-70"></div>
+//   </div>
+// )}
             
-            <button
-              onClick={handleCreateSale}
-              disabled={!customerId || selectedProducts.length === 0 || debtStatus?.hasDebt}
-              className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
-            >
-              Vendre
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+//             <button
+//               onClick={handleCreateSale}
+//               disabled={!customerId || selectedProducts.length === 0 || debtStatus?.hasDebt}
+//               className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
+//             >
+//               Vendre
+//             </button>
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
 
-export default CreateSalePage;*/
+// export default CreateSalePage;*/
 
 "use client";
 
@@ -572,7 +572,7 @@ import {
   useGetUsersQuery,
   useGetCustomerDebtStatusQuery
 } from "@/state/api";
-import { DatePicker } from "../crm/dashboard/_components/date-picker";
+import { DatePicker } from "@/components/ui/date-picker";
 
 // Types
 interface Product { id: string; designation: string; sellingPriceTTC: number; quantity: number; }
@@ -623,12 +623,12 @@ export default function CreateInvoicePage() {
   const [items, setItems] = useState<SelectedProduct[]>([]);
 
   // API
-  const { data: customers = [] } = useGetCustomersQuery();
+  const { data: customers = [] } = useGetCustomersQuery({ institution });
   const { data: products = [] } = useGetProductsQuery({ institution });
   const { data: users = [] } = useGetUsersQuery();
   const { data: activePromotions = [] } = useGetActivePromotionsQuery({ institution });
   const [createSale] = useCreateSaleMutation();
-
+  
   const { data: salePromise } = useGetSalePromiseByIdQuery(salePromiseId ?? 0, { skip: !salePromiseId });
   const { data: debtStatus } = useGetCustomerDebtStatusQuery(
   { 
@@ -763,13 +763,13 @@ export default function CreateInvoicePage() {
       items: items.map(i => ({ productId: i.productId, quantity: i.quantity, unitPrice: i.unitPrice, totalPrice: i.totalPrice })),
       totalAmount,
       finalAmount,
-      salePromiseId: salePromiseId ?? undefined,
+      salePromiseId: salePromise ? salePromise.id : undefined,
       paymentMethod,
     };
 
     try {
       await createSale(newInvoice).unwrap();
-      toast.success("Vente enregistrée !");
+      
       setItems([]);
       setDiscount(0);
       setCustomerId(null);
@@ -781,6 +781,7 @@ export default function CreateInvoicePage() {
       setDeliveryDate(new Date());
       setReference("");
       setVatApplicable(null);
+      toast.success("Vente enregistrée !");
     } catch (err) {
       console.error(err);
       toast.error("Erreur lors de l'enregistrement");
@@ -839,16 +840,38 @@ const handlePrint = useReactToPrint({
                     {customers.map(c => <SelectItem key={c.id} value={c.id.toString()}>{c.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
-                {/* ✅ Affichage dette client */}
-                  {debtStatus?.hasDebt && (
-                    <div className="mt-2 p-2 bg-red-100 text-red-800 rounded-md text-sm">
-                      ⚠️ Ce client a une dette de {debtStatus.amountDue} €
-                    </div>
-                  )}
+               
               </div>
                <Label>Numero Facture</Label>
-                <Input value={invoiceNumber} onChange={e => setInvoiceNumber(e.target.value)} />
+                <Input value={invoiceNumber} onChange={e => setInvoiceNumber(e.target.value)} disabled />
             </div>
+              {/* ✅ Affichage dette client */}
+  {debtStatus?.hasDebt && (
+   <div className="relative mb-8 mx-auto w-fit animate-fade-in">
+    <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 shadow-lg relative max-w-md">
+      <div className="absolute -top-3 left-6 w-6 h-6 bg-red-50 border-t-2 border-l-2 border-red-200 transform rotate-45"></div>
+      
+      <div className="flex items-start">
+        <div className="flex-shrink-0 mr-3">
+          <div className="bg-red-100 p-2 rounded-full">
+            <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+        </div>
+        <div>
+          <h3 className="font-bold text-red-800">Commande bloquée</h3>
+          <p className="text-gray-700">
+            Ce client a une ou plusieurs factures impayées datant de plus d’un mois.
+            <br />
+            Il ne peut pas passer de nouvelle commande tant que ces factures ne sont pas réglées.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div className="absolute -bottom-1 left-1/4 w-1/2 h-2 bg-red-100 blur-sm opacity-70"></div>
+   </div>
+  )}
 
             {/* Invoice info */}
 
@@ -975,7 +998,7 @@ const handlePrint = useReactToPrint({
               <div className="flex justify-between font-bold text-lg"><span>Total:</span><span>{finalAmount.toFixed(2)} €</span></div>
             </div>
 
-            <Button className="mt-4 w-full" onClick={handleCreateSale}>Enregistrer la vente</Button>
+            <Button className="mt-4 w-full" onClick={handleCreateSale}  disabled={!customerId || debtStatus?.hasDebt}>Enregistrer la vente</Button>
           </CardContent>
         </Card>
 

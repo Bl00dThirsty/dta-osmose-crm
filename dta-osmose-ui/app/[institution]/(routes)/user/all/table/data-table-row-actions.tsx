@@ -34,7 +34,7 @@ import {
 import { ToastContainer, toast } from 'react-toastify';
 import { useParams } from "next/navigation"
 import { useState } from "react"
-import { labels } from "@/app/[institution]/(routes)/crm/products/table/data/data"
+import { labels } from "@/app/[institution]/(routes)/components/data/data"
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>

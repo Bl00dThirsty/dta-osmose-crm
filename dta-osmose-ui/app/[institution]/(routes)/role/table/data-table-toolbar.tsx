@@ -6,7 +6,7 @@ import { X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { DataTableViewOptions } from "@/app/[institution]/(routes)/crm/products/table/components/data-table-view-options"
+import { DataTableViewOptions } from "@/app/[institution]/(routes)/components/table/data-table-view-options"
 import { AddRoleDialog } from "../../crm/components/AddRole"
 import { useCreateRolesMutation } from "@/state/api"
 import { useState } from "react"

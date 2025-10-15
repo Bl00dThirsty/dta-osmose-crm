@@ -19,7 +19,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { DatePicker } from "./_components/date-picker";
+import { DatePicker } from "@/components/ui/date-picker";
 
 
 

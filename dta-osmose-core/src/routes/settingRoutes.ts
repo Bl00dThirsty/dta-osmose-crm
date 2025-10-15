@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { updateSetting, getSetting} from "../controllers/settingController";
-import authorize from "../authorize";
+import authorize from "../utils/authorize";
 const router = Router();
 
 

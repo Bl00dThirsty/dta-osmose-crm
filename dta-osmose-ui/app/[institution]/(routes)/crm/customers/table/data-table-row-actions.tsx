@@ -32,7 +32,7 @@ import {
   DialogAction,
 } from "@/components/ui/dialog"
 import { ToastContainer, toast } from 'react-toastify';
-import UserPrivateComponent from "../../../../components/usePrivateComponent";
+import UserPrivateComponent from "../../../components/usePrivateComponent";
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>
 }

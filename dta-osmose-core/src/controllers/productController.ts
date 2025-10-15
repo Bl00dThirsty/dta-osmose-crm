@@ -41,26 +41,8 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
       include: { Promotion: true },
     });
 
-    //Mise à jour en parallèle
-    await Promise.all(
-      products.map((product) =>
-        prisma.product.update({
-          where: { id: product.id },
-          data: {
-            sellingPriceCFA: toTwoDecimals(product.sellingPriceTTC * EURO_TO_CFA),
-            purchasePriceCFA: toTwoDecimals(product.purchase_price * EURO_TO_CFA),
-          },
-        })
-      )
-    );
 
-    // Renvoyer les produits mis à jour
-    const updatedProducts = await prisma.product.findMany({
-      where: { institutionId: institution.id },
-      include: { Promotion: true },
-    });
-
-    res.json(updatedProducts);
+    res.json(products);
   } catch (error: any) {
     console.error("Erreur lors de la recherche des produits :", error.stack || error.message);
     res.status(500).json({ message: "Erreur lors de la recherche des produits." });
@@ -111,8 +93,6 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
         institution: {
           connect: { id: institution.id },
         },
-        sellingPriceCFA: toTwoDecimals(sellingPriceTTC * EURO_TO_CFA), // conversion
-        purchasePriceCFA: toTwoDecimals(purchase_price * EURO_TO_CFA),
       },
     });
 
@@ -239,9 +219,7 @@ export const importProducts = async (req: Request, res: Response): Promise<void>
             sellingPriceTTC,
             restockingThreshold,
             warehouse,
-            institutionId: institution.id,
-            sellingPriceCFA: toTwoDecimals(sellingPriceTTC * EURO_TO_CFA), // conversion
-            purchasePriceCFA: toTwoDecimals(purchase_price * EURO_TO_CFA), 
+            institutionId: institution.id, 
           },
           create: {
             id: uuidv4(),
@@ -254,8 +232,6 @@ export const importProducts = async (req: Request, res: Response): Promise<void>
             restockingThreshold,
             warehouse,
             institutionId: institution.id,
-            sellingPriceCFA: toTwoDecimals(sellingPriceTTC * EURO_TO_CFA), // conversion
-            purchasePriceCFA: toTwoDecimals(purchase_price * EURO_TO_CFA), // conversion
           },
         });
 
@@ -332,14 +308,6 @@ export const updateSingleProduct = async (req: Request, res: Response): Promise<
       restockingThreshold: req.body.restockingThreshold,
       warehouse: req.body.warehouse,
     };
-
-    // Recalcule uniquement si les prix sont fournis
-    if (req.body.sellingPriceTTC !== undefined) {
-       updateData.sellingPriceCFA = toTwoDecimals(req.body.sellingPriceTTC * EURO_TO_CFA);
-    }
-    if (req.body.purchase_price !== undefined) {
-      updateData.purchasePriceCFA = toTwoDecimals(req.body.purchase_price * EURO_TO_CFA);
-    }
 
     const updateProduct = await prisma.product.update({
       where: { id },

@@ -10,8 +10,6 @@ export interface Product {
   designation: string;
   sellingPriceTTC: number;
   purchase_price: number;
-  sellingPriceCFA: number;
-  purchasePriceCFA?: number;
   restockingThreshold: number;
   warehouse: string;
   Promotion?: Promotion[];
@@ -25,8 +23,6 @@ export interface NewProduct {
   designation: string;
   sellingPriceTTC: number;
   purchase_price: number;
-  sellingPriceCFA: number;
-  purchasePriceCFA?: number;
   restockingThreshold: number;
   warehouse: string;
 }
@@ -107,8 +103,6 @@ export interface salePromiseProduct{
     quantity: number;
     EANCode?: string;
     sellingPriceTTC: number;
-    sellingPriceCFA?: number;
-    purchasePriceCFA?: number;
   }
 }
 
@@ -160,8 +154,6 @@ export interface SaleItemInput {
     quantity: number;
     EANCode?: string;
     sellingPriceTTC: number;
-    sellingPriceCFA?: number;
-    purchasePriceCFA?: number;
   }
 }
 
@@ -431,8 +423,6 @@ export interface Promotion {
     quantity: number;
     EANCode?: string;
     sellingPriceTTC: number;
-    sellingPriceCFA: number;
-    purchasePriceCFA: number;
   }  
 }
 
@@ -454,8 +444,6 @@ export interface NewPromotion {
     quantity: number;
     EANCode?: string;
     sellingPriceTTC: number;
-    sellingPriceCFA: number;
-    purchasePriceCFA?: number;
   }
 }
 
@@ -591,7 +579,7 @@ export const api = createApi({
 
     endpoints: (build) => ({
 
-      // ============================================================================
+// ============================================================================
 // DASHBOARD ENDPOINTS
 // Auteur : Malonguem Laura
 // Description : Gestion du contenu et de l'affichage des dashboards
@@ -823,11 +811,15 @@ export const api = createApi({
           invalidatesTags: ['Inventorys', 'Products']
         }),
 
-        getInventory: build.query<Inventory[], { institution: string; search?: string }>({
-          query: ({ institution, search }) => ({
-              url: `/inventory/${institution}/all`,
-              params: search ? { search } : {}
-          }),
+        getInventory: build.query<Inventory[], { institution: string; startDate?: string; endDate?: string }>({
+          query: ({ institution, startDate, endDate }) => {
+            const params = new URLSearchParams();
+            if (startDate) params.append("startDate", startDate);
+            if (endDate) params.append("endDate", endDate);
+
+            return `/inventory/${institution}/all?${params.toString()}`;
+              
+          },
           providesTags: ["Inventorys"]
         }),
 
@@ -945,7 +937,7 @@ export const api = createApi({
         invalidatesTags: (result, error, id ) => [{ type: "SalePromise", id }, "Products"],
       }),
 
-        // ============================================================================
+// ============================================================================
 // SALES ENDPOINTS
 // Auteur : Azambou Yvana
 // Description : Gestion complète des ventes et factures
@@ -1033,7 +1025,7 @@ export const api = createApi({
         invalidatesTags: (result, error, id ) => [{ type: "Sales", id }, "Products"],
       }),
       
-       // ============================================================================
+// ============================================================================
 // CLAIMS ENDPOINTS (RÉCLAMATIONS)
 // Auteur : Azambou Yvana
 // Description : Gestion des réclamations clients sur les ventes
@@ -1269,13 +1261,13 @@ les endpoint d'affectation des permissions aux roles sont defini */
           }),
            
            /* Récupère le profil client avec historique des commandess sur période */
-           getCustomerById: build.query<Customer, { id: string; startDate?: string; endDate?: string }>({
-            query: ({ id, startDate, endDate }) => {
+           getCustomerById: build.query<Customer, { id: string; startDate?: string; endDate?: string; institution: string }>({
+            query: ({ id, startDate, endDate, institution }) => {
               const params = new URLSearchParams();
               if (startDate) params.append("startDate", startDate);
               if (endDate) params.append("endDate", endDate);
       
-              return `/customer/${id}?${params.toString()}`;
+              return `/customer/${institution}/customer/${id}?${params.toString()}`;
             },
             providesTags: (result, error, { id }) => [{ type: "Customers", id }],
           }),

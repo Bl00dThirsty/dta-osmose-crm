@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Search, PlusCircle } from 'lucide-react';
-import { DatePicker } from "../crm/dashboard/_components/date-picker";
+import { DatePicker } from "@/components/ui/date-picker";
 
 export interface Product {
   id: string;
@@ -157,8 +157,8 @@ const CreateSalePromisePage = () => {
             ? {
                 ...p,
                 product_quantity: p.product_quantity + quantity,
-                product_sale_price: product.sellingPriceCFA,
-                totalPrice: (p.product_quantity + quantity) * product.sellingPriceCFA
+                product_sale_price: product.sellingPriceTTC,
+                totalPrice: (p.product_quantity + quantity) * product.sellingPriceTTC
               }
             : p
         );
@@ -169,8 +169,8 @@ const CreateSalePromisePage = () => {
           id: product.id,
           designation: product.designation,
           product_quantity: quantity,
-          product_sale_price: product.sellingPriceCFA,
-          totalPrice: product.sellingPriceCFA * quantity
+          product_sale_price: product.sellingPriceTTC,
+          totalPrice: product.sellingPriceTTC * quantity
         }
       ];
     });
@@ -386,7 +386,7 @@ const CreateSalePromisePage = () => {
                           <span className="font-medium">{product.designation}</span>
                         </div>
                         <div className="text-right">
-                          <span>{product.sellingPriceCFA} F</span>
+                          <span>{product.sellingPriceTTC} F</span>
                           <div className="text-xs text-gray-500">
                             Stock: {product.quantity}
                             {product.quantity <= 0 && <span className="text-red-500 ml-1">(Épuisé)</span>}

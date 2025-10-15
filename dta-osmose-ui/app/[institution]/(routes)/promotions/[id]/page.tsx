@@ -71,7 +71,7 @@ export default function PromotionsPage() {
   };
   //const finalPrice = productPrice - (productPrice * discount) / 100;
   const selectedProduct = products.find((p: any) => String(p.id) === formData.productId);
-  const productPrice = selectedProduct?.sellingPriceCFA ?? 0;
+  const productPrice = selectedProduct?.sellingPriceTTC ?? 0;
 
   // Calcul du prix final avec remise
   const finalPrice = productPrice - (productPrice * formData.discount) / 100;
@@ -101,7 +101,7 @@ export default function PromotionsPage() {
      : institution === "asermpharma"
      ? "/logo/defaut-aserm.jpg"
      : "/logo/default-logo.png";
-  const discountPrice = (promo?.product?.sellingPriceCFA ?? 0) * (1 - (promo?.discount ?? 0) / 100);
+  const discountPrice = (promo?.product?.sellingPriceTTC ?? 0) * (1 - (promo?.discount ?? 0) / 100);
    return (
     <>
     <div className="space-y-6">
@@ -137,7 +137,7 @@ export default function PromotionsPage() {
                   />
                
                 <div className="mt-4 text-center">
-                  <p className="line-through text-gray-500">{promo?.product?.sellingPriceCFA.toFixed(2)} F cfa</p>
+                  <p className="line-through text-gray-500">{promo?.product?.sellingPriceTTC.toFixed(2)} F cfa</p>
                   <p className="text-xl font-bold text-green-600">{discountPrice.toFixed(2)} F cfa</p>
                 </div>
                 {promo?.title && <p className="mt-2 text-sm text-red-400 italic">{promo?.title}</p>}
@@ -179,7 +179,7 @@ export default function PromotionsPage() {
                         <option value="">-- Sélectionner --</option>
                           {products.map((p: any) => (
                             <option key={p.id} value={p.id}>
-                                {p.designation} ({p.sellingPriceCFA} FCFA)
+                                {p.designation} ({p.sellingPriceTTC} FCFA)
                             </option>
                           ))}
                         </select>
