@@ -53,6 +53,8 @@ const InvoicePage = () => {
   const [deleteSaleInvoice] = useDeleteSaleInvoiceMutation()
   const [updateStatus] = useUpdateSaleStatusMutation(); 
   const now = new Date();
+  now.setDate(now.getDate() - 1);
+
   const { data: sale, isLoading } = useGetSaleByIdQuery(id);
   const { data: settings = [] } = useGetSettingsQuery({ institution });
   const handleDelete = async () => {
@@ -109,10 +111,17 @@ const InvoicePage = () => {
   const handleGoBack = () => {
     router.back();
   };
+
+  //Les credits disponible pour le clients
   const totalAvailableCredit = sale?.customer?.credits?.reduce(
     (sum, credits) => sum + (credits.amount - credits.usedAmount),
     0
   ) ?? 0;
+
+  const rate = 656;
+
+  // Message en cas de commandes non livrées à temps (notifications)
+  const isLate = sale?.date && !sale.delivred ? new Date(sale.date) < now : false;
  
   if (isLoading) return <div>Chargement...</div>;
   if (!sale) return <div>Vous n'avez pas accès à ces informations. Facture non trouvée</div>;
@@ -161,11 +170,37 @@ const InvoicePage = () => {
 
     <div className="h-full w-full overflow-x-auto">
       <section className="overflow-hidden rounded-[0.5rem] border bg-background shadow-zinc-50">
-        <div className="flex justify-center mt-2 mb-8">
-          
-            <h1 className="text-2xl">Commande N°: <b>{sale.invoiceNumber}</b></h1>
-            {/* <p className="text-gray-500">Date: {new Date(sale.createdAt ).toLocaleDateString()}</p> */}
+        <div className="flex justify-center mt-2 mb-8">         
+            <h1 className="text-2xl">Commande N°: <b>{sale.invoiceNumber}</b></h1>            
         </div>
+        {/* //Message en cas de commandes non livrées à temps (notifications) */}
+          {isLate && (
+            <div className="relative mb-5 mx-auto w-fit animate-fade-in animate-pulse">
+              <div className="bg-red-100 border-2 border-red-500 rounded-xl p-4 shadow-lg relative max-w-md">
+                <div className="absolute -top-3 left-6 w-6 h-6 bg-red-100 border-t-2 border-l-2 border-yellow-200 transform rotate-45"></div>
+                
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 mr-3">
+                    <div className="bg-red-100 p-2 rounded-full">
+                      <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-yellow-800">Retard dans la Livraison !</h3>
+                    {/* Optionnel : Afficher la date prévue */}
+                    {sale.date && (
+                      <p className="text-sm text-yellow-700">
+                        Date prévue: {new Date(sale.date).toLocaleDateString()}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="absolute -bottom-1 left-1/4 w-1/2 h-2 bg-red-100 blur-sm opacity-70"></div>
+            </div>
+          )}
         {totalAvailableCredit > 0 && (
   <div className="relative mb-8 mx-auto w-fit animate-fade-in">
     {/* Bulle de dialogue pour signifier les credit disponible pour le client de cette commande*/}
@@ -255,7 +290,6 @@ const InvoicePage = () => {
             ? 'bg-green-500 text-green-800 hover:bg-green-500'
             : 'bg-red-500 text-red-800 hover:bg-red-500'
         }`}
-        disabled={isParticulier}
       >
         {sale.paymentStatus === 'PAID' ? "Validé" : "Non validé"}
       </button>
@@ -312,23 +346,38 @@ const InvoicePage = () => {
 
         <div className="container mx-auto p-4 max-w-4xl border">
            <div className="bg-gray p-6 rounded-lg shadow text-white-500 print:shadow-none">
-              <h2 className="font-bold mb-2 text-center text-2xl">Informations sur la commande</h2>
-            <div className="grid grid-cols-2 gap-8 mb-8">
+              <h2 className="font-bold mb-5 text-center text-2xl">Informations sur la commande</h2>
+            <div className="grid grid-cols-2 gap-8 mb-8 ">
           <div>
             {/* <h2 className="font-bold mb-2">Informations sur la commande</h2> */}
               <p className="mb-2">Date de vente: <b>{new Date(sale.createdAt ).toLocaleDateString()}</b></p>
+              <p className="mb-2">Date de livraison: <b>{
+                     sale.date
+                       ? new Date(sale.date).toLocaleDateString()
+                       : "Non renseigné"
+                   }</b></p>
               <p className="mb-2">Client: <b>{sale.customer.name}</b></p>
               <p className="mb-2">Type de client: <b>{sale.customer.type_customer}</b></p>
-              <p className="mb-2">Remise: <b>{sale.discount} Fcfa</b> </p>
+              <p>Remise: <b>{sale.discount} € </b> </p>
+              <div className="text-xs text-gray-500">{(sale.discount * rate).toFixed(0)} F CFA</div>
               
           </div>
           <div>
             {/* <h2 className="font-bold mb-2">Client</h2> */}
+            {sale.vatApplicable ? (
+               <span className="text-green-600 font-semibold mb-2">TVA appliquée: 19.25%</span>
+            ) : (
+               <span className="text-gray-500 mb-2">Sans TVA</span>
+            )}
+
             <p className="mb-2">Methode de paiement: <b>{sale.paymentMethod || 'CASH'}</b></p>
             {/* <p className="mb-2"> <b>{sale.paymentStatus === 'PAID' ? 'Terminé' : 'En cours'}</b></p> */}
-            <p className="mb-2">Montant Total: <b>{sale.totalAmount} Fcfa</b></p>
-            <p className="mb-2">Montant à payer: <b>{sale.dueAmount} Fcfa</b></p>
-            <p className="">Montant payé: <b>{sale.paidAmount} Fcfa</b></p>
+            <p className="">Montant Total: <b>{sale.totalAmount} €</b></p>
+            <div className="text-xs text-gray-500 mb-2">{(sale.totalAmount * rate).toFixed(0)} F CFA</div>
+            <p className="">Montant à payer: <b>{sale.dueAmount.toFixed(2)}€</b></p>
+            <div className="text-xs text-gray-500 mb-2">{(sale.dueAmount * rate).toFixed(0)} F CFA</div>
+            <p className="">Montant payé: <b>{sale.paidAmount} €</b></p>
+            <div className="text-xs text-gray-500">{(sale.paidAmount * rate).toFixed(0)} F CFA</div>
             {/* <p>
                Initiateur: <b>
                {sale.user 

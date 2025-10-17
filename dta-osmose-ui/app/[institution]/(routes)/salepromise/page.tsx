@@ -6,7 +6,7 @@ import { useGetCustomersQuery } from '@/state/api';
 import { useGetUsersQuery } from '@/state/api';
 import { useRouter, useParams } from 'next/navigation';
 import { Input } from "@/components/ui/input";
-import { toast } from "react-hot-toast";
+import { toast } from "react-toastify";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -249,6 +249,8 @@ const CreateSalePromisePage = () => {
 
   const currentCustomer = customers.find(c => c.id === customerId);
 
+  const rate = 656;
+
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6">Nouvelle Promesse d'achat</h1>
@@ -262,9 +264,9 @@ const CreateSalePromisePage = () => {
           <CardContent className="space-y-4">
             {/* Client */}
             <div>
-              <Label>Client</Label>
+              <Label className='mb-2'>Client</Label>
               {isParticulier && currentCustomer ? (
-                <div className="p-2 border rounded bg-gray-50">
+                <div className="p-2 border rounded ">
                   <p className="font-medium">{currentCustomer.name} - {currentCustomer.phone}</p>
                 </div>
               ) : (
@@ -318,7 +320,7 @@ const CreateSalePromisePage = () => {
             {/* Dates */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label>Date d'échéance</Label>
+                <Label className="mb-2">Date d'échéance</Label>
                 <DatePicker
                   label=""
                   date={dueDate ?? undefined}
@@ -326,7 +328,7 @@ const CreateSalePromisePage = () => {
                 />
               </div>
               <div>
-                <Label>Date de rappel</Label>
+                <Label className="mb-2">Date de rappel</Label>
                 <DatePicker
                   label=""
                   date={reminderDate ?? undefined}
@@ -337,7 +339,7 @@ const CreateSalePromisePage = () => {
 
             {/* Note */}
             <div>
-              <Label>Note</Label>
+              <Label className="mb-2">Note</Label>
               <Textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
@@ -346,20 +348,22 @@ const CreateSalePromisePage = () => {
             </div>
 
             {/* Remise */}
-            <div>
-              <Label>Remise (FCFA)</Label>
-              <Input
-                type="number"
-                min="0"
-                value={discount}
-                onChange={(e) => setDiscount(Number(e.target.value))}
-                placeholder="Montant de la remise"
-              />
-            </div>
+            {!isParticulier && (
+              <div>
+               <Label className="mb-2">Remise (FCFA)</Label>
+               <Input
+                 type="number"
+                 min="0"
+                 value={discount}
+                 onChange={(e) => setDiscount(Number(e.target.value))}
+                 placeholder="Montant de la remise"
+                />
+             </div>
+            )}
 
             {/* Recherche produit */}
             <div className="space-y-3">
-              <Label>Rechercher un produit</Label>
+              <Label className="mb-2">Rechercher un produit</Label>
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -408,7 +412,7 @@ const CreateSalePromisePage = () => {
               {/* Sélection produit */}
               <div className="flex items-end gap-2">
                 <div className="flex-1">
-                  <Label>Produit sélectionné</Label>
+                  <Label className="mb-2">Produit sélectionné</Label>
                   <Input
                     value={selectedProduct ? products.find(p => p.id === selectedProduct)?.designation || '' : ''}
                     readOnly
@@ -416,7 +420,7 @@ const CreateSalePromisePage = () => {
                   />
                 </div>
                 <div>
-                  <Label>Stock</Label>
+                  <Label className="mb-2">Stock</Label>
                   <Input
                     value={selectedProduct ? products.find(p => p.id === selectedProduct)?.quantity ?? 0 : 0}
                     readOnly
@@ -424,7 +428,7 @@ const CreateSalePromisePage = () => {
                   />
                 </div>
                 <div>
-                  <Label>Quantité</Label>
+                  <Label className="mb-2">Quantité</Label>
                   <Input
                     type="number"
                     min="1"
@@ -484,17 +488,26 @@ const CreateSalePromisePage = () => {
 
             {/* Totaux */}
             <div className="mt-4 space-y-1 text-sm border-t pt-4">
-              <div className="flex justify-between">
-                <span>Sous-total:</span>
-                <span>{totalAmount.toFixed(2)} F</span>
+              <div className="flex justify-between items-end">
+                <span>Sous-total :</span>
+                <div className="text-right">
+                  <div>{totalAmount.toFixed(2)} €</div>
+                  <div className="text-xs text-gray-500">{(totalAmount * rate).toFixed(0)} F CFA</div>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span>Remise:</span>
-                <span>-{discount.toFixed(2)} F</span>
+              <div className="flex justify-between items-end">
+                <span>Remise :</span>
+                <div className="text-right">
+                  <div>-{discount.toFixed(2)} €</div>
+                  <div className="text-xs text-gray-500">-{(discount * rate).toFixed(0)} F CFA</div>
+                </div>
               </div>
-              <div className="flex justify-between font-bold text-lg">
-                <span>Montant final:</span>
-                <span>{finalAmount.toFixed(2)} F</span>
+              <div className="flex justify-between items-end font-bold text-lg border-t pt-2">
+                <span>Total :</span>
+                <div className="text-right">
+                  <div>{finalAmount.toFixed(2)} €</div>
+                  <div className="text-sm text-green-600 font-semibold">{(finalAmount * rate).toFixed(0)} F CFA</div>
+                </div>
               </div>
             </div>
             {/* Bouton créer promesse */}
@@ -546,17 +559,26 @@ const CreateSalePromisePage = () => {
             </table>
 
             <div className="space-y-1 text-sm border-t pt-2">
-              <div className="flex justify-between">
-                <span>Sous-total:</span>
-                <span>{totalAmount.toFixed(2)} F</span>
+              <div className="flex justify-between items-end">
+                <span>Sous-total :</span>
+                <div className="text-right">
+                  <div>{totalAmount.toFixed(2)} €</div>
+                  <div className="text-xs text-gray-500">{(totalAmount * rate).toFixed(0)} F CFA</div>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span>Remise:</span>
-                <span>-{discount.toFixed(2)} F</span>
+              <div className="flex justify-between items-end">
+                <span>Remise :</span>
+                <div className="text-right">
+                  <div>-{discount.toFixed(2)} €</div>
+                  <div className="text-xs text-gray-500">-{(discount * rate).toFixed(0)} F CFA</div>
+                </div>
               </div>
-              <div className="flex justify-between font-bold text-lg">
-                <span>Total:</span>
-                <span>{finalAmount.toFixed(2)} F</span>
+              <div className="flex justify-between items-end font-bold text-lg border-t pt-2">
+                <span>Total :</span>
+                <div className="text-right">
+                  <div>{finalAmount.toFixed(2)} €</div>
+                  <div className="text-sm text-green-600 font-semibold">{(finalAmount * rate).toFixed(0)} F CFA</div>
+                </div>
               </div>
             </div>
           </CardContent>

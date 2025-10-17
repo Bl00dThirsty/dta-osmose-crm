@@ -45,13 +45,17 @@ export const createSaleInvoice = async (req: Request, res: Response): Promise<vo
         
       }
       
-    const { customerId, items, discount, paidAmount, paymentMethod, salePromiseId, }: {
+    const { customerId, date, items, discount, paidAmount, paymentMethod, salePromiseId, reference, object, vatApplicable}: {
       customerId: number;
+      date: Date;
       items: SaleItemInput[];
       discount?: number;
       paidAmount: number;
       paymentMethod: string;
-      salePromiseId?: number;} = req.body;
+      reference: string;
+      object: string;
+      salePromiseId?: number;
+      vatApplicable: Boolean} = req.body;
    
     const institutionSlug = req.params.institution;
     const randomSuffix = randomInt(1000, 9999);
@@ -207,6 +211,7 @@ console.log("Produits validés :", validatedItems);
         //invoiceNumber: generateInvoiceNumber(),
         invoiceNumber,
         customerId,
+        date,
         userId: creatorType === "user" ? Number(creatorId) : undefined,
         customerCreatorId: creatorType === "customer" ? Number(creatorId) : undefined,
         institutionId: institution.id,
@@ -217,6 +222,9 @@ console.log("Produits validés :", validatedItems);
         paidAmount: 0,
         dueAmount: 0,
         paymentMethod,
+        reference,
+        object,
+        vatApplicable: vatApplicable ?? false,
         items: {
           create: validatedItems.map((item) => ({
             productId: item.productId,
@@ -238,7 +246,11 @@ console.log("Produits validés :", validatedItems);
     });
 
     const totalSansRemise = invoice.totalAmount;
-    const montantAvecRemise = totalSansRemise - (invoice.discount || 0);
+    let montantAvecRemise = totalSansRemise - (invoice.discount || 0);
+    if (vatApplicable){
+      const TVA = totalSansRemise * 0.1925;
+      montantAvecRemise = montantAvecRemise + TVA;
+    }
     let montantApresCredit = montantAvecRemise;
     let creditUtilise = 0;
 
@@ -431,32 +443,32 @@ export const checkCustomerDebtStatus = async (req: Request, res: Response) => {
         return;
       }
   // const now = new Date();
-  // const oneMonthAgo = new Date();
-  // oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 6);
-  // //oneMonthAgo.setMonth(now.getMonth() - 25);
-  // //const oneMonthAgo = new Date(now.setDate(now.getDate() - 20));
+  const oneMonthAgo = new Date();
+  oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 6);
+  //oneMonthAgo.setMonth(now.getMonth() - 25);
+  //const oneMonthAgo = new Date(now.setDate(now.getDate() - 20));
 
-  // const unpaidOldInvoices = await prisma.saleInvoice.findMany({
-  //   where: {
-  //     customerId: parseInt(customerId),
-  //     paymentStatus: { not: "PAID" },
-  //     delivred: true,
-  //     createdAt: { lt: oneMonthAgo },
-  //   },
+  const unpaidOldInvoices = await prisma.saleInvoice.findMany({
+    where: {
+      customerId: parseInt(customerId),
+      paymentStatus: { not: "PAID" },
+      delivred: true,
+      createdAt: { lt: oneMonthAgo },
+    },
     
-  // });
-  const now = new Date();
-const sixDaysAgo = new Date();
-sixDaysAgo.setDate(sixDaysAgo.getDate() - 6);
+  });
+//   const now = new Date();
+// const sixDaysAgo = new Date();
+// sixDaysAgo.setDate(sixDaysAgo.getDate() - 6);
 
-const unpaidOldInvoices = await prisma.saleInvoice.findMany({
-  where: {
-    customerId: parseInt(customerId),
-    paymentStatus: { not: "PAID" },
-    delivred: true,
-    createdAt: { lt: sixDaysAgo }, // Avant la date d'il y a 6 jours
-  },
-});
+// const unpaidOldInvoices = await prisma.saleInvoice.findMany({
+//   where: {
+//     customerId: parseInt(customerId),
+//     paymentStatus: { not: "PAID" },
+//     delivred: true,
+//     createdAt: { lt: sixDaysAgo }, // Avant la date d'il y a 6 jours
+//   },
+// });
 
   const hasDebt = unpaidOldInvoices.length > 0;
 
@@ -501,7 +513,7 @@ const unpaidOldInvoices = await prisma.saleInvoice.findMany({
   }
   console.log({
   customerId: parseInt(customerId),
-  sixDaysAgo,
+  oneMonthAgo,
   unpaidOldInvoicesCount: unpaidOldInvoices.length,
   unpaidOldInvoices,
   });
@@ -674,7 +686,7 @@ export const updateSaleStatus = async (req: Request, res: Response): Promise<voi
 export const updatePayment = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const { paymentMethod, paidAmount, discount = 0, dueAmount } = req.body;
+    const { paymentMethod, paidAmount, discount = 0, dueAmount, vatApplicable } = req.body;
 
     const items = await prisma.saleItem.findMany({
       where: {
@@ -762,6 +774,11 @@ export const updatePayment = async (req: Request, res: Response): Promise<void> 
     }else{
       remainingAmount = (invoice.totalAmount ?? 0) - totalDiscount;
     }
+
+    if(vatApplicable && !invoice.vatApplicable){
+      const TVA = invoice.totalAmount * 0.1925; 
+      remainingAmount = remainingAmount + TVA
+    }
     // if (credit && dueAmount > 0){
     //   remainingAmount = dueAmount;
     // }else{
@@ -783,6 +800,7 @@ export const updatePayment = async (req: Request, res: Response): Promise<void> 
         finalAmount: finalAmount,
         paidAmount: totalPaid,
         dueAmount: remainingAmount,
+        vatApplicable: vatApplicable ?? invoice.vatApplicable,
         profit: profit, // bien mis à jour ici
       },
     });
