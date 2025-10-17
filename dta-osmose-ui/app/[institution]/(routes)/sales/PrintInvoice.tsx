@@ -9,7 +9,7 @@ interface PrintInvoiceProps {
     invoiceNumber: string;
     issueDate: Date | null;
     customerName?: string;
-    objectDesc?: string;
+    object?: string;
     items: { designation: string; quantity: number; unitPrice: number; totalPrice: number }[];
     totalAmount: number;
     discount: number;
@@ -17,6 +17,7 @@ interface PrintInvoiceProps {
     finalAmount: number;
   };
 }
+const rate = 656;
 
 const PrintInvoice = forwardRef<HTMLDivElement, PrintInvoiceProps>(({ invoice }, ref) => {
   const { institution } = useParams<{ institution: string }>();
@@ -49,9 +50,9 @@ const PrintInvoice = forwardRef<HTMLDivElement, PrintInvoiceProps>(({ invoice },
       <div className="mb-4">
         <h1 className="text-2xl font-bold text-center mb-2">FACTURE</h1>
         <p><strong>Facture N°:</strong> {invoice.invoiceNumber}</p>
-        <p><strong>Date:</strong> {invoice.issueDate ? new Date(invoice.issueDate).toLocaleDateString() : ""}</p>
+        {/* <p><strong>Date:</strong> {invoice.issueDate ? new Date(invoice.issueDate).toLocaleDateString() : ""}</p> */}
         <p><strong>Client:</strong> {invoice.customerName}</p>
-        <p><strong>Objet:</strong> {invoice.objectDesc}</p>
+        <p><strong>Objet:</strong> {invoice.object}</p>
       </div>
 
       {/* Produits */}
@@ -78,10 +79,41 @@ const PrintInvoice = forwardRef<HTMLDivElement, PrintInvoiceProps>(({ invoice },
 
       {/* Totaux */}
       <div className="space-y-1 text-right">
-        <p>Sous-total: {invoice.totalAmount.toFixed(2)} €</p>
+        {/* <p>Sous-total: {invoice.totalAmount.toFixed(2)} €</p>
         <p>Remise: -{invoice.discount.toFixed(2)} €</p>
         <p>TVA: {invoice.vat.toFixed(2)} €</p>
-        <p className="font-bold text-lg">Total: {invoice.finalAmount.toFixed(2)} €</p>
+        <p className="font-bold text-lg">Total: {invoice.finalAmount.toFixed(2)} €</p> */}
+        <div className="flex justify-between items-end">
+              <span>Sous-total :</span>
+              <div className="text-right">
+                <div>{invoice.totalAmount.toFixed(2)} €</div>
+                <div className="text-xs text-gray-500">{(invoice.totalAmount * rate).toFixed(0)} F CFA</div>
+              </div>
+            </div>
+
+            <div className="flex justify-between items-end">
+              <span>Remise :</span>
+              <div className="text-right">
+                <div>-{invoice.discount.toFixed(2)} €</div>
+                <div className="text-xs text-gray-500">-{(invoice.discount * rate).toFixed(0)} F CFA</div>
+              </div>
+            </div>
+
+            <div className="flex justify-between items-end">
+              <span>TVA :</span>
+              <div className="text-right">
+                <div>{invoice.vat.toFixed(2)} €</div>
+                <div className="text-xs text-gray-500">{(invoice.vat * rate).toFixed(0)} F CFA</div>
+              </div>
+            </div>
+
+            <div className="flex justify-between items-end font-bold text-lg border-t pt-2">
+              <span>Total :</span>
+              <div className="text-right">
+                <div>{invoice.finalAmount.toFixed(2)} €</div>
+                <div className="text-sm font-semibold">{(invoice.finalAmount * rate).toFixed(0)} F CFA</div>
+              </div>
+            </div>
       </div>
     </div>
   );

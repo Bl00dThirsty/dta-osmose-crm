@@ -173,10 +173,13 @@ export interface SaleInvoice{
   paymentMethod?:   string ;
   ready?: boolean;
   delivred?: boolean;
+  vatApplicable: boolean;
   profit: number;
   createdAt:  Date;
   date?: Date;
   salePromiseId?: number;
+  object?: string;
+  reference?: string;
   items: SaleItemInput[];
   user: {
     id: number;
@@ -199,7 +202,8 @@ export interface SaleInvoice{
    
 }
 
-export interface NewSaleInvoice{      
+export interface NewSaleInvoice{  
+  id: string;    
   invoiceNumber?:   string ;     
   customerId? :     number;
   userId?:          number;
@@ -214,9 +218,12 @@ export interface NewSaleInvoice{
   paymentMethod?:   string ;
   ready?: boolean;
   delivred?: boolean;
+  vatApplicable: boolean;
   profit: number;
   createdAt?:  Date;
   date?: Date;
+  object?: string;
+  reference?: string;
   salePromiseId?: number;
   items: SaleItemInput[];
   user?: {
@@ -958,6 +965,7 @@ export const api = createApi({
           paymentMethod?: string;
           salePromiseId?: number;
           institution: string;
+          date?: Date;
          }>({
           query: ({ institution, ...data }) => ({
               url: `/sale/${institution}/sale`,
@@ -1007,11 +1015,11 @@ export const api = createApi({
        }),
 
        /* Gère le paiement d'une vente (méthode, montant, solde) */
-       updateSalePayment: build.mutation<SaleInvoice, { id: string; paymentMethod: string; paidAmount: number; dueAmount:number; discount?:number }>({
-        query: ({ id, paymentMethod, paidAmount, dueAmount, discount }) => ({
+       updateSalePayment: build.mutation<SaleInvoice, { id: string; paymentMethod: string; paidAmount: number; dueAmount:number; discount?:number; vatApplicable:boolean }>({
+        query: ({ id, paymentMethod, paidAmount, dueAmount, discount, vatApplicable }) => ({
           url: `/sale/${id}/payment`,
           method: 'PATCH',
-          body: { paymentMethod, paidAmount, dueAmount, discount }
+          body: { paymentMethod, paidAmount, dueAmount, discount, vatApplicable }
         }),
         invalidatesTags: (result, error, { id }) => [{ type: 'Sales', id }]
       }),

@@ -1,8 +1,8 @@
 -- CreateEnum
-CREATE TYPE "public"."typCat" AS ENUM ('Pharmacie', 'Distributeur');
+CREATE TYPE "typCat" AS ENUM ('Pharmacie', 'Distributeur');
 
 -- CreateTable
-CREATE TABLE "public"."Reporting" (
+CREATE TABLE "Reporting" (
     "id" SERIAL NOT NULL,
     "prospectName" TEXT NOT NULL,
     "date" TIMESTAMP(3) NOT NULL,
@@ -27,7 +27,7 @@ CREATE TABLE "public"."Reporting" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."announcement" (
+CREATE TABLE "announcement" (
     "id" SERIAL NOT NULL,
     "title" TEXT NOT NULL,
     "description" TEXT NOT NULL,
@@ -39,7 +39,7 @@ CREATE TABLE "public"."announcement" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."claim" (
+CREATE TABLE "claim" (
     "id" TEXT NOT NULL,
     "invoiceId" TEXT NOT NULL,
     "productId" TEXT NOT NULL,
@@ -55,7 +55,7 @@ CREATE TABLE "public"."claim" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."claimResponse" (
+CREATE TABLE "claimResponse" (
     "id" TEXT NOT NULL,
     "claimId" TEXT NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'PENDING',
@@ -66,7 +66,7 @@ CREATE TABLE "public"."claimResponse" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."credit" (
+CREATE TABLE "credit" (
     "id" TEXT NOT NULL,
     "customerId" INTEGER NOT NULL,
     "amount" DOUBLE PRECISION NOT NULL,
@@ -78,7 +78,7 @@ CREATE TABLE "public"."credit" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."customer" (
+CREATE TABLE "customer" (
     "id" SERIAL NOT NULL,
     "customId" TEXT NOT NULL,
     "name" TEXT NOT NULL,
@@ -103,7 +103,7 @@ CREATE TABLE "public"."customer" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."department" (
+CREATE TABLE "department" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "status" BOOLEAN NOT NULL DEFAULT true,
@@ -112,7 +112,7 @@ CREATE TABLE "public"."department" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."designation" (
+CREATE TABLE "designation" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "status" BOOLEAN NOT NULL DEFAULT true,
@@ -123,7 +123,7 @@ CREATE TABLE "public"."designation" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."institution" (
+CREATE TABLE "institution" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
@@ -132,7 +132,7 @@ CREATE TABLE "public"."institution" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."product" (
+CREATE TABLE "product" (
     "id" TEXT NOT NULL,
     "EANCode" TEXT NOT NULL,
     "brand" TEXT NOT NULL,
@@ -141,6 +141,8 @@ CREATE TABLE "public"."product" (
     "restockingThreshold" INTEGER NOT NULL,
     "sellingPriceTTC" DOUBLE PRECISION NOT NULL,
     "purchase_price" DOUBLE PRECISION NOT NULL,
+    "sellingPriceCFA" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "purchasePriceCFA" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "warehouse" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -157,7 +159,7 @@ CREATE TABLE "public"."product" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."ProductCounter" (
+CREATE TABLE "ProductCounter" (
     "id" SERIAL NOT NULL,
     "institution" TEXT NOT NULL,
     "month" INTEGER NOT NULL,
@@ -168,13 +170,15 @@ CREATE TABLE "public"."ProductCounter" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."saleInvoice" (
+CREATE TABLE "saleInvoice" (
     "id" TEXT NOT NULL,
     "invoiceNumber" TEXT NOT NULL,
     "customerId" INTEGER NOT NULL,
     "userId" INTEGER,
     "institutionId" TEXT NOT NULL,
     "salePromiseId" INTEGER,
+    "reference" TEXT,
+    "object" TEXT,
     "customerCreatorId" INTEGER,
     "totalAmount" DOUBLE PRECISION NOT NULL,
     "discount" DOUBLE PRECISION NOT NULL,
@@ -194,7 +198,7 @@ CREATE TABLE "public"."saleInvoice" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."saleItem" (
+CREATE TABLE "saleItem" (
     "id" TEXT NOT NULL,
     "invoiceId" TEXT NOT NULL,
     "productId" TEXT NOT NULL,
@@ -206,11 +210,7 @@ CREATE TABLE "public"."saleItem" (
 );
 
 -- CreateTable
-<<<<<<<< HEAD:dta-osmose-core/prisma/migrations/20250916122905_init/migration.sql
 CREATE TABLE "salePromise" (
-========
-CREATE TABLE "public"."salePromise" (
->>>>>>>> origin/CRM-IBA-ASP-420:dta-osmose-core/prisma/migrations/20250917142513_dev/migration.sql
     "id" SERIAL NOT NULL,
     "dueDate" TIMESTAMP(3),
     "reminderDate" TIMESTAMP(3),
@@ -233,7 +233,7 @@ CREATE TABLE "public"."salePromise" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."salePromiseProduct" (
+CREATE TABLE "salePromiseProduct" (
     "id" SERIAL NOT NULL,
     "product_id" TEXT NOT NULL,
     "promise_id" INTEGER NOT NULL,
@@ -245,11 +245,7 @@ CREATE TABLE "public"."salePromiseProduct" (
 );
 
 -- CreateTable
-<<<<<<<< HEAD:dta-osmose-core/prisma/migrations/20250916122905_init/migration.sql
 CREATE TABLE "Notification" (
-========
-CREATE TABLE "public"."Notification" (
->>>>>>>> origin/CRM-IBA-ASP-420:dta-osmose-core/prisma/migrations/20250917142513_dev/migration.sql
     "id" TEXT NOT NULL,
     "title" TEXT,
     "message" TEXT NOT NULL,
@@ -266,7 +262,7 @@ CREATE TABLE "public"."Notification" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."inventory" (
+CREATE TABLE "inventory" (
     "id" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -281,7 +277,7 @@ CREATE TABLE "public"."inventory" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."inventoryItem" (
+CREATE TABLE "inventoryItem" (
     "id" TEXT NOT NULL,
     "inventoryId" TEXT NOT NULL,
     "productId" TEXT NOT NULL,
@@ -294,7 +290,7 @@ CREATE TABLE "public"."inventoryItem" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."Promotion" (
+CREATE TABLE "Promotion" (
     "id" TEXT NOT NULL,
     "title" TEXT,
     "discount" DOUBLE PRECISION NOT NULL,
@@ -311,7 +307,7 @@ CREATE TABLE "public"."Promotion" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."appSetting" (
+CREATE TABLE "appSetting" (
     "id" SERIAL NOT NULL,
     "company_name" TEXT NOT NULL,
     "tag_line" TEXT NOT NULL,
@@ -326,7 +322,7 @@ CREATE TABLE "public"."appSetting" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."role" (
+CREATE TABLE "role" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "status" BOOLEAN NOT NULL DEFAULT true,
@@ -337,7 +333,7 @@ CREATE TABLE "public"."role" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."permission" (
+CREATE TABLE "permission" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -347,7 +343,7 @@ CREATE TABLE "public"."permission" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."rolePermission" (
+CREATE TABLE "rolePermission" (
     "id" SERIAL NOT NULL,
     "role_id" INTEGER NOT NULL,
     "permission_id" INTEGER NOT NULL,
@@ -359,7 +355,7 @@ CREATE TABLE "public"."rolePermission" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."user" (
+CREATE TABLE "user" (
     "id" SERIAL NOT NULL,
     "firstName" TEXT,
     "lastName" TEXT,
@@ -391,7 +387,7 @@ CREATE TABLE "public"."user" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."_claimTocustomer" (
+CREATE TABLE "_claimTocustomer" (
     "A" TEXT NOT NULL,
     "B" INTEGER NOT NULL,
 
@@ -399,7 +395,7 @@ CREATE TABLE "public"."_claimTocustomer" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."_claimTouser" (
+CREATE TABLE "_claimTouser" (
     "A" TEXT NOT NULL,
     "B" INTEGER NOT NULL,
 
@@ -407,201 +403,193 @@ CREATE TABLE "public"."_claimTouser" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "claimResponse_claimId_key" ON "public"."claimResponse"("claimId");
+CREATE UNIQUE INDEX "claimResponse_claimId_key" ON "claimResponse"("claimId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "customer_customId_key" ON "public"."customer"("customId");
+CREATE UNIQUE INDEX "customer_customId_key" ON "customer"("customId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "customer_userName_key" ON "public"."customer"("userName");
+CREATE UNIQUE INDEX "customer_userName_key" ON "customer"("userName");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "customer_phone_key" ON "public"."customer"("phone");
+CREATE UNIQUE INDEX "customer_phone_key" ON "customer"("phone");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "customer_email_key" ON "public"."customer"("email");
+CREATE UNIQUE INDEX "customer_email_key" ON "customer"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "institution_slug_key" ON "public"."institution"("slug");
+CREATE UNIQUE INDEX "institution_slug_key" ON "institution"("slug");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "product_EANCode_key" ON "public"."product"("EANCode");
+CREATE UNIQUE INDEX "product_EANCode_key" ON "product"("EANCode");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "product_sku_key" ON "public"."product"("sku");
+CREATE UNIQUE INDEX "product_sku_key" ON "product"("sku");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ProductCounter_institution_month_year_key" ON "public"."ProductCounter"("institution", "month", "year");
+CREATE UNIQUE INDEX "ProductCounter_institution_month_year_key" ON "ProductCounter"("institution", "month", "year");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "saleInvoice_invoiceNumber_key" ON "public"."saleInvoice"("invoiceNumber");
+CREATE UNIQUE INDEX "saleInvoice_invoiceNumber_key" ON "saleInvoice"("invoiceNumber");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "role_name_key" ON "public"."role"("name");
+CREATE UNIQUE INDEX "role_name_key" ON "role"("name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "permission_name_key" ON "public"."permission"("name");
+CREATE UNIQUE INDEX "permission_name_key" ON "permission"("name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "rolePermission_role_id_permission_id_key" ON "public"."rolePermission"("role_id", "permission_id");
+CREATE UNIQUE INDEX "rolePermission_role_id_permission_id_key" ON "rolePermission"("role_id", "permission_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "user_userName_key" ON "public"."user"("userName");
+CREATE UNIQUE INDEX "user_userName_key" ON "user"("userName");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "user_email_key" ON "public"."user"("email");
+CREATE UNIQUE INDEX "user_email_key" ON "user"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "user_phone_key" ON "public"."user"("phone");
+CREATE UNIQUE INDEX "user_phone_key" ON "user"("phone");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "user_employeeId_key" ON "public"."user"("employeeId");
+CREATE UNIQUE INDEX "user_employeeId_key" ON "user"("employeeId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "user_CnpsId_key" ON "public"."user"("CnpsId");
+CREATE UNIQUE INDEX "user_CnpsId_key" ON "user"("CnpsId");
 
 -- CreateIndex
-CREATE INDEX "_claimTocustomer_B_index" ON "public"."_claimTocustomer"("B");
+CREATE INDEX "_claimTocustomer_B_index" ON "_claimTocustomer"("B");
 
 -- CreateIndex
-CREATE INDEX "_claimTouser_B_index" ON "public"."_claimTouser"("B");
+CREATE INDEX "_claimTouser_B_index" ON "_claimTouser"("B");
 
 -- AddForeignKey
-ALTER TABLE "public"."Reporting" ADD CONSTRAINT "Reporting_institutionId_fkey" FOREIGN KEY ("institutionId") REFERENCES "public"."institution"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Reporting" ADD CONSTRAINT "Reporting_institutionId_fkey" FOREIGN KEY ("institutionId") REFERENCES "institution"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."Reporting" ADD CONSTRAINT "Reporting_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Reporting" ADD CONSTRAINT "Reporting_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."claim" ADD CONSTRAINT "claim_institutionId_fkey" FOREIGN KEY ("institutionId") REFERENCES "public"."institution"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "claim" ADD CONSTRAINT "claim_institutionId_fkey" FOREIGN KEY ("institutionId") REFERENCES "institution"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."claim" ADD CONSTRAINT "claim_invoiceId_fkey" FOREIGN KEY ("invoiceId") REFERENCES "public"."saleInvoice"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "claim" ADD CONSTRAINT "claim_invoiceId_fkey" FOREIGN KEY ("invoiceId") REFERENCES "saleInvoice"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."claim" ADD CONSTRAINT "claim_productId_fkey" FOREIGN KEY ("productId") REFERENCES "public"."product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "claim" ADD CONSTRAINT "claim_productId_fkey" FOREIGN KEY ("productId") REFERENCES "product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."claimResponse" ADD CONSTRAINT "claimResponse_claimId_fkey" FOREIGN KEY ("claimId") REFERENCES "public"."claim"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "claimResponse" ADD CONSTRAINT "claimResponse_claimId_fkey" FOREIGN KEY ("claimId") REFERENCES "claim"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."credit" ADD CONSTRAINT "credit_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "public"."customer"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "credit" ADD CONSTRAINT "credit_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "customer"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."customer" ADD CONSTRAINT "customer_institutionId_fkey" FOREIGN KEY ("institutionId") REFERENCES "public"."institution"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "customer" ADD CONSTRAINT "customer_institutionId_fkey" FOREIGN KEY ("institutionId") REFERENCES "institution"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."customer" ADD CONSTRAINT "customer_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "customer" ADD CONSTRAINT "customer_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."product" ADD CONSTRAINT "product_institutionId_fkey" FOREIGN KEY ("institutionId") REFERENCES "public"."institution"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "product" ADD CONSTRAINT "product_institutionId_fkey" FOREIGN KEY ("institutionId") REFERENCES "institution"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."saleInvoice" ADD CONSTRAINT "CustomerSaleInvoiceRelation" FOREIGN KEY ("customerId") REFERENCES "public"."customer"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "saleInvoice" ADD CONSTRAINT "CustomerSaleInvoiceRelation" FOREIGN KEY ("customerId") REFERENCES "customer"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."saleInvoice" ADD CONSTRAINT "CustomerCreatorSaleInvoiceRelation" FOREIGN KEY ("customerCreatorId") REFERENCES "public"."customer"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "saleInvoice" ADD CONSTRAINT "CustomerCreatorSaleInvoiceRelation" FOREIGN KEY ("customerCreatorId") REFERENCES "customer"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."saleInvoice" ADD CONSTRAINT "saleInvoice_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "saleInvoice" ADD CONSTRAINT "saleInvoice_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."saleInvoice" ADD CONSTRAINT "saleInvoice_institutionId_fkey" FOREIGN KEY ("institutionId") REFERENCES "public"."institution"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "saleInvoice" ADD CONSTRAINT "saleInvoice_institutionId_fkey" FOREIGN KEY ("institutionId") REFERENCES "institution"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."saleInvoice" ADD CONSTRAINT "saleInvoice_salePromiseId_fkey" FOREIGN KEY ("salePromiseId") REFERENCES "public"."salePromise"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "saleInvoice" ADD CONSTRAINT "saleInvoice_salePromiseId_fkey" FOREIGN KEY ("salePromiseId") REFERENCES "salePromise"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."saleItem" ADD CONSTRAINT "saleItem_invoiceId_fkey" FOREIGN KEY ("invoiceId") REFERENCES "public"."saleInvoice"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "saleItem" ADD CONSTRAINT "saleItem_invoiceId_fkey" FOREIGN KEY ("invoiceId") REFERENCES "saleInvoice"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."saleItem" ADD CONSTRAINT "saleItem_productId_fkey" FOREIGN KEY ("productId") REFERENCES "public"."product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "saleItem" ADD CONSTRAINT "saleItem_productId_fkey" FOREIGN KEY ("productId") REFERENCES "product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-<<<<<<<< HEAD:dta-osmose-core/prisma/migrations/20250916122905_init/migration.sql
 ALTER TABLE "salePromise" ADD CONSTRAINT "CustomerSalePromiseRelation" FOREIGN KEY ("customerId") REFERENCES "customer"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-========
-ALTER TABLE "public"."salePromise" ADD CONSTRAINT "CustomerSalePromiseRelation" FOREIGN KEY ("customerId") REFERENCES "public"."customer"("id") ON DELETE CASCADE ON UPDATE CASCADE;
->>>>>>>> origin/CRM-IBA-ASP-420:dta-osmose-core/prisma/migrations/20250917142513_dev/migration.sql
 
 -- AddForeignKey
-ALTER TABLE "public"."salePromise" ADD CONSTRAINT "CustomerCreatorSalePromiseRelation" FOREIGN KEY ("customerCreatorId") REFERENCES "public"."customer"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "salePromise" ADD CONSTRAINT "CustomerCreatorSalePromiseRelation" FOREIGN KEY ("customerCreatorId") REFERENCES "customer"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."salePromise" ADD CONSTRAINT "salePromise_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "salePromise" ADD CONSTRAINT "salePromise_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."salePromise" ADD CONSTRAINT "salePromise_institutionId_fkey" FOREIGN KEY ("institutionId") REFERENCES "public"."institution"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "salePromise" ADD CONSTRAINT "salePromise_institutionId_fkey" FOREIGN KEY ("institutionId") REFERENCES "institution"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."salePromiseProduct" ADD CONSTRAINT "salePromiseProduct_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "public"."product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "salePromiseProduct" ADD CONSTRAINT "salePromiseProduct_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."salePromiseProduct" ADD CONSTRAINT "salePromiseProduct_promise_id_fkey" FOREIGN KEY ("promise_id") REFERENCES "public"."salePromise"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "salePromiseProduct" ADD CONSTRAINT "salePromiseProduct_promise_id_fkey" FOREIGN KEY ("promise_id") REFERENCES "salePromise"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-<<<<<<<< HEAD:dta-osmose-core/prisma/migrations/20250916122905_init/migration.sql
 ALTER TABLE "Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-========
-ALTER TABLE "public"."Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
->>>>>>>> origin/CRM-IBA-ASP-420:dta-osmose-core/prisma/migrations/20250917142513_dev/migration.sql
 
 -- AddForeignKey
-ALTER TABLE "public"."Notification" ADD CONSTRAINT "Notification_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "public"."customer"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "customer"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."Notification" ADD CONSTRAINT "Notification_saleId_fkey" FOREIGN KEY ("saleId") REFERENCES "public"."saleInvoice"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_saleId_fkey" FOREIGN KEY ("saleId") REFERENCES "saleInvoice"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."Notification" ADD CONSTRAINT "Notification_productId_fkey" FOREIGN KEY ("productId") REFERENCES "public"."product"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_productId_fkey" FOREIGN KEY ("productId") REFERENCES "product"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."Notification" ADD CONSTRAINT "Notification_institutionId_fkey" FOREIGN KEY ("institutionId") REFERENCES "public"."institution"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_institutionId_fkey" FOREIGN KEY ("institutionId") REFERENCES "institution"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."inventory" ADD CONSTRAINT "inventory_institutionId_fkey" FOREIGN KEY ("institutionId") REFERENCES "public"."institution"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "inventory" ADD CONSTRAINT "inventory_institutionId_fkey" FOREIGN KEY ("institutionId") REFERENCES "institution"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."inventory" ADD CONSTRAINT "inventory_performedById_fkey" FOREIGN KEY ("performedById") REFERENCES "public"."user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "inventory" ADD CONSTRAINT "inventory_performedById_fkey" FOREIGN KEY ("performedById") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."inventoryItem" ADD CONSTRAINT "inventoryItem_productId_fkey" FOREIGN KEY ("productId") REFERENCES "public"."product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "inventoryItem" ADD CONSTRAINT "inventoryItem_productId_fkey" FOREIGN KEY ("productId") REFERENCES "product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."inventoryItem" ADD CONSTRAINT "inventoryItem_inventoryId_fkey" FOREIGN KEY ("inventoryId") REFERENCES "public"."inventory"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "inventoryItem" ADD CONSTRAINT "inventoryItem_inventoryId_fkey" FOREIGN KEY ("inventoryId") REFERENCES "inventory"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."Promotion" ADD CONSTRAINT "ProductPromotionRelation" FOREIGN KEY ("productId") REFERENCES "public"."product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Promotion" ADD CONSTRAINT "ProductPromotionRelation" FOREIGN KEY ("productId") REFERENCES "product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."Promotion" ADD CONSTRAINT "Promotion_institutionId_fkey" FOREIGN KEY ("institutionId") REFERENCES "public"."institution"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Promotion" ADD CONSTRAINT "Promotion_institutionId_fkey" FOREIGN KEY ("institutionId") REFERENCES "institution"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."Promotion" ADD CONSTRAINT "Promotion_creatorId_fkey" FOREIGN KEY ("creatorId") REFERENCES "public"."user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Promotion" ADD CONSTRAINT "Promotion_creatorId_fkey" FOREIGN KEY ("creatorId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."appSetting" ADD CONSTRAINT "appSetting_institutionId_fkey" FOREIGN KEY ("institutionId") REFERENCES "public"."institution"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "appSetting" ADD CONSTRAINT "appSetting_institutionId_fkey" FOREIGN KEY ("institutionId") REFERENCES "institution"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."rolePermission" ADD CONSTRAINT "rolePermission_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "public"."role"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "rolePermission" ADD CONSTRAINT "rolePermission_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "role"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."rolePermission" ADD CONSTRAINT "rolePermission_permission_id_fkey" FOREIGN KEY ("permission_id") REFERENCES "public"."permission"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "rolePermission" ADD CONSTRAINT "rolePermission_permission_id_fkey" FOREIGN KEY ("permission_id") REFERENCES "permission"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."user" ADD CONSTRAINT "user_designationId_fkey" FOREIGN KEY ("designationId") REFERENCES "public"."designation"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "user" ADD CONSTRAINT "user_designationId_fkey" FOREIGN KEY ("designationId") REFERENCES "designation"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."user" ADD CONSTRAINT "user_departmentId_fkey" FOREIGN KEY ("departmentId") REFERENCES "public"."department"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "user" ADD CONSTRAINT "user_departmentId_fkey" FOREIGN KEY ("departmentId") REFERENCES "department"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."_claimTocustomer" ADD CONSTRAINT "_claimTocustomer_A_fkey" FOREIGN KEY ("A") REFERENCES "public"."claim"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "_claimTocustomer" ADD CONSTRAINT "_claimTocustomer_A_fkey" FOREIGN KEY ("A") REFERENCES "claim"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."_claimTocustomer" ADD CONSTRAINT "_claimTocustomer_B_fkey" FOREIGN KEY ("B") REFERENCES "public"."customer"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "_claimTocustomer" ADD CONSTRAINT "_claimTocustomer_B_fkey" FOREIGN KEY ("B") REFERENCES "customer"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."_claimTouser" ADD CONSTRAINT "_claimTouser_A_fkey" FOREIGN KEY ("A") REFERENCES "public"."claim"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "_claimTouser" ADD CONSTRAINT "_claimTouser_A_fkey" FOREIGN KEY ("A") REFERENCES "claim"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."_claimTouser" ADD CONSTRAINT "_claimTouser_B_fkey" FOREIGN KEY ("B") REFERENCES "public"."user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "_claimTouser" ADD CONSTRAINT "_claimTouser_B_fkey" FOREIGN KEY ("B") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
