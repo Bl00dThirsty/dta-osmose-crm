@@ -12,6 +12,7 @@ import {
  
 } from "lucide-react";
 import { toast } from 'react-toastify';
+import { Checkbox } from "@/components/ui/checkbox";
 
 const PaymentPage = () => {
     const params = useParams();
@@ -30,6 +31,7 @@ const PaymentPage = () => {
   const [paidAmount, setpaidAmount] = useState(0);
   const [dueAmount, setdueAmount] = useState(0);
   const [discount, setDiscount] = useState(0);
+  const [vatApplicable, setVatApplicable] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (sale) {
@@ -85,7 +87,9 @@ const handleMontantDonneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       paidAmount,
       dueAmount,
       discount,
+      vatApplicable: vatApplicable ?? false,
     }).unwrap();
+    setVatApplicable(null);
     router.push(`/${institution}/sales/${id}`); // retour détail facture
   };
   const handleGoBack = () => {
@@ -176,7 +180,18 @@ const handleMontantDonneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       </div>
     <div className="max-w-4xl mx-auto p-4 border-5">
       <h2 className="text-xl mb-4 text-center">Paiement de la facture de vente</h2>
-      
+       {!isParticulier && !sale.vatApplicable && (
+          <div className="flex items-center gap-4 mb-5">
+            <Label>Appliquer la TVA :</Label>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                checked={vatApplicable === true}
+                onCheckedChange={(checked) => setVatApplicable(checked === true ? true : null)}
+              />
+              <Label>Oui</Label>
+            </div>
+          </div>
+        )}
       <Label className='mb-3'>Montant total</Label>
       <Input disabled value={sale.finalAmount + " FCFA"} className="w-full mb-2" />
       {!isParticulier && (

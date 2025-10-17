@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { createRole, getAllRole, getSingleRole, getPermissionsByRoleId, deleteRolePermission, deleteSingleRole} from "../controllers/roleControllers";
-import authorize from "../authorize"; // ✅ ES6 import
+import authorize from "../utils/authorize"; // ✅ ES6 import
 
 const router = Router();
 

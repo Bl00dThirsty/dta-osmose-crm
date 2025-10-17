@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { getDashboardMetrics,getSalesDashboard } from "../controllers/dashboardController";
-import authorize from "../authorize";
+import authorize from "../utils/authorize";
 const router = Router();
 
 router.get("/:institution",  authorize("view-dashboard"), getDashboardMetrics);

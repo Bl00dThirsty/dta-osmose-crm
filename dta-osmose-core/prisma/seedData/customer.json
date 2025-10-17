@@ -8,6 +8,8 @@
       "email": "client1@example.com",
       "role": "Particulier",
       "quarter":"simbock",
+      "ville": "DOUALA",
+      "region": "Littoral",
       "nameresponsable": "Jean pierre",
       "institutionId": "institution-iba"
     },
@@ -20,6 +22,8 @@
       "email": "client2@example.com",
       "role": "Particulier",
       "quarter":"simbockII",
+      "ville": "DSCHANG",
+      "region": "Ouest",
       "nameresponsable": "Jean paul",
       "institutionId": "institution-asermpharma"
     }

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useRouter, useParams } from 'next/navigation';
 import { SaleInvoice, useUpdateSaleStatusMutation } from "@/state/api"
-import { DataTableColumnHeader } from "../../user/all/table/components/data-table-column-header"
+import { DataTableColumnHeader } from "@/app/[institution]/(routes)/components/table/data-table-column-header"
 import { DataTableRowActions } from "./data-table-row-actions"
 
 const statusMap: Record<string, { label: string, color: string }> = {
@@ -129,13 +129,13 @@ export const columns: ColumnDef<SaleInvoice>[] = [
     };
 
     return (
-      <button
+      <Button
         onClick={handleClick}
         className={`px-2 py-1 rounded text-white ${sale.delivred ? 'bg-green-500' : 'bg-red-500'}`}
         disabled={!isReady}
       >
         {sale.delivred ? "Oui" : "Non"}
-      </button>
+      </Button>
     );
   },
 },

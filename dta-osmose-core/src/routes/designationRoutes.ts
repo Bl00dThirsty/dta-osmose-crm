@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { createDesignation, getAllDesignation, deleteDesignation} from "../controllers/designationController";
-import authorize from "../authorize";
+import authorize from "../utils/authorize";
 const router = Router();
 
 router.post(

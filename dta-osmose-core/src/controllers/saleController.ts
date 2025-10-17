@@ -875,33 +875,7 @@ export const deleteSaleInvoice = async (req: Request, res: Response): Promise<vo
 
 
 
-// let totalPurchasePrice = 0;
-//     items.forEach((item: any, index: number) => {
-//       totalPurchasePrice += allProduct[index].purchase_price * item.quantity;
-//     });
 
-//     const totalDiscount = (invoice.discount ?? 0) + discount;
-//     const totalPaid = (invoice.paidAmount ?? 0) + paidAmount;
-//     const newFinalAmount = (invoice.totalAmount ?? 0) - totalDiscount;
-//     const remainingAmount = Math.max(newFinalAmount - totalPaid, 0); // toujours >= 0
-
-//     let newStatus = invoice.paymentStatus;
-//     if (remainingAmount === 0) newStatus = 'PAID';
-//     else if (totalPaid > 0) newStatus = 'PARTIAL';
-//     const profit = totalPaid - totalPurchasePrice;
-
-//     const updatedInvoice = await prisma.saleInvoice.update({
-//       where: { id },
-//       data: {
-//         paymentMethod,
-//         paymentStatus: newStatus,
-//         discount: totalDiscount,
-//         finalAmount: newFinalAmount,
-//         paidAmount: totalPaid,
-//         dueAmount: remainingAmount,
-//         profit: profit, // bien mis à jour ici
-//       },
-//     });
 
 
 

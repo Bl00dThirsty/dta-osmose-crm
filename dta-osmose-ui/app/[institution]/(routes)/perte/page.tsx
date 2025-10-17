@@ -11,7 +11,7 @@ import { useRouter } from 'next/navigation';
 import { columns } from "./columns"
 import { DataTable } from "./data-table"
 import { useGetClaimQuery } from '@/state/api';
-import { DatePicker } from "../crm/dashboard/_components/date-picker";
+import { DatePicker } from "@/components/ui/date-picker";
 
 const LostsPage = () => {
   const router = useRouter();

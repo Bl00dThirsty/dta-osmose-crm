@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { markNotificationsAsRead, getAllNotifications, getCustomerNotifications, deleteSingleNotifications } from "../controllers/notificationController";
-import authorize from "../authorize";
+import authorize from "../utils/authorize";
 const router = Router();
 
 router.post("/mark-as-read", markNotificationsAsRead);
