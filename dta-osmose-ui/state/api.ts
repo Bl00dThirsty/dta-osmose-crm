@@ -525,7 +525,7 @@ chartData?: {
       avoirDisponible: number;
       nombreCommandesImpaye: number;
     };*/
-    // ✅ Ajout : données de la période précédente
+    //  Ajout : données de la période précédente
   previousMetrics?: {
     saleProfitCount: MetricItem[];
     formattedData3: MetricItem[];
