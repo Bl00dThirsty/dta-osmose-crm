@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { PrismaClient, SalePromiseStatus } from "@prisma/client";
 import { getDynamicTrend } from "../utils/trendUtils";
-import { startOfMonth, endOfMonth, subMonths } from "date-fns";
+import { startOfMonth, endOfMonth, subMonths,format } from "date-fns";
 import { count } from "console";
 
 const prisma = new PrismaClient();
@@ -714,6 +714,90 @@ const pipeline: { stage: SalePromiseStatus; value: number; trend: number }[] = a
   })
 );
 
+// --------------------- NOUVEAUX PROSPECTS & PROPOSITIONS ENVOYÉES ---------------------
+const lastMonthStart = startOfMonth(subMonths(new Date(), 1));
+const lastMonthEnd = endOfMonth(subMonths(new Date(), 1));
+
+// 📊 Nouveaux prospects créés le mois dernier
+const newProspectsCount = await prisma.customer.count({
+  where: {
+    created_at: {
+      gte: lastMonthStart,
+      lte: lastMonthEnd,
+    },
+  },
+});
+
+// 📊 Propositions envoyées (promesses avec statut PROPOSAL_SENT)
+const proposalsSentCount = await prisma.salePromise.count({
+  where: {
+    statusPipeline: "PROPOSAL_SENT",
+    createdAt: {
+      gte: lastMonthStart,
+      lte: lastMonthEnd,
+    },
+  },
+});
+
+ // revenu pour les 6 derniers mois
+const lastSixMonths = Array.from({ length: 6 }, (_, i) => {
+  const d = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1);
+  return d;
+});
+const revenueData = await Promise.all(
+  lastSixMonths.map(async (month: DateOrStringOrNumber) => {
+    const start = startOfMonth(month);
+    const end = endOfMonth(month);
+
+    const totalRevenue = await prisma.saleInvoice.aggregate({
+      _sum: { finalAmount: true },
+      where: {
+        institutionId: institution.id,
+        createdAt: { gte: start, lte: end },
+        paymentStatus: "PAID",
+        delivred: true,
+      },
+    });
+
+    return {
+      month: format(month, "LLL"),
+      revenue: totalRevenue._sum.finalAmount || 0,
+    };
+  })
+);
+
+
+//  2. Croissance annuelle du chiffre d'affaires
+    const startOfThisYear = new Date(now.getFullYear(), 0, 1);
+    const startOfLastYear = new Date(now.getFullYear() - 1, 0, 1);
+    const endOfLastYear = new Date(now.getFullYear() - 1, 11, 31);
+
+    const thisYearRevenue = await prisma.saleInvoice.aggregate({
+      _sum: { finalAmount: true },
+      where: {
+        institution,
+        createdAt: { gte: startOfThisYear, lte: now },
+        paymentStatus: "PAID",
+        delivred: true,
+      },
+    });
+
+    const lastYearRevenue = await prisma.saleInvoice.aggregate({
+      _sum: { finalAmount: true },
+      where: {
+        institution,
+        createdAt: { gte: startOfLastYear, lte: endOfLastYear },
+        paymentStatus: "PAID",
+        delivred: true,
+      },
+    });
+
+    const currentRevenue = thisYearRevenue._sum.finalAmount || 0;
+    const previousRevenue = lastYearRevenue._sum.finalAmount || 0;
+
+    const revenueGrowth =
+      previousRevenue > 0 ? ((currentRevenue - previousRevenue) / previousRevenue) * 100 : 0;
+
 
 
     // ------------------ RÉPONSE ------------------
@@ -727,6 +811,12 @@ const pipeline: { stage: SalePromiseStatus; value: number; trend: number }[] = a
       favoriteProductsByCustomer,
       customers,
       pipeline,
+      newProspectsCount,       
+      proposalsSentCount,
+      revenueData,
+      revenueGrowth: Number(revenueGrowth.toFixed(1)), // pourcentage annuel
+      currentRevenue,
+      previousRevenue,
     });
   } catch (error) {
     console.error("Dashboard ventes error:", error);

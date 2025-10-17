@@ -544,6 +544,14 @@ export interface PipelineStage {
   topCustomers: any;
   topProducts: any;
   lowProducts: any;
+   newProspectsCount: number;     
+  proposalsSentCount: number;   
+  totalRevenue: number;           
+  previousRevenue: number; 
+  revenueGrowth: number; // en %
+  currentRevenue: number;       
+  revenueData: { month: string; revenue: number }[];
+  
   salesByProduct: {
     totalSales: any;
     productId: string;

@@ -77,7 +77,13 @@ const CrmDashboardPage = () => {
         <DatePicker label="" date={endDate} onSelect={(d) => d && setEndDate(d)} />
       </div>
 
-      <OverviewCards />
+      <OverviewCards
+  newProspects={dashboardData?.newProspectsCount ?? 0}
+  proposalsSent={dashboardData?.proposalsSentCount ?? 0}
+  revenueData={dashboardData?.revenueData ?? []}
+  totalRevenue={dashboardData?.totalRevenue ?? 0}
+  previousRevenue={dashboardData?.previousRevenue ?? 0}
+/>
 
       <InsightCards
         topProducts={(dashboardData?.topProducts || []).map((p: any) => ({
