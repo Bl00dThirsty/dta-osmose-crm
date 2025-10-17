@@ -1,8 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { columns } from "@/app/[institution]/(routes)/crm/products/table/components/columns"
-import { DataTable } from "@/app/[institution]/(routes)/crm/products/table/components/data-table"
+import { columns } from "@/app/[institution]/(routes)/crm/products/table/columns"
+import { DataTable } from "@/app/[institution]/(routes)/crm/products/table/data-table"
 import { Product } from "@/state/api"
 import { useParams } from "next/navigation"
 

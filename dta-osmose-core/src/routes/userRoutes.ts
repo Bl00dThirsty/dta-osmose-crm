@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { getAllUser, getSingleUser, updateSingleUser, deleteSingleUser} from "../controllers/userController";
-import authorize from "../authorize";
+import authorize from "../utils/authorize";
 
 const router = Router();
 

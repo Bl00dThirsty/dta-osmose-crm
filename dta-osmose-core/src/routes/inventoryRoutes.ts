@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { getAllInventories, createInventory, getInventoryById, deleteInventory, updateInventory } from "../controllers/inventoryController";
-import authorize from "../authorize";
+import authorize from "../utils/authorize";
 const router = Router();
 
 router.post("/:institution/inventory",  authorize("create-inventory"), createInventory);

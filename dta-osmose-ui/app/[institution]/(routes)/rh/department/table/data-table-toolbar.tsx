@@ -6,10 +6,10 @@ import { X, Upload } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { DataTableViewOptions } from "@/app/[institution]/(routes)/crm/products/table/components/data-table-view-options"
+import { DataTableViewOptions } from "@/app/[institution]/(routes)/components/table/data-table-view-options"
 
 import { quantityLevel, statuses } from "@/app/[institution]/(routes)/crm/products/table/data/data"
-import { DataTableFacetedFilter } from "../../../user/all/table/components/data-table-faceted-filter"
+import { DataTableFacetedFilter } from "@/app/[institution]/(routes)/components/table/data-table-faceted-filter"
 import { AddDepartmentDialog } from "../../../crm/components/AddDepartment"
 import { useCreateDepartmentsMutation, useCreateDesignationsMutation } from "@/state/api"
 import Papa from "papaparse"

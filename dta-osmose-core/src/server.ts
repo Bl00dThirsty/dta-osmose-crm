@@ -30,7 +30,7 @@ import InventoryRoutes from './routes/inventoryRoutes'
 import promotionRoutes from "./routes/promotionRoute";
 import PromiseSaleRoutes from "./routes/promiseSaleRoute";
 import ReportRoutes from "./routes/reportRoutes"
-import { startReminderScheduler } from "./reminderScheduler";
+import { startReminderScheduler } from "./utils/reminderScheduler";
 
 export const prisma = new PrismaClient();
 

@@ -78,23 +78,30 @@ export const getAllInventories = async (
     req: Request,
     res: Response
   ): Promise<void> => {
-    const institutionSlug = req.params.institution;
+    try {
+      const institutionSlug = req.params.institution;
+      const { startDate, endDate } = req.query;
+      if (!institutionSlug) {
+        res.status(400).json({ message: "Institution manquante." });
+        return;
+      }
 
-    if (!institutionSlug) {
-      res.status(400).json({ message: "Institution manquante." });
-      return;
-    }
+      const institution = await prisma.institution.findUnique({
+        where: { slug: institutionSlug },
+      });
 
-    const institution = await prisma.institution.findUnique({
-      where: { slug: institutionSlug },
-    });
-
-    if (!institution) {
-      res.status(404).json({ message: "Institution introuvable." });
-      return;
-    }
+      if (!institution) {
+        res.status(404).json({ message: "Institution introuvable." });
+        return;
+      }
     const inventories = await prisma.inventory.findMany({
-      where: { institutionId: institution.id },
+      where: { 
+        createdAt: {
+          gte: startDate ? new Date(startDate as string) : undefined,
+          lte: endDate ? new Date(endDate as string) : undefined,
+        },
+        institutionId: institution.id,
+       },
       include: {
         inventoryItems: { include: { product: true } },
         user: true
@@ -103,6 +110,9 @@ export const getAllInventories = async (
     });
   
     res.json(inventories);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
   };
 
   export const getInventoryById = async (req: Request, res: Response): Promise<void> => {

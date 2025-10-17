@@ -2,7 +2,7 @@ import express from 'express';
 
 import { createClaims, respondToClaim, getClaims, 
 getClaimsById, deleteSingleClaim, updateClaimResponse, getPendingClaims } from '../controllers/claimController';
-import authorize from "../authorize";
+import authorize from "../utils/authorize";
 
 const router = express.Router();
 

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 
 import { Product } from "@/state/api"
-import { DataTableColumnHeader } from "./data-table-column-header"
+import { DataTableColumnHeader } from "@/app/[institution]/(routes)/components/table/data-table-column-header"
 import { DataTableRowActions } from "./data-table-row-actions"
 
 
@@ -80,24 +80,6 @@ export const columns: ColumnDef<Product>[] = [
     ),
     cell: ({ row }) => <div className="w-[80px]">{row.getValue("purchase_price")} €</div>,
   },
- {
-  accessorKey: "purchasePriceCFA",
-  header: ({ column }) => (
-    <DataTableColumnHeader column={column} title="Prix d'achat Cfa" />
-  ),
-  cell: ({ row }) => {
-    const pacfa = row.getValue("purchasePriceCFA");
-    
-    // Conversion en number avec vérification
-    const numericValue = Number(pacfa);
-    if (!isNaN(numericValue)) {
-      const PA = Number(numericValue.toFixed(2));
-      return <div className="w-[80px] break-words whitespace-normal">{PA} Cfa</div>;
-    }
-    
-    return <div className="w-[80px] break-words whitespace-normal">-</div>;
-  },
-},
  
   {
     accessorKey: "sellingPriceTTC",

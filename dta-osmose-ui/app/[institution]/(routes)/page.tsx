@@ -21,7 +21,7 @@ import { ChartAreaInteractive } from "./components/dasboard/chart-area-interacti
 import PrintDashboardSheet from "./components/dasboard/PrintDashboardSheet";
 //import { getDynamicTrend } from "@/lib/utils";
 import { getDynamicTrend } from "@/lib/trendUtils";
-import { DatePicker } from "./crm/dashboard/_components/date-picker";
+import { DatePicker } from "@/components/ui/date-picker";
 
 
 const DashboardPage = () => {

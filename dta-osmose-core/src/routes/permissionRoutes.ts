@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { getAllPermission} from "../controllers/permissionControllers";
 //const authorize = require("../authorize");
-import authorize from "../authorize";
+import authorize from "../utils/authorize";
 
 const router = Router();
 

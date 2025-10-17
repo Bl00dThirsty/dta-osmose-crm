@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { createRolePermission, getAllRolePermission, getSingleRolePermission, updateRolePermission, deleteSingleRolePermission} from "../controllers/rolePermissionControllers";
-import authorize from "../authorize";
+import authorize from "../utils/authorize";
 
 const router = Router();
 

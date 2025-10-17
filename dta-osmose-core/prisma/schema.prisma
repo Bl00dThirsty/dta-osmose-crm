@@ -290,7 +290,10 @@ model saleInvoice {
   userId          Int?
   institutionId   String
   salePromiseId   Int?
+  reference       String?
+  object          String?
   customerCreatorId  Int? // ID du client créateur
+  vatApplicable   Boolean @default(false)
   totalAmount     Float
   discount        Float
   finalAmount     Float

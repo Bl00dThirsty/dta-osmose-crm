@@ -2,7 +2,7 @@ import express from 'express';
 
 import { createSaleInvoice, getSaleInvoices, getSaleInvoiceById,  updateSaleStatus, updatePayment, deleteSaleInvoice, checkCustomerDebtStatus
 } from '../controllers/saleController';
-import authorize from "../authorize";
+import authorize from "../utils/authorize";
 
 const router = express.Router();
 

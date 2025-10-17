@@ -66,8 +66,13 @@ const FulltextSearch = () => {
   const [debouncedQuery] = useDebounce(query, 300);
   const router = useRouter();
   const { institution } = useParams() as { institution: string };
-  const userType =
-    typeof window !== "undefined" ? localStorage.getItem("role") : null;
+  //const userType = typeof window !== "undefined" ? localStorage.getItem("role") : null;
+  
+  const [userType, setuserType] = useState<string | null>(null);
+    useEffect(() => {
+      setuserType(localStorage.getItem('role'));
+    }, []);
+    
   const results = searchModules(debouncedQuery, institution, userType );
 
   useEffect(() => {

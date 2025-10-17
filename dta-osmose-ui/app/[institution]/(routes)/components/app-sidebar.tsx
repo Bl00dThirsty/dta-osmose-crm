@@ -59,9 +59,14 @@ export function AppSidebar({
   const pathname = usePathname();
 
   const [userType, setUserType] = useState<string | null>(null);
-      useEffect(() => {
-          setUserType(localStorage.getItem('role'));
-      }, []);
+  useEffect(() => {
+    setUserType(localStorage.getItem('role'));
+  }, []);
+
+  // Empêche le rendu tant que userType n’est pas encore chargé
+  if (userType === null) {
+    return null; // ou un petit spinner
+  }
 
   const menuItems: NavMainItem[] =
     userType === "Particulier" ? navCustomer : navUser;

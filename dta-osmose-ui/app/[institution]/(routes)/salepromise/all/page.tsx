@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import { columns } from "./columns"
 import { DataTable } from "./data-table"
 import { useGetSalePromiseQuery, useGetSalePromiseByCustomerQuery } from '@/state/api';
-import { DatePicker } from "../../crm/dashboard/_components/date-picker";
+import { DatePicker } from "@/components/ui/date-picker";
 
 const SalesPage = () => {
   const router = useRouter();
