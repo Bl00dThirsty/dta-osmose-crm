@@ -15,24 +15,28 @@ const initWebSocketServer = (server: HttpServer) => {
   io = new IOServer(server, {
     cors: {
       origin: [
-        "http://localhost:3000", // Frontend local
-        "http://127.0.0.1:3000", // Alias localhost
+        "http://localhost:3000",
+        "http://localhost:3001", // Frontend Next.js
+        "http://127.0.0.1:3000",
         "https://dta-osmose-ui.vercel.app",
-        "http://192.168.1.106:3000" // Frontend déployé
+        "http://192.168.1.106:3000"
       ],
-      methods: ["GET", "POST"], // Méthodes autorisées
-      credentials: true // Autorise l'envoi des cookies
-    }
+      methods: ["GET", "POST"],
+      credentials: true
+    },
+    transports: ['websocket', 'polling'], // Support des deux transports
+    allowEIO3: true
   });
 
   io.on("connection", (socket) => {
-    console.log(`Socket connecté : ${socket.id}`);
+    console.log(`✅ Socket connecté : ${socket.id}`);
 
     socket.on("identify", async (data) => {
       const { userId, customerId } = data;
 
       if (userId) {
         userSockets[userId] = socket.id;
+        console.log(`👤 User ${userId} identified with socket ${socket.id}`);
 
         const notifications = await prisma.notification.findMany({
           where: { userId, isRead: false }
@@ -44,6 +48,7 @@ const initWebSocketServer = (server: HttpServer) => {
 
       if (customerId) {
         customerSockets[customerId] = socket.id;
+        console.log(`👥 Customer ${customerId} identified with socket ${socket.id}`);
 
         const notifications = await prisma.notification.findMany({
           where: { customerId, isRead: false }
@@ -61,7 +66,7 @@ const initWebSocketServer = (server: HttpServer) => {
       for (const id in customerSockets) {
         if (customerSockets[id] === socket.id) delete customerSockets[Number(id)];
       }
-      console.log(`Socket déconnecté : ${socket.id}`);
+      console.log(`❌ Socket déconnecté : ${socket.id}`);
     });
   });
 };

@@ -195,3 +195,26 @@ export default function RegisterComponent() {
     </div>
   );
 }
+
+<section className="bg-gradient-to-r from-blue-50 to-green-50 py-16">
+          <div className="container mx-auto px-6 text-center">
+            <h1 className="text-4xl md:text-5xl font-bold text-black mb-6">
+              Vie Professionnelle
+            </h1>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+              Une plateforme dédiée à l'inclusion professionnelle des personnes sourdes 
+              et malentendantes. Connectez talents et opportunités sans barrières.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button className="bg-blue-600 text-white px-6 py-3 rounded-full font-medium hover:bg-blue-700 transition-colors">
+                Voir les offres d'emploi
+              </button>
+              <button 
+                className="px-6 py-3 rounded-full font-medium transition-colors"
+                style={{ backgroundColor: "#82EFCF" }}
+              >
+                Publier une offre
+              </button>
+            </div>
+          </div>
+        </section>
