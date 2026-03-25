@@ -13,6 +13,7 @@ interface User {
   id: string;
   email: string;
   role: string;
+  permissions:string[];
   userType: "user" | "customer";
 }
 
@@ -72,7 +73,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const { institution } = useParams() as { institution: string }
   // Configuration axios
   const api = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5003/api',
+    baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api',
     withCredentials: true
   });
 
@@ -142,21 +143,21 @@ useEffect(() => {
   
       const response = await api.post('/auth/login', { email, password });
   
-      const { accessToken, userType, ...userData } = response.data;
+      const { accessToken, ...userData } = response.data;
   
       // Stockage du token et du nom d'utilisateur
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('user', userData.userName);
       localStorage.setItem('id', userData.id);
       localStorage.setItem('role', userData.role);
-      localStorage.setItem('userType', userType);
+      
+      localStorage.setItem("permissions", JSON.stringify(userData.permissions));
 
   
       // Mise à jour du contexte utilisateur
       //setUser(userData);
       setUser({
         ...userData,
-        userType
       });
   
       return response.data;

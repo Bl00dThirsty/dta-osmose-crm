@@ -11,27 +11,35 @@ import { useRouter } from 'next/navigation';
 import { columns } from "./columns"
 import { DataTable } from "./data-table"
 import { useGetClaimQuery } from '@/state/api';
+import { DatePicker } from "@/components/ui/date-picker";
 
 const ClaimsPage = () => {
   const router = useRouter();
-  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
   const { institution } = useParams() as { institution: string }
+
+  //Redirection si pas d'authentification
+  const [token, setToken] = useState<string | null>(null);
   useEffect(() => {
-    if (!token) {
-      router.push('/');
+    const accessToken = localStorage.getItem('accessToken');
+    setToken(accessToken);
+    if (!accessToken) {
+      router.push(`/${institution}/sign-in`);
     }
-  }, [token]);
+  }, [router, institution]); 
+
   const now = new Date();
   const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-  const [startDate, setStartDate] = useState<string>(firstDayOfMonth.toISOString().split("T")[0]);
-  const [endDate, setEndDate] = useState<string>(lastDayOfMonth.toISOString().split("T")[0]);
+  const [startDate, setStartDate] = useState<Date | undefined>(firstDayOfMonth);
+    const [endDate, setEndDate] = useState<Date | undefined>(lastDayOfMonth);
 
-const { data: claims, isLoading, isError } = useGetClaimQuery({ institution, startDate, endDate })
+const { data: claims, isLoading, isError } = useGetClaimQuery({ institution,
+   startDate: startDate ? startDate.toISOString() : undefined,
+    endDate: endDate ? endDate.toISOString(): undefined  })
 
 if (isLoading) return <p>Chargement...</p>
-if (isError) return <p>Erreur lors du chargement.</p>
+if (isError) return <p>Vous n'avez pas accès à ces informations. Erreur lors du chargement.</p>
 
 
   return (
@@ -46,18 +54,8 @@ if (isError) return <p>Erreur lors du chargement.</p>
       <div>
   
         <div className="flex space-x-4">
-          <input
-            type="date"
-            value={startDate || ""}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="border-5 p-2 rounded"
-          />
-          <input
-            type="date"
-            value={endDate || ""}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="border-5 p-2 rounded"
-          />
+          <DatePicker label="" date={startDate} onSelect={(d) => d && setStartDate(d)} />
+          <DatePicker label="" date={endDate} onSelect={(d) => d && setEndDate(d)} />
         </div>
         
       </div>

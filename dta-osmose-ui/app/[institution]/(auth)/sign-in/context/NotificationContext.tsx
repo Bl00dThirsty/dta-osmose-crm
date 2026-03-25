@@ -2,24 +2,53 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { io } from "socket.io-client";
-import { useAuth } from "./authContext"; // adapte selon ton arborescence
-//process.env.NEXT_PUBLIC_API_BASE_URL ou "http://localhost:8000"
+import { useAuth } from "./authContext";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const socket = io(process.env.NEXT_PUBLIC_API_BASE_URL, {
+// IMPORTANT: Utilisez le port du serveur WebSocket (4001) et non celui du backend API (4000)
+// Notez que NEXT_PUBLIC_WS_URL doit être différent de NEXT_PUBLIC_API_BASE_URL
+const socket = io(process.env.NEXT_PUBLIC_WS_URL || "http://localhost:4001", {
   withCredentials: true,
+  transports: ['websocket'], // Forcer l'utilisation de WebSocket uniquement
+  reconnection: true,
+  reconnectionAttempts: 5,
+  reconnectionDelay: 1000,
 });
 
 const NotificationContext = createContext<any>(null);
 
 export const NotificationProvider = ({ children }: { children: React.ReactNode }) => {
-  const userType = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    setUserRole(localStorage.getItem('role'));
+  }, []);
   
-  const { user, loading, clearError } = useAuth(); // adapt to your auth structure
+  const { user, loading, clearError } = useAuth();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [stockNotifications, setStockNotifications] = useState<any[]>([]);
 
+  // Gestion des erreurs de connexion Socket.IO
+  useEffect(() => {
+    socket.on("connect", () => {
+      console.log("✅ Socket.IO connected successfully");
+    });
+
+    socket.on("connect_error", (error) => {
+      console.error("❌ Socket.IO connection error:", error);
+    });
+
+    socket.on("disconnect", (reason) => {
+      console.log("Socket.IO disconnected:", reason);
+    });
+
+    return () => {
+      socket.off("connect");
+      socket.off("connect_error");
+      socket.off("disconnect");
+    };
+  }, []);
 
   useEffect(() => {
     if (loading) {
@@ -32,13 +61,13 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
     }
     const role = localStorage.getItem('role');
     console.log("role", role)
-    //user.userType ou userType
-    if ((userType === "admin") || (userType === "manager")) {
+    
+    if ((userRole === "admin") || (userRole === "manager")) {
       socket.emit("identify", { userId: user.id });
       console.log(`user ${user.id} is identifying`);
+      
       socket.on("user-notification", (notification) => {
         if (notification.type === "stock_alert") {
-          
           setStockNotifications((prev) => [notification, ...prev]);
         } else {
           setNotifications((prev) => [notification, ...prev]);
@@ -56,19 +85,17 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
       socket.on("customer-notification", (notification) => {
         setNotifications((prev) => [notification, ...prev]);
         toast(notification.message, {
-          type: notification.type=== "general" ? "info" : "warning",
-          autoClose: 5000, // Durée d'affichage du toast
-          //position: toast.TOP_RIGHT // Position du toast
+          type: notification.type === "general" ? "info" : "warning",
+          autoClose: 5000,
         });
       });
-      
     }
 
     return () => {
       socket.off("user-notification");
       socket.off("customer-notification");
     };
-  }, [user, loading]);
+  }, [user, loading, userRole]);
 
   return (
     <NotificationContext.Provider value={{ notifications, setNotifications, stockNotifications, setStockNotifications }}>

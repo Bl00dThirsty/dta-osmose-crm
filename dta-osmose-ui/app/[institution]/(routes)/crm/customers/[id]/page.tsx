@@ -12,19 +12,28 @@ import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import { Customer } from "@/state/api"
 import Link from "next/link";
+import * as XLSX from 'xlsx';
+import UserPrivateComponent from "../../../components/usePrivateComponent";
+import { ArrowLeft } from "lucide-react";
+import { DatePicker } from "@/components/ui/date-picker";
 
 
 export default function DetailCustomerPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
   const [token, setToken] = useState<string | null>(null);
-  const [dates, setDates] = useState({
-    startDate: '',
-    endDate: ''
-  });
+  // const [dates, setDates] = useState({
+  //   startDate: '',
+  //   endDate: ''
+  // });
   const { institution } = useParams() as { institution: string }
   const router = useRouter();
   const { id } = useParams();
+
+  // const customerId = Number(id);
+  // const tokens = localStorage.getItem('accessToken')
+  // console.log("le token est:", tokens)
+  // console.log("id du customer", id)
 
   // Initialisation côté client uniquement
   useEffect(() => {
@@ -32,12 +41,12 @@ export default function DetailCustomerPage() {
     setToken(localStorage.getItem('accessToken'));
     
     const now = new Date();
-    setDates({
-      startDate: new Date(now.getFullYear(), now.getMonth(), 1)
-                .toISOString().split("T")[0],
-      endDate: new Date(now.getFullYear(), now.getMonth() + 1, 0)
-              .toISOString().split("T")[0]
-    });
+    // setDates({
+    //   startDate: new Date(now.getFullYear(), now.getMonth(), 1)
+    //             .toISOString().split("T")[0],
+    //   endDate: new Date(now.getFullYear(), now.getMonth() + 1, 0)
+    //           .toISOString().split("T")[0]
+    // });
   }, []);
 
   // Redirection si non authentifié
@@ -47,6 +56,13 @@ export default function DetailCustomerPage() {
     }
   }, [token, isMounted, router]);
 
+  const now = new Date();
+  const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  
+  const [startDate, setStartDate] = useState<Date | undefined>(firstDayOfMonth);
+  const [endDate, setEndDate] = useState<Date | undefined>(lastDayOfMonth);
+
   // Requêtes API
   const { 
     data: customer, 
@@ -55,9 +71,12 @@ export default function DetailCustomerPage() {
     refetch 
   } = useGetCustomerByIdQuery({ 
     id: id as string, 
-    startDate: dates.startDate, 
-    endDate: dates.endDate 
-  });
+    institution,
+     startDate: startDate ? startDate.toISOString() : undefined,
+    endDate: endDate ? endDate.toISOString(): undefined 
+  },
+   { skip: !id } // Ne pas exécuter si l'ID n'est pas défini
+ );
 
   const [updateCustomer, { isLoading: isUpdating }] = useUpdateCustomerMutation();
 
@@ -72,31 +91,56 @@ export default function DetailCustomerPage() {
 
 
   // Gestion de la mise à jour
-  const handleUpdate = async (updatedData: Partial<Customer>) => {
+  const handleUpdate = async (updatedData: Partial<Customer>): Promise<void> => {
     try {
-      if (!customer?.id) {
-        throw new Error("ID client manquant");
-      }
+      if (!customer?.id) throw new Error("ID client manquant");
 
-      const response = await updateCustomer({
-        id: customer.id,
-        data: updatedData  // Correction ici pour matcher votre API
-      }).unwrap();
+      await updateCustomer({ id: customer.id, data: updatedData }).unwrap();
 
       toast.success("Client mis à jour avec succès");
       await refetch();
       setIsUpdateDialogOpen(false);
-      
-      return response;
     } catch (error: any) {
       console.error("Échec de la mise à jour:", error);
-      const errorMessage = error.data?.message || 
-                         error.message || 
-                         "Erreur lors de la mise à jour";
+      const errorMessage = error.data?.message || error.message || "Erreur lors de la mise à jour";
       toast.error(`Échec: ${errorMessage}`);
-      throw error;
     }
   };
+  const exportToExcel = () => {
+  if (!customer?.saleInvoice || customer.saleInvoice.length === 0) {
+    toast.warning("Aucune commande trouvée sur cette période");
+    return;
+  }
+
+  // Préparer les données
+  const rows = customer.saleInvoice.flatMap(invoice =>
+  (invoice.items ?? []).map(item => ({
+    "Désignation produit": item.product?.designation || "N/A",
+    "Quantité": item.quantity,
+    "Prix unitaire": item.unitPrice,
+    "Total": item.totalPrice,
+    "Numéro Facture": invoice.invoiceNumber,
+    "Date": new Date(invoice.createdAt).toLocaleDateString(),
+  }))
+);
+
+  if (rows.length === 0) {
+    toast.warning("Aucun produit trouvé sur cette période");
+    return;
+  }
+
+  // Création du fichier Excel
+  const worksheet = XLSX.utils.json_to_sheet(rows);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Produits achetés");
+
+  // Export
+  XLSX.writeFile(
+    workbook, 
+    `Produits_${customer.name}_${startDate}_au_${endDate}.xlsx`
+  );
+};
+
 
   if (!isMounted || isLoading) return <p className="text-center py-8">Chargement en cours...</p>;
   if (error || !customer) return <p className="text-center py-8 text-red-500">Client introuvable</p>;
@@ -109,10 +153,11 @@ export default function DetailCustomerPage() {
           <Button 
             onClick={() => router.back()}
             variant="outline"
-            className="bg-blue-600 text-white hover:bg-blue-700"
+            className="text-white hover:bg-blue-700"
           >
-            ← Retour
+            <ArrowLeft className="w-5 h-5" />
           </Button>
+          <UserPrivateComponent permission="update-user">
           <Button 
             onClick={() => setIsUpdateDialogOpen(true)}
             className="ml-auto bg-blue-600 text-white hover:bg-blue-700"
@@ -120,6 +165,7 @@ export default function DetailCustomerPage() {
           >
             {isUpdating ? "Enregistrement..." : "Modifier"}
           </Button>
+          </UserPrivateComponent>
         </div>
 
         <CardHeader>
@@ -159,21 +205,20 @@ export default function DetailCustomerPage() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <CardTitle>Historique des commandes</CardTitle>
             <div className="flex gap-2">
-              <input
-                type="date"
-                value={dates.startDate}
-                onChange={(e) => setDates(prev => ({...prev, startDate: e.target.value}))}
-                className="border p-2 rounded text-sm"
-              />
-              <input
-                type="date"
-                value={dates.endDate}
-                onChange={(e) => setDates(prev => ({...prev, endDate: e.target.value}))}
-                className="border p-2 rounded text-sm"
-              />
+              <div className="flex space-x-4">
+                  <DatePicker label="" date={startDate} onSelect={(d) => d && setStartDate(d)} />
+                  <DatePicker label="" date={endDate} onSelect={(d) => d && setEndDate(d)} />
+              </div>
+              <Button 
+                onClick={exportToExcel} 
+                className="bg-green-600 text-white hover:bg-green-700"
+              >
+                Exporter Excel
+              </Button>
             </div>
           </div>
-        </CardHeader>
+       </CardHeader>
+
         <CardContent>
           <DataTable
             data={customer.saleInvoice || []}
@@ -195,74 +240,3 @@ export default function DetailCustomerPage() {
     </div>
   );
 }
-{/* <CardContent className="flex space-x-9 space-y-7 mt-5">
-        
-        <div className="flex-1">
-        <p><strong>ID client :</strong> {customer.customId}</p>
-          <p><strong>Email :</strong> {customer.email}</p>
-          <p><strong>Téléphone :</strong> {customer.phone}</p>
-          <p><strong>Nom du responsable :</strong> {customer.nameresponsable}</p>
-          
-          <p><strong>Adresse :</strong> {customer.quarter}</p>
-        </div>
-       
-        <div className="flex-1">
-          <p><strong>Role :</strong> {customer.role}</p>
-          <p><strong>Region :</strong> {customer.region}</p>
-          <p><strong>Ville :</strong> {customer.ville}</p>
-          <p><strong>Type de client :</strong> {customer.type_customer}</p>
-          <p><strong>Site web :</strong> {customer.website}</p>
-        </div>
-      </CardContent> 
-      
-      <CardContent className="space-y-5 mt-5">
-      <p><strong>ID client :</strong> {customer.customId}</p>
-          <p><strong>Email :</strong> {customer.email}</p>
-          <p><strong>Téléphone :</strong> {customer.phone}</p>
-          <p><strong>Nom du responsable :</strong> {customer.nameresponsable}</p>
-          
-          <p><strong>Adresse :</strong> {customer.quarter}</p>
-        <p><strong>Role :</strong> {customer.role}</p>
-          <p><strong>Region :</strong> {customer.region}</p>
-          <p><strong>Ville :</strong> {customer.ville}</p>
-          <p><strong>Type de client :</strong> {customer.type_customer}</p>
-          <p><strong>Site web :</strong> {customer.website}</p>
-      </CardContent>
-      <CardContent>
-          
-            <DataTable
-              
-              data={customer.SaleInvoice || []}
-              columns={columns}
-            />
-          
-        </CardContent>
-        <div className="mt-6">
-        
-        {customer.saleInvoice?.length ? (
-          <table className="min-w-full bg-gray border">
-            <thead>
-              <tr>
-                <th className="border px-4 py-2">N° Facture</th>
-                <th className="border px-4 py-2">Date</th>
-                <th className="border px-4 py-2">Montant</th>
-                <th className="border px-4 py-2">Statut</th>
-              </tr>
-            </thead>
-            <tbody>
-              {customer.saleInvoice.map((invoice) => (
-                <tr key={invoice.id}>
-                  <td className="border px-4 py-2">{invoice.invoiceNumber}</td>
-                  <td className="border px-4 py-2">
-                    {format(new Date(invoice.createdAt), "dd/MM/yyyy HH:mm")}
-                  </td>
-                  <td className="border px-4 py-2">{invoice.finalAmount} FCFA</td>
-                  <td className="border px-4 py-2">{invoice.paymentStatus}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <p>Aucune vente pour cette période.</p>
-        )}
-      </div>*/}

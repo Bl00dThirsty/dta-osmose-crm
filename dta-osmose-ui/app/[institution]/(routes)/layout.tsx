@@ -1,7 +1,7 @@
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import { Metadata } from "next";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { SidebarProvider, SidebarTrigger, SidebarFooter } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/app/[institution]/(routes)/components/app-sidebar"
 
 export const metadata: Metadata = {
@@ -43,6 +43,7 @@ export default async function AppLayout({
 }) {
   const { institution } = await params;
   return (
+    
     <SidebarProvider>
     <div className="flex h-screen w-screen">
       <AppSidebar institution={institution} />
@@ -50,8 +51,10 @@ export default async function AppLayout({
         <Header />
         <div className="overflow-x-auto h-full p-5"> <SidebarTrigger /> {children}</div>
         <Footer />
+        <SidebarFooter/>
       </div>
     </div>
     </SidebarProvider>
+   
   );
 }

@@ -1,7 +1,7 @@
 //useCreateInventoryMutation
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Card, CardContent, CardFooter, CardHeader, CardTitle
 } from "@/components/ui/card";
@@ -14,6 +14,16 @@ import { useParams, useRouter } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+interface InventoryItem {
+  productId: number;
+  designation: string;
+  systemQty: number;
+  countedQty: number;
+  comment: string;
+  brand?: string; // optionnel, si ton produit a une marque
+}
+
+
 const CreateInventory = () => {
     const { institution } = useParams() as { institution: string }
   const [titre, setTitre] = useState("");
@@ -21,6 +31,7 @@ const CreateInventory = () => {
   const [note, setNote] = useState("");
   const [performedById, setPerformedById] = useState<number | undefined>();
   const [inventoryItems, setInventoryItems] = useState<any[]>([]);
+  const [inventoryItem, setInventoryItem] = useState<InventoryItem[]>([]);
   const [createdAt, setcreatedAt] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 8;
@@ -30,6 +41,24 @@ const CreateInventory = () => {
   const { data: users = [] } = useGetUsersQuery();
   const [createInventory] = useCreateInventoryMutation();
   const router = useRouter();
+  const [searchTerm, setSearchTerm] = useState("");
+
+  //Rechercher par produit
+  const filteredItems = useMemo(() => {
+  if (!inventoryItems) return [];
+
+  let items = inventoryItems;
+
+  if (searchTerm.trim()) {
+    const term = searchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // ignore accents
+    items = items.filter(item =>
+      item.designation?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(term) ||
+      item.brand?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(term)
+    );
+  }
+
+  return items;
+}, [inventoryItems, searchTerm]);
 
 
   useEffect(() => {
@@ -38,7 +67,8 @@ const CreateInventory = () => {
       designation: product.designation,
       systemQty: product.quantity,
       countedQty: 0,
-      comment: ""
+      comment: "",
+      brand: product.brand,
     }));
     setInventoryItems(initialItems);
   }, [products]);
@@ -83,10 +113,15 @@ const CreateInventory = () => {
       console.error(error);
     }
   };
+  //  const totalPages = Math.ceil(filteredItems.length / productsPerPage);
+  // const currentItems = filteredItems.slice(
+  //   (currentPage - 1) * productsPerPage,
+  //   currentPage * productsPerPage
+  // );
   
 
-  const currentProducts = inventoryItems.slice(indexOfFirstProduct, indexOfLastProduct);
-  const totalPages = Math.ceil(inventoryItems.length / productsPerPage);
+  const currentProducts = filteredItems.slice(indexOfFirstProduct, indexOfLastProduct);
+  const totalPages = Math.ceil(filteredItems.length / productsPerPage);
 
   return (
     <Card>
@@ -131,6 +166,15 @@ const CreateInventory = () => {
 
         <div className="mt-6">
           <Label className="text-lg font-semibold">Produits</Label>
+          <div className="mb-4">
+            <input
+              type="text"
+              placeholder="Rechercher ...."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className="w-full px-4 py-2 border rounded"
+            />
+          </div>
           <table className="w-full border mt-2">
             <thead className="bg-white-100">
               <tr>

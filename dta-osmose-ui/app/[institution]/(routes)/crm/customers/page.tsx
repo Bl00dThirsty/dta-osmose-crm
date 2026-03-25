@@ -4,27 +4,30 @@ import React from "react";
 import Container from "../../components/ui/Container";
 //import UserPage from "./table/page";
 import { redirect } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState  } from 'react';
 import { useRouter } from 'next/navigation';
-import { columns } from "../../crm/customers/table/components/columns"
-import { DataTable } from "../../crm/customers/table/components/data-table"
+import { columns } from "../../crm/customers/table/columns"
+import { DataTable } from "../../crm/customers/table/data-table"
 import { useGetCustomersQuery } from "@/state/api"
 import { useParams } from "next/navigation"
 
 const CustomersPage = () => {
   const router = useRouter();
   const { institution } = useParams() as { institution: string }
-  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-  
+  const [token, setToken] = useState<string | null>(null);
   useEffect(() => {
-    if (!token) {
+    // Tout ce code ne s'exécute QUE côté client
+    const accessToken = localStorage.getItem('accessToken');
+    setToken(accessToken);
+
+    if (!accessToken) {
       router.push(`/${institution}/sign-in`);
     }
-  }, [token]);
-const { data: customer, isLoading, isError } = useGetCustomersQuery()
+  }, [router, institution]); // token retiré des dépendances
+const { data: customer, isLoading, isError } = useGetCustomersQuery({ institution })
 
 if (isLoading) return <p>Chargement...</p>
-if (isError) return <p>Erreur lors du chargement.</p>
+if (isError) return <p>Vous n'avez pas accès à ces informations. Erreur lors du chargement.</p>
 
 
   return (

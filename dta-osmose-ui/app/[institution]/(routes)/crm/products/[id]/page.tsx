@@ -4,14 +4,28 @@ import { useParams } from "next/navigation";
 import { useGetProductByIdQuery } from "@/state/api"; 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
+  ArrowBigLeft,
   ArrowLeft,
+  ChevronLeft,
+ 
 } from "lucide-react";
 
 export default function DetailUserPage() {
   const router = useRouter();
-  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+
+  const { institution,id } = useParams()as { institution: string; id: string };
+  const [token, setToken] = useState<string | null>(null);
+    useEffect(() => {
+      // Tout ce code ne s'exécute QUE côté client
+      const accessToken = localStorage.getItem('accessToken');
+      setToken(accessToken);
+  
+      if (!accessToken) {
+        router.push(`/${institution}/sign-in`);
+      }
+    }, [router, institution]); // token retiré des dépendances
 
   const InfoItem = ({ label, value, values }: { label: string; value?: string | null; values?: number }) => (
     <div className="flex">
@@ -20,14 +34,11 @@ export default function DetailUserPage() {
     </div>
   );
 
-  useEffect(() => {
-    if (!token) {
-      router.push('/');
-    }
-  }, [token, router]);
 
-  const { id } = useParams();
-  const { data: product, isLoading, error } = useGetProductByIdQuery(id as string);
+  
+
+  const { data: product, isLoading, error } = useGetProductByIdQuery(id);
+
 
   const handleGoBack = () => {
     router.back();
@@ -51,8 +62,8 @@ export default function DetailUserPage() {
       {/* Message Promo si actif */}
       {hasPromo && currentPromo && (
         <div className="mb-4 p-4 rounded-lg bg-green-100 border border-green-300 text-green-800 shadow">
-          🎉 Promo en cours : <span className="font-semibold">{currentPromo.title}</span>  
-           <span className="font-semibold"> -{discountPercentage}%</span> de remise !
+          Promo en cours : <span className="font-semibold">{currentPromo.title}</span>  
+           <span className="font-semibold"> -{discountPercentage}%</span> de remise sur le produit <span className="font-semibold">{product.designation}</span> !
         </div>
       )}
 
@@ -62,8 +73,8 @@ export default function DetailUserPage() {
             onClick={handleGoBack}
             className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
           >
-            <ArrowLeft className="w-5 h-5" />
-            <span>Retour</span>
+            <ChevronLeft className="w-5 h-5" />
+            
           </button>
         </div>
         

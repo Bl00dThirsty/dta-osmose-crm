@@ -29,10 +29,12 @@ import { AppSwitcher } from "./app-switcher";
 import { NavUser } from "@/app/[institution]/(routes)/components/nav-user";
 import {
   navUser,
-  navCustomer,
+  getNavCustomer ,
   NavMainItem,
   NavSubItem,
 } from "@/navigation/sidebar/sidebar_items";
+import { useState, useEffect} from 'react';
+import { usePermissions } from "@/hooks/usePermissions";
 
 const data = {
   user: {
@@ -53,10 +55,18 @@ export function AppSidebar({
   institution,
   ...props
 }: { institution: string } & React.ComponentProps<typeof Sidebar>) {
+  const navCustomer = getNavCustomer(); 
   const pathname = usePathname();
 
-  const userType =
-    typeof window !== "undefined" ? localStorage.getItem("role") : null;
+  const [userType, setUserType] = useState<string | null>(null);
+  useEffect(() => {
+    setUserType(localStorage.getItem('role'));
+  }, []);
+
+  // Empêche le rendu tant que userType n’est pas encore chargé
+  if (userType === null) {
+    return null; // ou un petit spinner
+  }
 
   const menuItems: NavMainItem[] =
     userType === "Particulier" ? navCustomer : navUser;
@@ -73,6 +83,33 @@ export function AppSidebar({
     return items?.some((sub) => pathname.startsWith(`/${institution}/${sub.path}`)) ?? false;
   };
 
+const permissions = usePermissions();
+
+const filterMenu = (items: NavMainItem[]): NavMainItem[] => {
+  return items
+    .map((item) => {
+      // filtre sur l'item principal
+      if (item.permission && !permissions.includes(item.permission)) {
+        return null;
+      }
+
+      // filtre sur les sous-items
+      const subItems = item.items?.filter(
+        (sub) => !sub.permission || permissions.includes(sub.permission)
+      );
+
+      // si l'item n’a pas de sous-items autorisés, et que c’était censé être un menu avec enfants → on l’enlève aussi
+      if (item.items && (!subItems || subItems.length === 0)) {
+        return null;
+      }
+
+      return { ...item, items: subItems };
+    })
+    .filter(Boolean) as NavMainItem[];
+};
+
+const filteredMenuItems = filterMenu(menuItems);
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -85,7 +122,7 @@ export function AppSidebar({
         <SidebarGroup>
           <SidebarGroupLabel>Menu</SidebarGroupLabel>
           <SidebarMenu>
-            {menuItems.map((item) => (
+            {filteredMenuItems.map((item) => (
               <Collapsible
                 key={item.title}
                 asChild

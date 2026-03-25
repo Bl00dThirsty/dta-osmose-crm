@@ -6,14 +6,15 @@ import { PlusIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { DataTableViewOptions } from "@/app/[institution]/(routes)/crm/products/table/components/data-table-view-options"
+import { DataTableViewOptions } from "@/app/[institution]/(routes)/components/table/data-table-view-options"
 
-import { DataTableFacetedFilter } from "../../user/all/table/components/data-table-faceted-filter"
+import { DataTableFacetedFilter } from "@/app/[institution]/(routes)/components/table/data-table-faceted-filter"
 import { AddRoleDialog } from "../../crm/components/AddRole"
 import { useRouter, useParams } from 'next/navigation';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import Papa from "papaparse"
 import { useState } from "react"
+import UserPrivateComponent from "../../components/usePrivateComponent";
 
 type SaleInvoiceFormData = {
   customerId: number;
@@ -49,14 +50,6 @@ export function DataTableToolbar<TData>({
     <div className="flex items-center justify-between">
        <div className="flex flex-1 items-center space-x-2">
         <Input
-          placeholder="Filtrer les inventaires par date..."
-          value={(table.getColumn("createdAt")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("createdAt")?.setFilterValue(event.target.value)
-          }
-          className="h-8 w-[150px] lg:w-[250px]"
-        />
-        <Input
           placeholder="Filtrer les inventaires par titre..."
           value={(table.getColumn("titre")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
@@ -75,7 +68,9 @@ export function DataTableToolbar<TData>({
           </Button>
         )}
       </div>
-      <Button variant="outline" className=" mr-2 bg-blue-500 hover:bg-blue-200" onClick={() => router.push(`/${institution}/inventory`)}>Ajouter <PlusIcon className="ml-2" /></Button>
+      <UserPrivateComponent permission="create-inventory">
+        <Button variant="outline" className=" mr-2 bg-blue-500 hover:bg-blue-200" onClick={() => router.push(`/${institution}/inventory`)}>Ajouter <PlusIcon className="ml-2" /></Button>
+      </UserPrivateComponent>
       <DataTableViewOptions table={table} />
     </div>
   )

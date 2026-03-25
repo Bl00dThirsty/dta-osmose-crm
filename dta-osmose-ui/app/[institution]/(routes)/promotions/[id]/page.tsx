@@ -19,11 +19,22 @@ import {
 } from "@/components/ui/dialog"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label"
+import { ArrowBigLeft, ChevronLeft } from "lucide-react";
 
 export default function PromotionsPage() {
   const { institution } = useParams() as { institution: string }
   const router = useRouter();
-  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+  const [token, setToken] = useState<string | null>(null);
+    useEffect(() => {
+      // Tout ce code ne s'exécute QUE côté client
+      const accessToken = localStorage.getItem('accessToken');
+      setToken(accessToken);
+  
+      if (!accessToken) {
+        router.push(`/${institution}/sign-in`);
+      }
+    }, [router, institution]); // token retiré des dépendances
+    
   const { id } = useParams() as { id:string };
   const { data: promo, isLoading, error } = useGetPromotionsByIdQuery(id);
   useEffect(() => {
@@ -31,9 +42,7 @@ export default function PromotionsPage() {
         router.push('/');
       }
   }, [token]);
-  const handleGoBack = () => {
-    router.back();
-  };
+  
   const [openUpdate, setOpenUpdate] = useState(false);
   const [updatePromotion] = useUpdatePromotionsMutation()
    const { data: products = [] } = useGetProductsQuery({ institution });
@@ -103,7 +112,7 @@ export default function PromotionsPage() {
             variant="outline"
             className="bg-blue-600 text-white hover:bg-blue-700"
           >
-            ← Retour
+            <ChevronLeft className="w-5 h-5" />
           </Button>
           <Button 
             onClick={handleOpenUpdate}

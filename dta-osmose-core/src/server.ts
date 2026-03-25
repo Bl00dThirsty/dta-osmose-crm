@@ -1,7 +1,5 @@
 import express from 'express';
 import cors from 'cors';
-//import multer from "multer";
-//import * as XLSX from "xlsx";
 import fs from "fs";
 import bodyParser from 'body-parser';
 import dotenv from "dotenv";
@@ -28,27 +26,25 @@ import claimRoutes from './routes/claimRoute';
 import NotificationRoutes from './routes/notificationRoutes'
 import InventoryRoutes from './routes/inventoryRoutes'
 import promotionRoutes from "./routes/promotionRoute";
+import PromiseSaleRoutes from "./routes/promiseSaleRoute";
+import ReportRoutes from "./routes/reportRoutes"
+import { startReminderScheduler } from "./utils/reminderScheduler";
 
 export const prisma = new PrismaClient();
 
 dotenv.config();
 const app = express();
 
-//const upload = multer({ dest: "uploads/" });
-
 app.use(helmet());
 app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin"}));
 app.use(morgan("common"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
-// Middleware
-//app.use(cors());
 app.use(cors({
-  origin: 'http://localhost:3000', // <-- autorise le frontend Next.js local
+  origin: 'http://localhost:3000',
   credentials: true,
 }));
 
-//app.use(express.json());
 app.use(express.json({ limit: '100mb' }));
 app.use(cookieParser());
 
@@ -69,14 +65,45 @@ app.use("/claim", claimRoutes);
 app.use("/notification", NotificationRoutes);
 app.use("/inventory", InventoryRoutes);
 app.use("/promotions", promotionRoutes);
+app.use("/salepromise", PromiseSaleRoutes);
+app.use("/report",  ReportRoutes)
 
 // Error handling middleware
 app.use(errorHandler);
 
+// Création du serveur HTTP principal pour Express
 const server = http.createServer(app);
-initWebSocketServer(server);
 
-const PORT = process.env.PORT || 4000;
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// Création d'un serveur HTTP séparé pour Socket.IO
+const wsServer = http.createServer();
+
+// Initialisation de Socket.IO sur le serveur séparé
+initWebSocketServer(wsServer);
+
+// Démarrer le reminder scheduler
+startReminderScheduler();
+
+// Ports différents
+const HTTP_PORT = process.env.PORT || 4000;
+const WS_PORT = process.env.WS_PORT || 4001;
+
+// Démarrer le serveur HTTP principal (Express)
+server.listen(HTTP_PORT, () => {
+  console.log(`🚀 HTTP Server running on port ${HTTP_PORT}`);
+});
+
+// Démarrer le serveur WebSocket séparé
+wsServer.listen(WS_PORT, () => {
+  console.log(`🔌 WebSocket Server running on port ${WS_PORT}`);
+});
+
+// Gestion propre de l'arrêt
+process.on('SIGTERM', () => {
+  console.log('SIGTERM signal received: closing HTTP server');
+  server.close(() => {
+    console.log('HTTP server closed');
+  });
+  wsServer.close(() => {
+    console.log('WebSocket server closed');
+  });
 });

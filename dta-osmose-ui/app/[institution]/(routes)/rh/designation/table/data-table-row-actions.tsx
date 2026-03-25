@@ -33,7 +33,8 @@ import { useDeleteDesignationMutation } from "@/state/api"
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useParams } from "next/navigation";
-import { labels } from "@/app/[institution]/(routes)/crm/products/table/data/data"
+import UserPrivateComponent from "../../../components/usePrivateComponent";
+
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>
@@ -100,11 +101,11 @@ export function DataTableRowActions<TData>({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[160px]">
         {/* <DropdownMenuItem>Modifier</DropdownMenuItem> */}
-        
+        <UserPrivateComponent permission="delete-designation">
             <DropdownMenuItem onSelect={() => setOpen(true)} className="text-red-600">
               Supprimer
             </DropdownMenuItem>
-          
+          </UserPrivateComponent>
         <DropdownMenuSeparator />
       </DropdownMenuContent>
     </DropdownMenu>

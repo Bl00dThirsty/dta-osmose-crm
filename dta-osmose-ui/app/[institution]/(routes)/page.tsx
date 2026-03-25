@@ -18,8 +18,10 @@ import { useRouter } from 'next/navigation';
 import { useParams } from "next/navigation"
 import { DashboardCard } from "./components/dasboard/dashboard-card";
 import { ChartAreaInteractive } from "./components/dasboard/chart-area-interactive";
+import PrintDashboardSheet from "./components/dasboard/PrintDashboardSheet";
 //import { getDynamicTrend } from "@/lib/utils";
 import { getDynamicTrend } from "@/lib/trendUtils";
+import { DatePicker } from "@/components/ui/date-picker";
 
 
 const DashboardPage = () => {
@@ -29,7 +31,11 @@ const DashboardPage = () => {
   const now = new Date();
   const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-//Calcul des p riodes compar es
+
+  const [startDate, setStartDate] = useState<Date | undefined>(firstDayOfMonth);
+  const [endDate, setEndDate] = useState<Date | undefined>(lastDayOfMonth);
+  
+//Calcul des périodes comparées
   const [previousStartDate, setPreviousStartDate] = useState(() => {
   const start = new Date(firstDayOfMonth);
   start.setMonth(start.getMonth() - 1);
@@ -45,22 +51,31 @@ const [previousEndDate, setPreviousEndDate] = useState(() => {
 // R f rencement du conteneur   imprimer
   const printRef = useRef<HTMLDivElement>(null);
 
-  const [startDate, setStartDate] = useState<string>(firstDayOfMonth.toISOString().split("T")[0]);
-  const [endDate, setEndDate] = useState<string>(lastDayOfMonth.toISOString().split("T")[0]);
-  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-
+  const [token, setToken] = useState<string | null>(null);
   useEffect(() => {
-    if (!token) {
+    // Tout ce code ne s'exécute QUE côté client
+    const accessToken = localStorage.getItem('accessToken');
+    setToken(accessToken);
+
+    if (!accessToken) {
       router.push(`/${institution}/sign-in`);
     }
-  }, [token, institution]);
+  }, [router, institution]); // token retiré des dépendances
+  const [userType, setUserType] = useState<string | null>(null);
 
-  const userType = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
+  useEffect(() => {
+    setUserType(localStorage.getItem('role'));
+  }, []);
 
-// R cup ration des m triques depuis l'API
-  const { data: dashboardMetrics } = useGetDashboardMetricsQuery({ institution, startDate, endDate });
+   
+// Récupération des métriques depuis l'API
+  const { data: dashboardMetrics } = useGetDashboardMetricsQuery({
+    institution,
+    startDate: startDate ? startDate.toISOString().split("T")[0] : undefined,
+    endDate: endDate ? endDate.toISOString().split("T")[0] : undefined,
+  });
 
-  // ? R cup ration des donn es actuelles
+  // ? Récupération des données actuelles
 const totalSales = Array.isArray(dashboardMetrics?.saleProfitCount)
   ? dashboardMetrics.saleProfitCount
       .filter(item => item.type === "Ventes")
@@ -80,7 +95,7 @@ const totalInvoices = Array.isArray(dashboardMetrics?.formattedData3)
   : 0;
 
 
-// ? R cup ration des donn es pr c dentes
+// ? Récupération des données précédentes
 const previousSales = Array.isArray(dashboardMetrics?.previousMetrics?.saleProfitCount)
   ? dashboardMetrics.previousMetrics.saleProfitCount
       .filter(item => item.type === "Ventes")
@@ -113,37 +128,21 @@ const { trend: profitTrend, trendDirection: profitTrendDirection } = getDynamicT
 const { trend: invoiceTrend, trendDirection: invoiceTrendDirection } = getDynamicTrend(totalInvoices, previousInvoices);
 const { trend: totalAvailableCreditTrend, trendDirection: totalAvailableCreditTrendDirection } = getDynamicTrend(totalAvailableCredit, previousAvailableCredit);
 
-/*
-console.log("Factures actuelles:", totalInvoices, "Factures pr c dentes:", previousInvoices);
-console.log("Tendances calcul es :");
-console.log(`Ventes : ${salesTrend} (${salesTrendDirection})`);
-console.log(`B n fices : ${profitTrend} (${profitTrendDirection})`);
-console.log(`Nombre de factures : ${invoiceTrend} (${invoiceTrendDirection})`);
 
-console.log("=== M TRIQUES DU DASHBOARD ===");
-console.log("?? Montant total des ventes");
-console.log("  - Actuel :", totalSales.toLocaleString("fr-FR"), " ");
-console.log("  - Pr c dent :", previousSales.toLocaleString("fr-FR"), " ");
-console.log(`  - Tendance : ${salesTrend} (${salesTrendDirection})`);
-console.log("?? totalAvailableCredit:", totalAvailableCredit);
+console.log("Institution:", institution);
 
-console.log("?? B n fices");
-console.log("  - Actuel :", totalProfits.toLocaleString("fr-FR"), " ");
-console.log("  - Pr c dent :", previousProfits.toLocaleString("fr-FR"), " ");
-console.log(`  - Tendance : ${profitTrend} (${profitTrendDirection})`);*/
-
-// Fonction d impression
-  const handlePrint = () => {
-    if (printRef.current) {
-      window.print();
-    }
+const metrics = {
+    totalSales,
+    totalProfits,
+    totalInvoices,
+    totalAvailableCredit,
   };
-
 
   const renderDashboardByRole = () => {
     switch (userType) {
       case "admin":
         return <AdminDashboard
+         institution={institution}
            dashboardMetrics={dashboardMetrics}
             totalSales={totalSales}
             totalProfits={totalProfits}
@@ -172,7 +171,7 @@ console.log(`  - Tendance : ${profitTrend} (${profitTrendDirection})`);*/
           chartData={dashboardMetrics?.chartData || []}
         />;
       case "Particulier":
-        return <ClientDashboard dadashboardMetrics={dashboardMetrics} 
+        return <ClientDashboard dashboardMetrics={dashboardMetrics} 
      totalSales={totalSales} 
      totalProfits={totalProfits} 
      totalInvoices={totalInvoices} 
@@ -180,7 +179,7 @@ console.log(`  - Tendance : ${profitTrend} (${profitTrendDirection})`);*/
      totalAvailableCreditTrendDirection={totalAvailableCreditTrendDirection} 
   />;
       default:
-        return <p>R le non reconnu. Veuillez contacter l'administrateur.</p>;
+        return <p>Role non reconnu. Veuillez contacter l'administrateur.</p>;
     }
   };
 
@@ -192,25 +191,24 @@ console.log(`  - Tendance : ${profitTrend} (${profitTrendDirection})`);*/
       title="Dashboard"
       description="Bienvenue sur le tableau de bord"
     >
-      <div className="flex space-x-4 print:hidden mb-4">
-          <input
-            type="date"
-            value={startDate || ""}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="border-5 p-1 rounded"
-          />
-          <input
-            type="date"
-            value={endDate || ""}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="border-5 p-2 rounded"
-          />
-        <button
-          onClick={handlePrint}
-          className="ml-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
-        >
-          Imprimer le dashboard
-        </button>
+      <div className="flex space-x-4 items-center mb-4">
+        <DatePicker label="" date={startDate} onSelect={(d) => d && setStartDate(d)} />
+        <DatePicker label="" date={endDate} onSelect={(d) => d && setEndDate(d)} />
+
+        {/* 🔹 Impression avec toutes les données nécessaires */}
+        <PrintDashboardSheet
+          userType={userType || "admin"}
+          dashboardMetrics={dashboardMetrics}
+          startDate={startDate || new Date()}
+          endDate={endDate || new Date()}
+          // Passez toutes les données calculées selon le rôle
+          totalSales={totalSales}
+          totalProfits={totalProfits}
+          totalInvoices={totalInvoices}
+          totalAvailableCredit={dashboardMetrics?.totalAvailableCredit}
+          totalUsers={dashboardMetrics?.totalUsers}
+          customerStats={dashboardMetrics?.customerStats}
+        />
       </div>
       
        <div className="hidden print:block p-4" ref={printRef}>
@@ -219,7 +217,7 @@ console.log(`  - Tendance : ${profitTrend} (${profitTrendDirection})`);*/
   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
     {/* B n fices */}
     <div>
-      <strong>B n fices :</strong><br />
+      <strong>Bénéfices :</strong><br />
       {(totalProfits ?? 0).toLocaleString("fr-FR", {
         style: "currency",
         currency: "EUR",
@@ -255,7 +253,7 @@ console.log(`  - Tendance : ${profitTrend} (${profitTrendDirection})`);*/
 
     {/* Utilisateurs enregistr s */}
     <div>
-      <strong>Utilisateurs enregistr s :</strong><br />
+      <strong>Utilisateurs enregistrés :</strong><br />
       {dashboardMetrics?.totalUsers?.toLocaleString() ?? "0"}
     </div>
   </div>
@@ -271,7 +269,7 @@ console.log(`  - Tendance : ${profitTrend} (${profitTrendDirection})`);*/
 
 export default DashboardPage;
 //const { institution } = useParams() as { institution: string }
-const AdminDashboard = ({ dashboardMetrics,
+const AdminDashboard = ({institution, dashboardMetrics,
   totalSales,
   totalProfits,
   totalInvoices,
@@ -378,7 +376,7 @@ const AdminDashboard = ({ dashboardMetrics,
   />
     </div>
     <div className="px-4 lg:px-6">
-          <ChartAreaInteractive institutionSlug="iba" />
+          <ChartAreaInteractive institutionSlug={institution} />
     </div>
   </div>
 </div>
@@ -449,7 +447,7 @@ const AdminDashboard = ({ dashboardMetrics,
                     </span>
                     <br />
                     <span className="text-sm">
-        {(Math.round((dashboardMetrics?.totalAvailableCredit ?? 0) * 655.957)).toLocaleString("fr-FR")} F CFA
+        {(Math.round((dashboardMetrics?.customerStats?.avoirDisponible ?? 0) * 655.957)).toLocaleString("fr-FR")} F CFA
       </span>
     </>
   }
@@ -501,32 +499,3 @@ const AdminDashboard = ({ dashboardMetrics,
   </div>
   </div>
 );
-/*const DashboardCard = ({
-  href,
-  title,
-  children,
-}: {
-  href?: string;
-  title: string;
-  children: React.ReactNode;
-}) => (
-  <Link href={href || "#"}>
-    <Suspense fallback={<LoadingBox />}>
-      <Card className="w-75 justify-between space-x-2">
-        <CardHeader className="flex flex-row items-center justify-between space-y-1">
-          <CardTitle className="text-lg font-semibold">{title}</CardTitle>
-        </CardHeader>
-        <hr />
-        <CardContent>
-          {children}
-        </CardContent>
-        <hr />
-        <CardFooter>
-          <h1>r sum  des infos</h1>
-        </CardFooter>
-      </Card>
-    </Suspense>
-  </Link>
-);*/
-
-

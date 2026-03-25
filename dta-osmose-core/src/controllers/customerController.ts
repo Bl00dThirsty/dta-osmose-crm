@@ -20,17 +20,29 @@ export const getCustomers = async (
     res: Response
   ): Promise<void> => {
     try {
+    const institutionSlug = req.params.institution;
+    const institution = await prisma.institution.findUnique({
+      where: { slug: institutionSlug },
+    });
+
+     if (!institution) {
+      res.status(404).json({ message: "Institution introuvable." });
+      return;
+    }
+      
       const search = req.query.search?.toString();
       const customers = await prisma.customer.findMany({
         where: {
-          name: {
-            contains: search,
-          },
+          // name: {
+          //   contains: search,
+          // },
+          institutionId: institution.id,
         },
         include: {
           credits: true,        
           user: true,          
         },
+        orderBy: { created_at: 'desc' }
       });
       res.json(customers);
     } catch (error) {
@@ -38,22 +50,99 @@ export const getCustomers = async (
     }
   };
 
+  // src/controllers/customerController.ts
+export const getSingleCustomer = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { startDate, endDate } = req.query;
+    const customerId = Number(req.params.id);
+    const institutionSlug = req.params.institution; // AJOUT
+
+    // Vérifier l'institution
+    const institution = await prisma.institution.findUnique({
+      where: { slug: institutionSlug },
+    });
+
+    if (!institution) {
+      res.status(404).json({ message: "Institution introuvable." });
+      return;
+    }
+
+    // Vérifier si l'ID est valide
+    if (!customerId) {
+      res.status(400).json({ message: "ID client manquant" });
+      return;
+    }
+
+    // Vérification de l'existence du client
+    const singleCustomer = await prisma.customer.findUnique({
+      where: { 
+        id: customerId,
+        institutionId: institution.id // AJOUT: Vérifier que le client appartient à l'institution
+      },
+      include: {
+        saleInvoice: {
+          where: {
+            createdAt: {
+              gte: startDate ? new Date(startDate as string) : undefined,
+              lte: endDate ? new Date(endDate as string) : undefined,
+            },
+          },
+          include: {
+            items: {
+              include: { product: true }
+            },
+          },
+          orderBy: {
+            createdAt: "desc", 
+          },
+        },
+        credits: true,        
+        user: true,
+      },
+    });
+
+    if (!singleCustomer) {
+      res.status(404).json({ 
+        message: "Client non trouvé dans cette institution",
+        institution: institutionSlug
+      });
+      return;
+    }
+
+    console.log("Factures du client :", singleCustomer.saleInvoice.length);
+    res.json(singleCustomer);
+  } catch (error) {
+    console.error("Erreur lors de la récupération du client :", error);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+};
+
+
   export const createCustomer = async (req: Request, res: Response): Promise<void> => {
+    const institutionSlug = req.params.institution;
+    const institution = await prisma.institution.findUnique({
+      where: { slug: institutionSlug },
+    });
+      
+    if (!institution) {
+      res.status(404).json({ message: "Institution introuvable." });
+      return;
+    }
     // 1. Log du payload reçu
+
     console.log("Received payload:", req.body);
     try {
     // 2. Nettoyage des données
-    const userAuth = req.auth as { sub?: number };
-    if (!userAuth?.sub) {
-      res.status(401).json({ error: "Utilisateur non authentifié" });
-      return;
-    }
+    
     
     const hash = await bcrypt.hash(req.body.password, saltRounds);
     const payload = {
       ...req.body,
-      userId: userAuth.sub,
       password: hash, // Force l'utilisation de l'UUID auto-généré
+      institutionId: institution.id,
       created_at: undefined,
       updated_at: undefined
     };
@@ -157,47 +246,6 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
 };
 
 
-// src/controllers/customerController.ts
-export const getSingleCustomer = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const { startDate, endDate } = req.query; // Récupérer les dates de la requête
-    const customerId = Number(req.params.id);
-
-    // Vérification de l'existence du client
-    const singleCustomer = await prisma.customer.findUnique({
-      where: { id: customerId },
-      include: {
-        saleInvoice: {
-          where: {
-            createdAt: {
-              gte: startDate ? new Date(startDate as string) : undefined,
-              lte: endDate ? new Date(endDate as string) : undefined,
-            },
-          },
-          orderBy: {
-            createdAt: "desc", 
-          },
-        },
-        credits: true,        
-        user: true,
-          
-      },
-    });
-
-    if (!singleCustomer) {
-      res.status(404).json({ message: "Client non trouvé" });
-      return;
-    }
-    console.log("Factures du client :", singleCustomer.saleInvoice);
-    res.json(singleCustomer);
-  } catch (error) {
-    console.error("Erreur lors de la récupération du client :", error);
-    res.status(500).json({ message: "Erreur serveur" });
-  }
-};
 
 //mise à jour du client
 export const updateSingleCustomer = async (

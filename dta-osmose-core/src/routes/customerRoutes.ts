@@ -1,14 +1,14 @@
 
 import { Router } from "express";
 import { getCustomers, createCustomer, getSingleCustomer, sendTokenResetPassword, resetPassword, updateSingleCustomer, deleteSingleCustomer } from "../controllers/customerController";
-import authorize from "../authorize";
+import authorize from "../utils/authorize";
 const router = Router();
 
-router.get("/", getCustomers);
+router.get("/:institution", ...authorize("readAll-customer"), getCustomers);
+router.get("/:institution/customer/:id", ...authorize("view-Customer"), getSingleCustomer);
+router.post("/:institution", createCustomer);
 router.post("/:institution/sendTokenResetPassword", sendTokenResetPassword);
 router.post("/:institution/resetPassword", resetPassword);
-router.post("/", ...authorize("create-product"), createCustomer);
-router.get("/:id", getSingleCustomer);
-router.put("/:id", updateSingleCustomer)
-router.delete("/:id", deleteSingleCustomer)
+router.put("/:id", ...authorize("update-customer"), updateSingleCustomer)
+router.delete("/:id", ...authorize("delete-customer"), deleteSingleCustomer)
 export default router;

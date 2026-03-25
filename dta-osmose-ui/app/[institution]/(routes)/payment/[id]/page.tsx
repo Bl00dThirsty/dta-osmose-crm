@@ -8,9 +8,11 @@ import { useGetSaleByIdQuery, useUpdateSalePaymentMutation } from '@/state/api';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
-  ArrowLeft,
+  ChevronLeft,
+ 
 } from "lucide-react";
 import { toast } from 'react-toastify';
+import { Checkbox } from "@/components/ui/checkbox";
 
 const PaymentPage = () => {
     const params = useParams();
@@ -19,12 +21,17 @@ const PaymentPage = () => {
   const router = useRouter();
   const { data: sale, isLoading } = useGetSaleByIdQuery(id);
   const [updatePayment] = useUpdateSalePaymentMutation();
-  const userRole = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    setUserRole(localStorage.getItem('role'));
+  }, []);
   const isParticulier = userRole === "Particulier";
   const [paymentMethod, setPaymentMethod] = useState('');
   const [paidAmount, setpaidAmount] = useState(0);
   const [dueAmount, setdueAmount] = useState(0);
   const [discount, setDiscount] = useState(0);
+  const [vatApplicable, setVatApplicable] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (sale) {
@@ -80,7 +87,9 @@ const handleMontantDonneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       paidAmount,
       dueAmount,
       discount,
+      vatApplicable: vatApplicable ?? false,
     }).unwrap();
+    setVatApplicable(null);
     router.push(`/${institution}/sales/${id}`); // retour détail facture
   };
   const handleGoBack = () => {
@@ -166,14 +175,25 @@ const handleMontantDonneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
           onClick={handleGoBack}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-800 transition"
         >
-          ← Retour
+          <ChevronLeft className="w-5 h-5" />
         </button>
       </div>
     <div className="max-w-4xl mx-auto p-4 border-5">
       <h2 className="text-xl mb-4 text-center">Paiement de la facture de vente</h2>
-      
+       {!isParticulier && !sale.vatApplicable && (
+          <div className="flex items-center gap-4 mb-5">
+            <Label>Appliquer la TVA :</Label>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                checked={vatApplicable === true}
+                onCheckedChange={(checked) => setVatApplicable(checked === true ? true : null)}
+              />
+              <Label>Oui</Label>
+            </div>
+          </div>
+        )}
       <Label className='mb-3'>Montant total</Label>
-      <Input disabled value={sale.finalAmount} className="w-full mb-2" />
+      <Input disabled value={sale.finalAmount + " FCFA"} className="w-full mb-2" />
       {!isParticulier && (
         <Label className='mb-3'>Remise additionnelle</Label>
       )}
@@ -189,7 +209,7 @@ const handleMontantDonneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
      )}
 
       <Label className='mb-3'>Montant à payer</Label>
-      <Input value={dueAmount} disabled className="w-full mb-2" />
+      <Input value={dueAmount + " FCFA"} disabled className="w-full mb-2" />
 
       <Label className='mb-3'>Méthode de paiement</Label>
        <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)} className="w-full border rounded-md p-2 mb-3">

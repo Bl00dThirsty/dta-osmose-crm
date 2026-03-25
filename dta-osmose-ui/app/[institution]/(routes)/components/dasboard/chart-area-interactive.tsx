@@ -32,7 +32,7 @@ import { useIsMobile } from "@/hooks/use-mobile"
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
 import { fr } from "date-fns/locale";
-const chartConfig = {
+export const chartConfig = {
   "Nombre vente": {
     label: "Nombre vente",
     color: "var(--primary)",
@@ -108,7 +108,7 @@ export function ChartAreaInteractive({ institutionSlug }: ChartAreaInteractivePr
 
   try {
     const response = await axios.get(
-      `http://localhost:5003/dashboard/${institutionSlug}`,
+      `http://localhost:8000/dashboard/${institutionSlug}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

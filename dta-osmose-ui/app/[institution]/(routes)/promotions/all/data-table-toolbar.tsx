@@ -6,9 +6,9 @@ import { X, Upload } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { DataTableViewOptions } from "@/app/[institution]/(routes)/crm/products/table/components/data-table-view-options"
+import { DataTableViewOptions } from "@/app/[institution]/(routes)/components/table/data-table-view-options"
 
-import { DataTableFacetedFilter } from "./data-table-faceted-filter"
+import { DataTableFacetedFilter } from "@/app/[institution]/(routes)/components/table/data-table-faceted-filter"
 import { AddRoleDialog } from "../../crm/components/AddRole"
 import { useParams } from "next/navigation"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -27,8 +27,9 @@ export function DataTableToolbar<TData>({
   const isFiltered = table.getState().columnFilters.length > 0;
   const { data: Allpromotions } = useGetAllPromotionsQuery({institution})
   const products = Array.from(new Set(Allpromotions?.map((c:any) => c.product?.designation).filter(Boolean))) ?? ["..."];
-  const Status = Array.from(new Set(Allpromotions?.map((c:any) => c.status).filter(Boolean))) ?? ["..."];
-  
+  const Status = Array.from(
+    new Set(Allpromotions?.map((c: any) => (c.status ? "Active" : "Inactive")).filter(Boolean))
+  ) ?? ["..."];
   const [file, setFile] = useState<File | null>(null)   
   
   return (
@@ -53,11 +54,7 @@ export function DataTableToolbar<TData>({
         {table.getColumn("status") && (
           <DataTableFacetedFilter
               column={table.getColumn("status")}
-              title="Statut"
-              // options={[
-              // { label: "Active", value: true },
-              // { label: "Inactive", value: false },
-              // ]}
+              title="Status"
               options={Status.map((s:any) => ({ label: s, value: s }))}
           />
         )}

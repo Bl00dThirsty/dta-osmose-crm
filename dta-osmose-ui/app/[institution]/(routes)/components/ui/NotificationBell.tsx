@@ -120,7 +120,7 @@ function NotificationBell() {
       {/* Icône de cloche */}
       <button onClick={() => setShowNotifications(!showNotifications)}>
         <BellIcon className="w-6 h-6" />
-        {unreadNotifications.length >= 0 && (
+        {unreadNotifications.length > 0 && (
           <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-1">
             {unreadNotifications.length}
           </span>
@@ -128,7 +128,7 @@ function NotificationBell() {
       </button>
       {/* Liste des notifications lorsqu'on clique sur la cloche */}
       {showNotifications && (
-        <div className="notification-list-container1">
+        <div className="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto bg-white shadow-lg rounded-lg p-4 z-50">
           {notifications.map((item) => (
             <Alert
               key={item.id}

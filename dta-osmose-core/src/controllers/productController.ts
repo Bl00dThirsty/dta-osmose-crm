@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
 import { PrismaClient, Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from 'uuid';
+import { toTwoDecimals } from "../utils/round";
 //import { z } from 'zod';
 
 const prisma = new PrismaClient();
-
+const EURO_TO_CFA = 655.957;
 
 
 export const getProducts = async (req: Request, res: Response): Promise<void> => {
@@ -26,6 +27,7 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
+    // Récupération initiale
     const products = await prisma.product.findMany({
       where: {
         institutionId: institution.id,
@@ -36,10 +38,9 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
           },
         }),
       },
-      include: {
-        Promotion: true, 
-      },
+      include: { Promotion: true },
     });
+
 
     res.json(products);
   } catch (error: any) {
@@ -47,6 +48,7 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
     res.status(500).json({ message: "Erreur lors de la recherche des produits." });
   }
 };
+
 
 export const createProduct = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -101,8 +103,7 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-export const importProducts = async (req: Request, res: Response): Promise<void> => {
-
+//export const importProducts = async (req: Request, res: Response): Promise<void> => {
   // try {
   //   const institutionSlug = req.params.institution;
   //   const products: any[] = req.body;
@@ -157,6 +158,8 @@ export const importProducts = async (req: Request, res: Response): Promise<void>
   //   console.error(error);
   //   res.status(500).json({ message: "Erreur lors de l'import." });
   // }
+
+export const importProducts = async (req: Request, res: Response): Promise<void> => {
  try {
     const products = Array.isArray(req.body)
       ? req.body
@@ -216,7 +219,7 @@ export const importProducts = async (req: Request, res: Response): Promise<void>
             sellingPriceTTC,
             restockingThreshold,
             warehouse,
-            institutionId: institution.id,
+            institutionId: institution.id, 
           },
           create: {
             id: uuidv4(),

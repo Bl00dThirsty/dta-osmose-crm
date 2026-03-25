@@ -26,7 +26,7 @@ Create a `backend/.env` file:
 
 ```env
 DATABASE_URL=postgresql://postgres:postgres@postgres:5432/osmose
-PORT=5003
+PORT=8000
 ```
 
 #### Frontend (`.env.local`)
@@ -34,7 +34,7 @@ PORT=5003
 Create a `dta-osmose-crm/dta-osmose-ui/.env.local` file:
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:5003
+NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
 ---
@@ -80,7 +80,7 @@ npm run dev
 ```
 
 Frontend available at: [http://localhost:3000](http://localhost:3000)
-Backend available at: [http://localhost:5003](http://localhost:5003)
+Backend available at: [http://localhost:8000](http://localhost:8000)
 
 ---
 
@@ -126,6 +126,10 @@ docker logs -f dta-osmose-core-postgres-1
 ## Quick Check
 
 - Visit [http://localhost:3000](http://localhost:3000) → frontend should load
+<<<<<<< HEAD
+- Visit [http://localhost:8000/api/products](http://localhost:8000/api/products) → backend should return JSON
+=======
 - Visit [http://localhost:5003/api/products](http://localhost:5003/api/products) → backend should return JSON
+>>>>>>> origin/CRM-IBA-ASP-16
 
 ---

@@ -11,27 +11,34 @@ import { useRouter } from 'next/navigation';
 import { columns } from "./columns"
 import { DataTable } from "./data-table"
 import { useGetInventoryQuery } from '@/state/api';
+import { DatePicker } from "@/components/ui/date-picker";
 
 const InventoryPage = () => {
   const router = useRouter();
-  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+
   const { institution } = useParams() as { institution: string }
-  useEffect(() => {
-    if (!token) {
-      router.push('/');
-    }
-  }, [token]);
-  const now = new Date();
-  const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  const [token, setToken] = useState<string | null>(null);
+    useEffect(() => {
+      // Tout ce code ne s'exécute QUE côté client
+      const accessToken = localStorage.getItem('accessToken');
+      setToken(accessToken);
+  
+      if (!accessToken) {
+        router.push(`/${institution}/sign-in`);
+      }
+    }, [router, institution]); // token retiré des dépendances
 
-  const [startDate, setStartDate] = useState<string>(firstDayOfMonth.toISOString().split("T")[0]);
-  const [endDate, setEndDate] = useState<string>(lastDayOfMonth.toISOString().split("T")[0]);
+   const now = new Date();
+   const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+   const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+ 
+   const [startDate, setStartDate] = useState<string>(firstDayOfMonth.toISOString().split("T")[0]);
+   const [endDate, setEndDate] = useState<string>(lastDayOfMonth.toISOString().split("T")[0]);
 
-const { data: inventory, isLoading, isError } = useGetInventoryQuery({ institution })
+const { data: inventory, isLoading, isError } = useGetInventoryQuery({ institution, startDate, endDate })
 
 if (isLoading) return <p>Chargement...</p>
-if (isError) return <p>Erreur lors du chargement.</p>
+if (isError) return <p>Vous n'avez pas accès à ces informations. Erreur lors du chargement.</p>
 
 
   return (
@@ -42,26 +49,15 @@ if (isError) return <p>Erreur lors du chargement.</p>
     <div className="h-full w-full overflow-x-auto">
       <section className="overflow-hidden rounded-[0.5rem] border bg-background shadow-zinc-50">
       <div className="hidden h-full flex-1 flex-col space-y-8 p-8 md:flex">
-      {/* <div className="flex items-center justify-between space-y-2">
-      <div>
-  
-        <div className="flex space-x-4">
-          <input
-            type="date"
-            value={startDate || ""}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="border-5 p-2 rounded"
-          />
-          <input
-            type="date"
-            value={endDate || ""}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="border-5 p-2 rounded"
-          />
-        </div>
-        
-      </div>
-    </div> */}
+      <div className="flex items-center justify-between space-y-2">
+        <div>        
+          <div className="flex space-x-4">
+            <DatePicker label="" date={new Date(startDate)} onSelect={(d) => d && setStartDate(d.toISOString().split("T")[0])} />
+            <DatePicker label="" date={new Date(endDate)} onSelect={(d) => d && setEndDate(d.toISOString().split("T")[0])} />
+          </div>
+              
+            </div>
+        </div> 
     <DataTable data={inventory || []} columns={columns} />
   </div>
         </section>

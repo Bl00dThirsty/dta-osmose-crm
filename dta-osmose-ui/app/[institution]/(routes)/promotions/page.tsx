@@ -11,6 +11,7 @@ import { useGetProductsQuery, useCreatePromotionsMutation, useGetUsersQuery } fr
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import Container from "../components/ui/Container";
+import { DatePicker } from "@/components/ui/date-picker";
 
 const CreatePromotion = () => {
   const router = useRouter();
@@ -29,8 +30,8 @@ const CreatePromotion = () => {
   const [discount, setDiscount] = useState<number>(0);
   const [creatorId, setCreatorId] = useState<number | undefined>();
   const [productId, setProductId] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [createPromotion] = useCreatePromotionsMutation();
 
    //  Récupérer le produit sélectionné
@@ -41,27 +42,38 @@ const CreatePromotion = () => {
   const finalPrice = productPrice - (productPrice * discount) / 100;
 
   const handleSubmit = async () => {
-    if (!title || !discount || !productId || !startDate || !endDate) {
-      toast.error("Veuillez remplir tous les champs obligatoires.");
-      return;
-    }
+  if (!title || !discount || !productId || !startDate || !endDate) {
+    toast.error("Veuillez remplir tous les champs obligatoires.");
+    return;
+  }
+  const now = new Date();
 
-    try {
-      await createPromotion({
-        institution,
-        title,
-        discount,
-        productId,
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
-        status: true, // promotion active par défaut
-      }).unwrap();
+  if (startDate < now) {
+    toast.error("La date de début de la promotion doit être dans le futur.");
+    return;
+  }
+
+  if (endDate < now) {
+    toast.error("La date de fin de la promotion doit être dans le futur.");
+    return;
+  }
+
+  try {
+    await createPromotion({
+      institution,
+      title,
+      discount,
+      productId,
+      startDate,
+      endDate,
+      status: true, // promotion active par défaut
+    }).unwrap();
 
       toast.success("Promotion enregistrée avec succès !");
       router.push(`/${institution}/promotions/all`);
     } catch (error) {
       toast.error("Erreur lors de l'enregistrement.");
-      toast.info("Verifier si cette promo🎉 n'existe déjà pas ou réessayer autrement")
+      toast.info("Verifier si une promo🎉 sur ce produit n'existe déjà pas ou réessayer autrement")
       console.error(error);
     }
   };
@@ -120,14 +132,15 @@ const CreatePromotion = () => {
             {/* )} */}
           <div>
             <Label className="mb-2">Date début de promotion</Label>
-            <Input className="mb-5" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+            <DatePicker label="" date={startDate} onSelect={(d) => d && setStartDate(d)} />
+                      
           </div>
           <div>
-            <Label className="mb-2">Date fin de promotion</Label>
-            <Input className="mb-5" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+            <Label className="mb-2 mt-5">Date fin de promotion</Label>
+           <DatePicker label="" date={endDate} onSelect={(d) => d && setEndDate(d)} />
           </div>
-          {/* <div>
-            <Label className="mb-2">Créateur</Label>
+         {/* <div>
+            <Label className="mb-2 mt-5">Créateur</Label>
             <select
               className="w-full border border-gray-300 rounded px-3 py-2"
               value={creatorId ?? ""}
@@ -140,7 +153,7 @@ const CreatePromotion = () => {
                 </option>
               ))}
             </select>
-          </div> */}
+          </div>  */}
         </div>
       </CardContent>
 

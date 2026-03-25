@@ -1,10 +1,10 @@
 import { Router } from "express";
 import { updateSetting, getSetting} from "../controllers/settingController";
-import authorize from "../authorize";
+import authorize from "../utils/authorize";
 const router = Router();
 
 
-  router.put("/:id", updateSetting);
-  router.get( "/:institution", getSetting);
+  router.put("/:id", authorize("update-setting"), updateSetting);
+  router.get( "/:institution", authorize("view-setting"), getSetting);
 
 export default router;
