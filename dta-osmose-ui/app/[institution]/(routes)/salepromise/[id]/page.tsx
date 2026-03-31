@@ -3,10 +3,11 @@
 import { useRouter, useParams } from "next/navigation";
 import { ArrowBigLeft, ArrowLeft, ChevronLeft, StepBack } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { useGetSalePromiseByIdQuery, useDeleteSalePromiseMutation } from "@/state/api";
+import { useGetSalePromiseByIdQuery, useDeleteSalePromiseMutation,useUpdateSalePromiseStatusMutation } from "@/state/api";
 import { Button } from "@/components/ui/button";
 import { toast } from "react-toastify";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import {
   Dialog,
   DialogTrigger,
@@ -26,10 +27,13 @@ const SalepromisePage = () => {
   const { institution } = useParams<{ institution: string }>();
   const [deleteSalePromise] = useDeleteSalePromiseMutation()
   const { data: salepromise, isLoading } = useGetSalePromiseByIdQuery(Number(id));
+   const [updateSalePromiseStatus] = useUpdateSalePromiseStatusMutation();
   const [open, setOpen] = useState(false);
   const handleGoBack = () => router.back();
 
-   const handleCancel = async () => {
+  
+
+   /*const handleCancel = async () => {
         if (!id) {
           toast.error("ID de la commande introuvable.")
           return
@@ -49,13 +53,104 @@ const SalepromisePage = () => {
           console.log("Erreur lors de la suppression :")
           toast.error("Erreur lors de l'annulation");
         }
+  };*/
+  const handleCancel = async () => {
+  if (!id) {
+    toast.error("ID de la promesse introuvable.");
+    return;
+  }
+
+  try {
+    // 1️⃣ Mettre à jour le statut du pipeline vers "CLOSED_LOST"
+    await updateSalePromiseStatus({
+      id: Number(id),
+      newStatus: "CLOSED_LOST",
+      performedById: 1, // ton userId connecté
+      action: "Annulation de la promesse (Fermé - Perdu)",
+    }).unwrap();
+
+    // 2️⃣ Mettre à jour localement le sélecteur
+    setSelectedStage("CLOSED_LOST");
+
+    // 3️⃣ Rafraîchir le dashboard
+    toast.warning("Promesse annulée.");
+    setTimeout(() => {
+      router.push(`/${institution}/salepromise/all`);
+      router.refresh(); // recharge le graphe FunnelChart
+    }, 400);
+  } catch (error) {
+    console.error("Erreur lors de l'annulation :", error);
+    toast.error("Erreur lors de l'annulation de la promesse.");
+  }
+};
+
+
+  //Ajouter l’état pour l’étape sélectionnée
+// ⚡ Initialiser selectedStage une fois les données chargées
+  const [selectedStage, setSelectedStage] = useState<string>("LEAD_CAPTURED");
+  useEffect(() => {
+    if (salepromise?.statusPipeline) setSelectedStage(salepromise.statusPipeline);
+  }, [salepromise]);
+
+  // 🔄 Mettre à jour le statut de la promesse
+  const handleUpdateStatus = async (newStatus: string, action?: string) => {
+    if (!id) {
+      toast.error("ID de la promesse introuvable.");
+      return;
+    }
+
+    try {
+      await updateSalePromiseStatus({
+        id: Number(id),
+        newStatus,
+        performedById: 1, // à remplacer par ton userId connecté
+        action: action || `Mise à jour vers ${newStatus}`,
+      }).unwrap();
+
+      toast.success(`Statut mis à jour vers "${newStatus}"`);
+      setSelectedStage(newStatus);
+
+      // Réactualiser la page
+      setTimeout(() => {
+        router.refresh();
+      }, 400);
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour du statut :", error);
+      toast.error("Erreur lors de la mise à jour du statut.");
+    }
   };
 
-
-  const handleValidate = () => {
+  /*const handleValidate = () => {
     router.push(`/${institution}/sales?salePromiseId=${salepromise?.id}`);
     console.log("Valider promesse", id);
-  };
+  };*/
+  const handleValidate = async () => {
+  if (!id) {
+    toast.error("ID de la promesse introuvable.");
+    return;
+  }
+
+  try {
+    //  Mettre à jour le statut du pipeline vers "CLOSED_WON"
+    await updateSalePromiseStatus({
+      id: Number(id),
+      newStatus: "CLOSED_WON",
+      performedById: 1, // ton userId connecté
+      action: "Validation de la promesse (Fermé - Gagné)",
+    }).unwrap();
+
+    //  Mettre à jour localement le selecteur
+    setSelectedStage("CLOSED_WON");
+
+    // Rediriger vers la page des ventes avec la promesse validée
+    toast.success("Promesse validée avec succès !");
+      router.push(`/${institution}/sales?salePromiseId=${salepromise?.id}`);
+  } catch (error) {
+    console.error("Erreur lors de la validation :", error);
+    toast.error("Erreur lors de la validation de la promesse.");
+  }
+};
+
 
   if (isLoading) return <div className="p-6 text-center">Chargement...</div>;
   if (!salepromise) return <div className="p-6 text-center">Réclamation non trouvée</div>;
@@ -97,6 +192,26 @@ const SalepromisePage = () => {
           )}
         </div>
         )}
+
+        <div className="mb-4">
+  <label className="font-semibold mr-2">Étape du pipeline :</label>
+   <Select value={selectedStage} onValueChange={(stage) => handleUpdateStatus(stage, `Passage à l’étape ${stage}`)}>
+    <SelectTrigger className="w-64">
+      <SelectValue placeholder="Sélectionner une étape" />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectItem value="LEAD_CAPTURED">Lead capté</SelectItem>
+      <SelectItem value="CAPTURED">Capté</SelectItem>
+      <SelectItem value="CONTACTED">Contacté</SelectItem>
+      <SelectItem value="QUALIFIED">Qualifié</SelectItem>
+      <SelectItem value="PROPOSAL_SENT">Proposition envoyée</SelectItem>
+      <SelectItem value="NEGOTIATION">Négociation</SelectItem>
+      <SelectItem value="CLOSED_WON">Fermé - Gagné</SelectItem>
+      <SelectItem value="CLOSED_LOST">Fermé - Perdu</SelectItem>
+    </SelectContent>
+  </Select>
+</div>
+
       </div>
 
       {/* Infos générales */}
@@ -224,3 +339,5 @@ const SalepromisePage = () => {
 };
 
 export default SalepromisePage;
+
+

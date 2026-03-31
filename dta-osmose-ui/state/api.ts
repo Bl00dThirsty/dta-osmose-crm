@@ -10,6 +10,8 @@ export interface Product {
   designation: string;
   sellingPriceTTC: number;
   purchase_price: number;
+  sellingPriceCFA: number;
+  purchasePriceCFA?: number;
   restockingThreshold: number;
   warehouse: string;
   Promotion?: Promotion[];
@@ -23,6 +25,8 @@ export interface NewProduct {
   designation: string;
   sellingPriceTTC: number;
   purchase_price: number;
+  sellingPriceCFA: number;
+  purchasePriceCFA?: number;
   restockingThreshold: number;
   warehouse: string;
 }
@@ -103,6 +107,8 @@ export interface salePromiseProduct{
     quantity: number;
     EANCode?: string;
     sellingPriceTTC: number;
+    sellingPriceCFA?: number;
+    purchasePriceCFA?: number;
   }
 }
 
@@ -119,6 +125,7 @@ export interface salePromise {
   customer_address?: string;
   customer_name?: string;
   customer_phone?: string;
+ statusPipeline?: string
   total_amount: number;
   discount: number;
   note: string;
@@ -154,6 +161,8 @@ export interface SaleItemInput {
     quantity: number;
     EANCode?: string;
     sellingPriceTTC: number;
+    sellingPriceCFA?: number;
+    purchasePriceCFA?: number;
   }
 }
 
@@ -173,13 +182,10 @@ export interface SaleInvoice{
   paymentMethod?:   string ;
   ready?: boolean;
   delivred?: boolean;
-  vatApplicable: boolean;
   profit: number;
   createdAt:  Date;
   date?: Date;
   salePromiseId?: number;
-  object?: string;
-  reference?: string;
   items: SaleItemInput[];
   user: {
     id: number;
@@ -202,8 +208,7 @@ export interface SaleInvoice{
    
 }
 
-export interface NewSaleInvoice{  
-  id: string;    
+export interface NewSaleInvoice{      
   invoiceNumber?:   string ;     
   customerId? :     number;
   userId?:          number;
@@ -218,12 +223,9 @@ export interface NewSaleInvoice{
   paymentMethod?:   string ;
   ready?: boolean;
   delivred?: boolean;
-  vatApplicable: boolean;
   profit: number;
   createdAt?:  Date;
   date?: Date;
-  object?: string;
-  reference?: string;
   salePromiseId?: number;
   items: SaleItemInput[];
   user?: {
@@ -430,6 +432,8 @@ export interface Promotion {
     quantity: number;
     EANCode?: string;
     sellingPriceTTC: number;
+    sellingPriceCFA: number;
+    purchasePriceCFA: number;
   }  
 }
 
@@ -451,6 +455,8 @@ export interface NewPromotion {
     quantity: number;
     EANCode?: string;
     sellingPriceTTC: number;
+    sellingPriceCFA: number;
+    purchasePriceCFA?: number;
   }
 }
 
@@ -519,7 +525,7 @@ chartData?: {
       avoirDisponible: number;
       nombreCommandesImpaye: number;
     };*/
-    // ✅ Ajout : données de la période précédente
+    //  Ajout : données de la période précédente
   previousMetrics?: {
     saleProfitCount: MetricItem[];
     formattedData3: MetricItem[];
@@ -538,6 +544,14 @@ export interface PipelineStage {
   topCustomers: any;
   topProducts: any;
   lowProducts: any;
+   newProspectsCount: number;     
+  proposalsSentCount: number;   
+  totalRevenue: number;           
+  previousRevenue: number; 
+  revenueGrowth: number; // en %
+  currentRevenue: number;       
+  revenueData: { month: string; revenue: number }[];
+  
   salesByProduct: {
     totalSales: any;
     productId: string;
@@ -586,7 +600,7 @@ export const api = createApi({
 
     endpoints: (build) => ({
 
-// ============================================================================
+      // ============================================================================
 // DASHBOARD ENDPOINTS
 // Auteur : Malonguem Laura
 // Description : Gestion du contenu et de l'affichage des dashboards
@@ -818,15 +832,11 @@ export const api = createApi({
           invalidatesTags: ['Inventorys', 'Products']
         }),
 
-        getInventory: build.query<Inventory[], { institution: string; startDate?: string; endDate?: string }>({
-          query: ({ institution, startDate, endDate }) => {
-            const params = new URLSearchParams();
-            if (startDate) params.append("startDate", startDate);
-            if (endDate) params.append("endDate", endDate);
-
-            return `/inventory/${institution}/all?${params.toString()}`;
-              
-          },
+        getInventory: build.query<Inventory[], { institution: string; search?: string }>({
+          query: ({ institution, search }) => ({
+              url: `/inventory/${institution}/all`,
+              params: search ? { search } : {}
+          }),
           providesTags: ["Inventorys"]
         }),
 
@@ -889,6 +899,7 @@ export const api = createApi({
           customer_address?: string;
           customer_name?: string;
           customer_phone?: string;
+          statusPipeline?: string;
           institution: string;
          }>({
           query: ({ institution, ...data }) => ({
@@ -944,7 +955,15 @@ export const api = createApi({
         invalidatesTags: (result, error, id ) => [{ type: "SalePromise", id }, "Products"],
       }),
 
-// ============================================================================
+        updateSalePromiseStatus: build.mutation({
+        query: ({ id, newStatus, performedById, action }) => ({
+          url: `/salepromise/${id}/status`,  // l'ID doit être dans l'URL
+          method: "PUT",
+          body: { newStatus, performedById, action },
+        }),
+      }),
+
+        // ============================================================================
 // SALES ENDPOINTS
 // Auteur : Azambou Yvana
 // Description : Gestion complète des ventes et factures
@@ -965,7 +984,6 @@ export const api = createApi({
           paymentMethod?: string;
           salePromiseId?: number;
           institution: string;
-          date?: Date;
          }>({
           query: ({ institution, ...data }) => ({
               url: `/sale/${institution}/sale`,
@@ -977,7 +995,9 @@ export const api = createApi({
 
 
         /* Vérifie si un client a des dettes en cours (statut de solde) */
-        getCustomerDebtStatus: build.query<{ hasDebt: boolean}, {customerId: number, institution: string}>({
+        getCustomerDebtStatus: build.query<{
+          amountDue: ReactNode; hasDebt: boolean
+}, {customerId: number, institution: string}>({
           query: ({customerId, institution}) => `/sale/${institution}/${customerId}/debt-status`,
         }),        
 
@@ -1015,11 +1035,11 @@ export const api = createApi({
        }),
 
        /* Gère le paiement d'une vente (méthode, montant, solde) */
-       updateSalePayment: build.mutation<SaleInvoice, { id: string; paymentMethod: string; paidAmount: number; dueAmount:number; discount?:number; vatApplicable:boolean }>({
-        query: ({ id, paymentMethod, paidAmount, dueAmount, discount, vatApplicable }) => ({
+       updateSalePayment: build.mutation<SaleInvoice, { id: string; paymentMethod: string; paidAmount: number; dueAmount:number; discount?:number }>({
+        query: ({ id, paymentMethod, paidAmount, dueAmount, discount }) => ({
           url: `/sale/${id}/payment`,
           method: 'PATCH',
-          body: { paymentMethod, paidAmount, dueAmount, discount, vatApplicable }
+          body: { paymentMethod, paidAmount, dueAmount, discount }
         }),
         invalidatesTags: (result, error, { id }) => [{ type: 'Sales', id }]
       }),
@@ -1033,7 +1053,7 @@ export const api = createApi({
         invalidatesTags: (result, error, id ) => [{ type: "Sales", id }, "Products"],
       }),
       
-// ============================================================================
+       // ============================================================================
 // CLAIMS ENDPOINTS (RÉCLAMATIONS)
 // Auteur : Azambou Yvana
 // Description : Gestion des réclamations clients sur les ventes
@@ -1269,13 +1289,13 @@ les endpoint d'affectation des permissions aux roles sont defini */
           }),
            
            /* Récupère le profil client avec historique des commandess sur période */
-           getCustomerById: build.query<Customer, { id: string; startDate?: string; endDate?: string; institution: string }>({
-            query: ({ id, startDate, endDate, institution }) => {
+           getCustomerById: build.query<Customer, { id: string; startDate?: string; endDate?: string }>({
+            query: ({ id, startDate, endDate }) => {
               const params = new URLSearchParams();
               if (startDate) params.append("startDate", startDate);
               if (endDate) params.append("endDate", endDate);
       
-              return `/customer/${institution}/customer/${id}?${params.toString()}`;
+              return `/customer/${id}?${params.toString()}`;
             },
             providesTags: (result, error, { id }) => [{ type: "Customers", id }],
           }),
@@ -1383,7 +1403,7 @@ export const { useGetDashboardMetricsQuery,useGetDashboardSalesQuery, useCreateR
   useCreatePromotionsMutation, useGetActivePromotionsQuery, useUpdatePromotionStatusMutation, useGetAllPromotionsQuery, useGetPromotionsByIdQuery, useUpdatePromotionsMutation, useDeletePromotionsMutation, 
   useGetProductsQuery, useCreateProductMutation, useGetProductByIdQuery, useDeleteProductMutation,useUpdateProductMutation, useImportProductsMutation,
   useCreateInventoryMutation, useGetInventoryQuery, useGetInventoryIdQuery, useUpdateInventoryMutation, useDeleteInventoryMutation, useCreateSaleMutation, useGetCustomerDebtStatusQuery, 
-  useCreateSalePromiseMutation, useGetSalePromiseQuery, useGetSalesQuery, useGetSalePromiseByIdQuery, useDeleteSalePromiseMutation, useGetSalePromiseByCustomerQuery,
+  useCreateSalePromiseMutation, useGetSalePromiseQuery, useGetSalesQuery, useGetSalePromiseByIdQuery, useDeleteSalePromiseMutation, useGetSalePromiseByCustomerQuery,useUpdateSalePromiseStatusMutation,
     useGetSaleByIdQuery,useUpdateSaleStatusMutation, useUpdateSalePaymentMutation, useDeleteSaleInvoiceMutation, useCreateClaimMutation, 
     useRespondToClaimMutation, useUpdateClaimResponseMutation, useGetClaimQuery, useGetClaimPendingQuery, useGetClaimByIdQuery, useDeleteClaimMutation, useGetDepartmentsQuery, 
     useCreateDepartmentsMutation, useDeleteDepartmentsMutation,

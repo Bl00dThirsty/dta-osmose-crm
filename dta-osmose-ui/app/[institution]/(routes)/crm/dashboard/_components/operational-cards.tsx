@@ -1,7 +1,8 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { Clock } from "lucide-react";
-import { FunnelChart, Funnel, LabelList } from "recharts";
+import { FunnelChart, Funnel, LabelList, Cell } from "recharts";
 
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from "@/components/ui/card";
 import { ChartContainer } from "@/components/ui/chart";
@@ -9,9 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { formatCurrency, cn } from "@/lib/utils";
 
-import { salesPipelineChartData, salesPipelineChartConfig, actionItems } from "./crm.confg";
-import { number } from "zod";
-import { useGetDashboardSalesQuery } from "@/state/api";
+import { actionItems } from "./crm.confg";
 
 interface OperationalCardsProps {
   salesByCity: {
@@ -23,30 +22,104 @@ interface OperationalCardsProps {
     growth: string;
     isPositive: boolean;
   }[];
-  isLoading: boolean; 
+  pipeline?: {
+    stage: string;
+    value: number;
+    trend: number;
+  }[];
+  isLoading: boolean;
 }
 
+const funnelChartConfig = {
+  funnel: {
+    label: "Pipeline",
+  },
+} as const;
 
-export function OperationalCards({ salesByCity, isLoading }: OperationalCardsProps) {
+ // Ordre logique du pipeline
+const stageOrder = [
+  "LEAD_CAPTURED",
+  "CAPTURED",
+  "CONTACTED",
+  "QUALIFIED",
+  "PROPOSAL_SENT",
+  "NEGOTIATION",
+  "CLOSED_WON",
+  "CLOSED_LOST",
+];
+
+export function OperationalCards({ salesByCity, pipeline = [], isLoading }: OperationalCardsProps) {
   const totalSales = salesByCity.reduce((sum, city) => sum + city.totalSales, 0);
+  const pipelineLoading = !pipeline || pipeline.length === 0;
+
+  // Couleurs thématiques pour le Funnel
+  const funnelChartColors = [
+   "var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)"
+  ];
+
+  const totalTrend = useMemo(
+    () => pipeline.reduce((acc, p) => acc + p.trend, 0),
+    [pipeline]
+  );
+// Tri dans l’ordre défini ci-dessus
+const sortedPipeline = useMemo(() => {
+  return [...pipeline].sort(
+    (a, b) => stageOrder.indexOf(a.stage) - stageOrder.indexOf(b.stage)
+  );
+}, [pipeline]);
+   console.log("Pipeline Data:", sortedPipeline);
+
   return (
     <div className="grid grid-cols-1 gap-4 *:data-[slot=card]:shadow-xs sm:grid-cols-2 xl:grid-cols-3">
+      {/* -------- Pipeline Commercial -------- */}
       <Card>
         <CardHeader>
-          <CardTitle>Pipeline Commercial (soon)</CardTitle>
+          <CardTitle>Pipeline Commercial</CardTitle>
         </CardHeader>
         <CardContent className="size-full">
-          <ChartContainer config={salesPipelineChartConfig} className="size-full">
-            <FunnelChart margin={{ left: 0, right: 0, top: 0, bottom: 0 }}>
-              <Funnel className="stroke-card stroke-2" dataKey="value" data={salesPipelineChartData}>
-                <LabelList className="fill-foreground stroke-0" dataKey="stage" position="right" offset={10} />
-                <LabelList className="fill-foreground stroke-0" dataKey="value" position="left" offset={10} />
-              </Funnel>
-            </FunnelChart>
-          </ChartContainer>
+          {pipelineLoading ? (
+            <p className="text-sm text-muted-foreground">Chargement...</p>
+          ) : (
+        <ChartContainer className="w-full h-64" config={funnelChartConfig}>
+              <FunnelChart width={400} height={300}>
+                <Funnel
+                  data={sortedPipeline}
+                  dataKey="value"
+                  nameKey="stage"
+                  isAnimationActive={true}
+                 
+                >
+                  {sortedPipeline.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={funnelChartColors[index % funnelChartColors.length]}
+                    />
+                  ))}
+                  {/* Nom de l’étape à droite */}
+                  <LabelList
+                    dataKey="stage"
+                    position="right"
+                    offset={10}
+                    className="fill-foreground"
+                  />
+                  {/* Valeur à gauche */}
+                  <LabelList
+                    dataKey="value"
+                    position="left"
+                    offset={10}
+                    className="fill-foreground"
+                  />
+                </Funnel>
+              </FunnelChart>
+            </ChartContainer>
+          )}
         </CardContent>
         <CardFooter>
-          <p className="text-muted-foreground text-xs">Les prospects ont augmenté de 18,2 % depuis le mois dernier.</p>
+          <p className="text-muted-foreground text-xs">
+            {pipeline.length > 0
+              ? `Variation totale : ${pipeline.reduce((acc, p) => acc + p.trend, 0).toFixed(1)} % depuis le mois dernier.`
+              : "Aucune donnée disponible."}
+          </p>
         </CardFooter>
       </Card>
      <Card>

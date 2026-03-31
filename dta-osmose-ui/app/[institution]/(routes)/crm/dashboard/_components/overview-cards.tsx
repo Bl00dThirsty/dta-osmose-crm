@@ -16,19 +16,51 @@ import {
   revenueChartConfig,
 } from "./crm.confg";
 
-const lastMonth = format(subMonths(new Date(), 1), "LLLL");
+type RevenueData = { month: string; revenue: number };
 
-export function OverviewCards() {
+export function OverviewCards({
+  newProspects = 0,
+  proposalsSent = 0,
+  totalRevenue = 0,
+  currentRevenue = 0,
+   previousRevenue = 0,
+  revenueGrowth = 0,
+  revenueData = [],
+}: {
+  newProspects: number;
+  proposalsSent: number;
+  totalRevenue: number;
+  previousRevenue: number;
+  revenueGrowth: number; 
+  currentRevenue: number;
+  revenueData: RevenueData[];
+}) {
+  const lastMonth = format(subMonths(new Date(), 1), "LLLL");
+  // 🧮 Calcul de la croissance du revenu (%)
+  const growthRate =
+    previousRevenue > 0 ? ((totalRevenue - previousRevenue) / previousRevenue) * 100 : 0;
+  const isPositive = growthRate >= 0;
+  const isPositiveGrowth = revenueGrowth >= 0;
+
+  // 💶 Format du montant
+  const formatCurrency = (value: number) =>
+    value.toLocaleString("fr-FR", {
+      style: "currency",
+      currency: "EUR",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    });
+
   return (
     <div className="grid grid-cols-1 gap-4 *:data-[slot=card]:shadow-xs sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
       <Card>
         <CardHeader>
-          <CardTitle>Nouveaux Prospects (soon)</CardTitle>
-          <CardDescription>Mois Dernier</CardDescription>
+          <CardTitle>Nouveaux Prospects </CardTitle>
+          <CardDescription>Mois Dernier ({lastMonth})</CardDescription>
         </CardHeader>
         <CardContent className="size-full">
           <ChartContainer className="size-full min-h-24" config={leadsChartConfig}>
-            <BarChart accessibilityLayer data={leadsChartData} barSize={8}>
+            <BarChart accessibilityLayer data={[{ date: lastMonth, newLeads: newProspects }]} barSize={8}>
               <XAxis dataKey="date" tickLine={false} tickMargin={10} axisLine={false} hide />
               <ChartTooltip content={<ChartTooltipContent labelFormatter={(label) => `${lastMonth}: ${label}`} />} />
               <Bar
@@ -43,20 +75,20 @@ export function OverviewCards() {
           </ChartContainer>
         </CardContent>
         <CardFooter className="flex items-center justify-between">
-          <span className="text-xl font-semibold tabular-nums">635</span>
-          <span className="text-sm font-medium text-green-500">+54.6%</span>
+          <span className="text-xl font-semibold tabular-nums">{newProspects}</span>
+          <span className="text-sm font-medium text-green-500">+{newProspects > 0 ? "100%" : "0%"}</span>
         </CardFooter>
       </Card>
 
       <Card className="overflow-hidden pb-0">
         <CardHeader>
-          <CardTitle>Propositions envoyées (soon) </CardTitle>
-          <CardDescription>Mois Dernier</CardDescription>
+          <CardTitle>Propositions envoyées  </CardTitle>
+          <CardDescription>Mois Dernier ({lastMonth})</CardDescription>
         </CardHeader>
         <CardContent className="flex-1 p-0">
           <ChartContainer className="size-full min-h-24" config={proposalsChartConfig}>
             <AreaChart
-              data={proposalsChartData}
+               data={[{ date: lastMonth, proposalsSent }]}
               margin={{
                 left: 0,
                 right: 0,
@@ -78,6 +110,12 @@ export function OverviewCards() {
             </AreaChart>
           </ChartContainer>
         </CardContent>
+        <CardFooter className="flex items-center justify-between p-4">
+          <span className="text-xl font-semibold tabular-nums">{proposalsSent}</span>
+          <span className="text-sm font-medium text-green-500">
+            +{proposalsSent > 0 ? "100%" : "0%"}
+          </span>
+        </CardFooter>
       </Card>
 
       <Card>
@@ -91,8 +129,17 @@ export function OverviewCards() {
             <CardTitle>Revenu</CardTitle>
             <CardDescription>6 Deriers Mois</CardDescription>
           </div>
-          <p className="text-2xl font-medium tabular-nums">56,050 €</p>
-          <div className="w-fit rounded-md bg-green-500/10 px-2 py-1 text-xs font-medium text-green-500">+22.2%</div>
+          <p className="text-2xl font-medium tabular-nums">{formatCurrency(totalRevenue)}</p>
+           <div
+            className={`w-fit rounded-md px-2 py-1 text-xs font-medium ${
+              isPositive
+                ? "bg-green-500/10 text-green-500"
+                : "bg-red-500/10 text-red-500"
+            }`}
+          >
+            {isPositive ? "+" : ""}
+            {growthRate.toFixed(1)}%
+          </div>
         </CardContent>
       </Card>
 
@@ -115,35 +162,29 @@ export function OverviewCards() {
       <Card className="col-span-1 xl:col-span-2">
         <CardHeader>
           <CardTitle>Croissance du chiffre d'affaires</CardTitle>
-          <CardDescription>Il y a un an (YTD)</CardDescription>
+          <CardDescription>Comparé à l'année dernière</CardDescription>
         </CardHeader>
         <CardContent>
           <ChartContainer config={revenueChartConfig} className="h-24 w-full">
-            <LineChart
-              data={revenueChartData}
-              margin={{
-                top: 5,
-                right: 10,
-                left: 10,
-                bottom: 0,
-              }}
-            >
-              <XAxis dataKey="month" tickLine={false} tickMargin={10} axisLine={false} hide />
+            <LineChart data={revenueData}>
+              <XAxis dataKey="month" hide />
               <ChartTooltip content={<ChartTooltipContent />} />
               <Line
                 type="monotone"
                 strokeWidth={2}
                 dataKey="revenue"
                 stroke="var(--color-revenue)"
-                activeDot={{
-                  r: 6,
-                }}
+                activeDot={{ r: 6 }}
               />
             </LineChart>
           </ChartContainer>
         </CardContent>
         <CardFooter>
-          <p className="text-muted-foreground text-sm">+35 % de croissance depuis l'année dernière</p>
+          <p className="text-muted-foreground text-sm">
+            {isPositiveGrowth
+              ? `+${revenueGrowth.toFixed(1)}% de croissance depuis l'année dernière`
+              : `${revenueGrowth.toFixed(1)}% de baisse depuis l'année dernière`}
+          </p>
         </CardFooter>
       </Card>
     </div>

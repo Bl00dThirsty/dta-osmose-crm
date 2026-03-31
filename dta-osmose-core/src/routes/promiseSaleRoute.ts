@@ -1,5 +1,5 @@
 import { Router } from "express";
-import {getSalePromise, createSalePromise, getSalePromiseById, getSalePromiseByCustomer, deleteSalePromise } from "../controllers/promiseSaleConroller";
+import {getSalePromise, createSalePromise, getSalePromiseById, getSalePromiseByCustomer, deleteSalePromise,updateSalePromiseStatus } from "../controllers/promiseSaleConroller";
 //const authorize = require("../authorize");
 import authorize from "../utils/authorize";
 
@@ -10,5 +10,7 @@ router.get("/:institution/all", ...authorize("readAll-promiseSale"), getSaleProm
 router.get("/customer", ...authorize("readAll-salePromiseBycustomer"), getSalePromiseByCustomer);
 router.get("/:id", ...authorize("view-promiseSale"), getSalePromiseById);
 router.delete("/:id", ...authorize("delete-salePromise"), deleteSalePromise);
+router.put("/:id/status", updateSalePromiseStatus);
+
 
 export default router;

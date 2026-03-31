@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { PrismaClient, Prisma } from "@prisma/client";
+import { PrismaClient, Prisma, SalePromiseStatus } from "@prisma/client";
 import { v4 as uuidv4 } from 'uuid';
 const {
   notifyUserOrCustomer,
@@ -32,7 +32,8 @@ export const createSalePromise = async (req: Request, res: Response): Promise<vo
   dueDate, 
   customer_address, 
   customer_name, 
-  customer_phone  
+  customer_phone,  
+  statusPipeline
 } = req.body as {
   customerId?: number;
   items: salePromiseProduct[];
@@ -43,6 +44,7 @@ export const createSalePromise = async (req: Request, res: Response): Promise<vo
   customer_phone?: string;
   customer_name?: string;
   customer_address?: string;
+  statusPipeline?: SalePromiseStatus;
 };
 
    
@@ -116,6 +118,7 @@ export const createSalePromise = async (req: Request, res: Response): Promise<vo
         customer_phone,
         customer_name,
         customer_address,
+        statusPipeline: statusPipeline || "CAPTURED",
         items: {
           create: items.map((item) => ({
             product_id: item.product_id,
@@ -152,6 +155,18 @@ export const createSalePromise = async (req: Request, res: Response): Promise<vo
       }
     });
 
+    // Historiser la création dans pipelineHistory
+    await prisma.pipelineHistory.create({
+      data: {
+        salePromiseId: invoice.id,
+        previousStatus: "CREATION",
+        newStatus: invoice.statusPipeline,
+        action: "création de promesse",
+        performedById: creatorType === "user" ? Number(creatorId) : null,
+      },
+    });
+
+    // Notifications
     if (creatorType === "customer") {
        await notifyAllUsers(
         null,
@@ -481,6 +496,46 @@ export const deleteSalePromise = async (req: Request, res: Response): Promise<vo
   } catch (error) {
     console.error("Erreur lors de l'annulation de la commande :", error);
     res.status(500).json({ error: "Erreur lors de l'annulation de la commande." });
+  }
+};
+
+// Mettre ceci à la fin du fichier, après deleteSalePromise
+
+export const updateSalePromiseStatus = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { newStatus, performedById, action } = req.body;
+
+    const salePromise = await prisma.salePromise.findUnique({
+      where: { id: Number(id) },
+      select: { statusPipeline: true },
+    });
+
+    if (!salePromise) {
+      return res.status(404).json({ message: "Sale promise not found" });
+    }
+ 
+    const performedId = performedById || req.auth?.sub;
+    const updated = await prisma.salePromise.update({
+      where: { id: Number(id) },
+      data: { statusPipeline: newStatus },
+    });
+
+    // Historisation du changement
+    await prisma.pipelineHistory.create({
+      data: {
+        salePromiseId: Number(id),
+        previousStatus: salePromise.statusPipeline,
+        newStatus,
+        action: action || `Changement d'étape: ${newStatus}`,
+        performedById: performedById || null,
+      },
+    });
+
+    res.json(updated);
+  } catch (error) {
+    console.error("Erreur update pipeline:", error);
+    res.status(500).json({ message: "Erreur lors de la mise à jour du pipeline" });
   }
 };
 
